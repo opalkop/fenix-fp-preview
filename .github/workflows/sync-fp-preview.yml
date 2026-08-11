@@ -1,0 +1,44 @@
+name: Sync FP Preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-fp-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: ${{ !contains(github.event.head_commit.message || '', 'Sync FP preview from source') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout preview repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone current FP source
+        run: |
+          git clone --depth 1 --branch feature/fenix-portable-mobile https://github.com/opalkop/fenix.git /tmp/fenix-source
+
+      - name: Mirror FP into preview
+        run: |
+          rsync -a --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            /tmp/fenix-source/ ./
+
+      - name: Commit synchronized preview
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Preview already matches source."
+            exit 0
+          fi
+          git commit -m "Sync FP preview from source [skip ci]"
+          git push
