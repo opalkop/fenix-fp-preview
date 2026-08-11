@@ -20,7 +20,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Clone current FP source
+      - name: Download current FP source
         env:
           FENIX_SOURCE_TOKEN: ${{ secrets.FENIX_SOURCE_TOKEN }}
         run: |
@@ -28,9 +28,20 @@ jobs:
             echo "FENIX_SOURCE_TOKEN secret is missing."
             exit 1
           fi
-          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$FENIX_SOURCE_TOKEN" | base64 -w0)" \
-            clone --depth 1 --branch feature/fenix-portable-mobile \
-            https://github.com/opalkop/fenix.git /tmp/fenix-source
+          mkdir -p /tmp/fenix-source
+          curl --fail --location \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $FENIX_SOURCE_TOKEN" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "https://api.github.com/repos/opalkop/fenix/zipball/feature/fenix-portable-mobile" \
+            -o /tmp/fenix-source.zip
+          unzip -q /tmp/fenix-source.zip -d /tmp/fenix-unpacked
+          SOURCE_DIR="$(find /tmp/fenix-unpacked -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          if [ -z "$SOURCE_DIR" ]; then
+            echo "Downloaded archive did not contain a source directory."
+            exit 1
+          fi
+          rsync -a "$SOURCE_DIR/" /tmp/fenix-source/
 
       - name: Mirror FP into preview
         run: |
