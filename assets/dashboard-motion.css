@@ -1,0 +1,134 @@
+/* FENIX Dashboard Motion — presentation only. No application logic lives here. */
+html.fenix-motion .dashboard-v2 .sidebar,
+html.fenix-motion .dashboard-v2 .topbar,
+html.fenix-motion .dashboard-v2 .project-strip,
+html.fenix-motion .dashboard-v2 .stats .stat,
+html.fenix-motion .dashboard-v2 .modules-heading{
+  opacity:0;
+  will-change:transform,opacity,filter;
+}
+
+/* Sidebar: soft fog reveal instead of a conventional slide-in. */
+html.fenix-motion .dashboard-v2 .sidebar{
+  transform:translateX(-8px) scale(.992);
+  filter:blur(10px);
+}
+html.fenix-motion .dashboard-v2 .topbar{transform:translateY(-10px)}
+html.fenix-motion .dashboard-v2 .project-strip{transform:translateY(10px)}
+html.fenix-motion .dashboard-v2 .stats .stat{transform:translateY(12px)}
+html.fenix-motion .dashboard-v2 .modules-heading{transform:translateY(9px)}
+
+html.fenix-motion.fenix-motion-start .dashboard-v2 .sidebar,
+html.fenix-motion.fenix-motion-start .dashboard-v2 .topbar,
+html.fenix-motion.fenix-motion-start .dashboard-v2 .project-strip,
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat,
+html.fenix-motion.fenix-motion-start .dashboard-v2 .modules-heading{
+  opacity:1;
+  transform:none;
+  filter:none;
+}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .sidebar{
+  transition:opacity .48s ease,transform .54s cubic-bezier(.16,.84,.28,1),filter .56s ease;
+}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .topbar{transition:opacity .24s .08s ease,transform .30s .08s cubic-bezier(.2,.75,.25,1)}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .project-strip{transition:opacity .26s .14s ease,transform .32s .14s cubic-bezier(.2,.75,.25,1)}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat{transition:opacity .26s ease,transform .32s cubic-bezier(.2,.75,.25,1)}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(1){transition-delay:.20s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(2){transition-delay:.25s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(3){transition-delay:.30s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(4){transition-delay:.35s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .modules-heading{transition:opacity .28s .40s ease,transform .34s .40s cubic-bezier(.2,.75,.25,1)}
+
+/* Cards use a distinct entrance: soft fall + materialization from depth. */
+html.fenix-motion .dashboard-v2 .module.motion-card-in{
+  opacity:0;
+  transform:translateY(-28px) scale(.962);
+  filter:blur(6px);
+  animation:fenix-module-land .58s cubic-bezier(.16,.84,.28,1) var(--motion-delay,0ms) forwards;
+  will-change:transform,opacity,filter;
+}
+@keyframes fenix-module-land{
+  0%{opacity:0;transform:translateY(-28px) scale(.962);filter:blur(6px)}
+  72%{opacity:1;transform:translateY(2px) scale(1.006);filter:blur(.4px)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+html.fenix-motion .dashboard-v2 .module.motion-card-ready{
+  opacity:1;
+  filter:none;
+  transform:translateY(0) scale(1);
+  transition:transform .18s cubic-bezier(.2,.75,.25,1),box-shadow .18s ease,border-color .18s ease,opacity .18s ease,filter .18s ease;
+  will-change:transform;
+}
+html.fenix-motion .dashboard-v2 .module.motion-card-ready:hover{
+  transform:translateY(-4px) scale(1.015);
+}
+html.fenix-motion .dashboard-v2 .module.motion-card-ready:active{transform:translateY(-2px) scale(1.005)}
+
+/* Module activation: selected card takes focus, dashboard quietly recedes. */
+html.fenix-motion .dashboard-v2.motion-leaving .sidebar,
+html.fenix-motion .dashboard-v2.motion-leaving .topbar,
+html.fenix-motion .dashboard-v2.motion-leaving .project-strip,
+html.fenix-motion .dashboard-v2.motion-leaving .stats,
+html.fenix-motion .dashboard-v2.motion-leaving .modules-heading,
+html.fenix-motion .dashboard-v2.motion-leaving .below-fold{
+  opacity:.32;
+  filter:blur(2px);
+  transition:opacity .22s ease,filter .22s ease,transform .22s ease;
+}
+html.fenix-motion .dashboard-v2.motion-leaving #grid .module:not(.motion-card-active){
+  opacity:.22;
+  filter:blur(2px);
+  transform:scale(.985);
+  transition:opacity .20s ease,filter .20s ease,transform .20s ease;
+}
+html.fenix-motion .dashboard-v2 .module.motion-card-active{
+  position:relative;
+  z-index:20;
+  opacity:1!important;
+  filter:none!important;
+  transform:translateY(-6px) scale(1.055)!important;
+  border-color:var(--dv2-orange)!important;
+  box-shadow:0 20px 46px rgba(18,23,31,.20)!important;
+  transition:transform .24s cubic-bezier(.18,.8,.25,1),box-shadow .24s ease,border-color .20s ease!important;
+}
+
+/* Dashboard roadmap states: READY / DEVELOPMENT / PLANNED. */
+.dashboard-v2 .module-status-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-7px 0 14px;color:var(--dv2-muted);font-size:10px;font-weight:700}
+.dashboard-v2 .module-status-key{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid var(--dv2-line);border-radius:999px;background:var(--dv2-panel)}
+.dashboard-v2 .module-status-key i{width:7px;height:7px;border-radius:50%;display:block;background:#8b99a8}
+.dashboard-v2 .module-status-key.ready i{background:var(--dv2-orange)}
+.dashboard-v2 .module-status-key.development i{background:var(--dv2-blue)}
+.dashboard-v2 .module-status-key.planned i{background:var(--dv2-purple)}
+.dashboard-v2 .module-badges{display:flex;gap:5px;align-items:center;flex-wrap:wrap;min-width:0}
+.dashboard-v2 .module-badge.ready{background:var(--dv2-orange-soft);color:var(--dv2-orange)}
+.dashboard-v2 .module-badge.development{background:var(--dv2-blue-soft);color:var(--dv2-blue)}
+.dashboard-v2 .module-badge.planned{background:var(--dv2-purple-soft);color:var(--dv2-purple)}
+
+/* Hover color always mirrors the legend status. */
+.dashboard-v2 .module.status-ready:hover,
+html.fenix-motion .dashboard-v2 .module.status-ready.motion-card-ready:hover{
+  border-color:color-mix(in srgb,var(--dv2-orange) 68%,var(--dv2-line))!important;
+  box-shadow:0 14px 34px color-mix(in srgb,var(--dv2-orange) 34%,transparent)!important;
+}
+.dashboard-v2 .module.status-development:hover,
+html.fenix-motion .dashboard-v2 .module.status-development.motion-card-ready:hover{
+  border-color:color-mix(in srgb,var(--dv2-blue) 62%,var(--dv2-line))!important;
+  box-shadow:0 14px 34px color-mix(in srgb,var(--dv2-blue) 28%,transparent)!important;
+}
+.dashboard-v2 .module.status-planned{border-color:var(--dv2-purple)!important}
+.dashboard-v2 .module.status-planned:hover,
+html.fenix-motion .dashboard-v2 .module.status-planned.motion-card-ready:hover{
+  border-color:color-mix(in srgb,var(--dv2-purple) 72%,var(--dv2-line))!important;
+  box-shadow:0 14px 34px color-mix(in srgb,var(--dv2-purple) 30%,transparent)!important;
+}
+
+@media(prefers-reduced-motion:reduce){
+  html.fenix-motion .dashboard-v2 *,
+  html.fenix-motion .dashboard-v2 *::before,
+  html.fenix-motion .dashboard-v2 *::after{
+    animation-duration:.001ms!important;
+    animation-delay:0ms!important;
+    transition-duration:.001ms!important;
+    transition-delay:0ms!important;
+  }
+}

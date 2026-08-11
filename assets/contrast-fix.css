@@ -1,0 +1,176 @@
+:root{
+  --fenix-ui-bg:#edf2f7;
+  --fenix-ui-surface:#ffffff;
+  --fenix-ui-surface-2:#f5f8fb;
+  --fenix-ui-text:#17202a;
+  --fenix-ui-muted:#5f6f7f;
+  --fenix-ui-border:#d4dee7;
+  --fenix-ui-input:#ffffff;
+  --fenix-ui-input-text:#17202a;
+  --fenix-ui-header:#172431;
+  --fenix-ui-header-text:#f8fafc;
+  --fenix-ui-accent:#ff7a35;
+  --fenix-ui-accent-text:#241006;
+  --fenix-ui-link:#b94710;
+  --fenix-ui-good:#126f55;
+  --fenix-ui-danger:#a92323;
+}
+html[data-theme="dark"]{
+  --fenix-ui-bg:#08111a;
+  --fenix-ui-surface:#111d29;
+  --fenix-ui-surface-2:#182635;
+  --fenix-ui-text:#f4f7fb;
+  --fenix-ui-muted:#b4c1cd;
+  --fenix-ui-border:#34485b;
+  --fenix-ui-input:#0b1621;
+  --fenix-ui-input-text:#f7fafc;
+  --fenix-ui-header:#060d14;
+  --fenix-ui-header-text:#f8fafc;
+  --fenix-ui-accent:#ff8a4a;
+  --fenix-ui-accent-text:#1c0c04;
+  --fenix-ui-link:#ffb27e;
+  --fenix-ui-good:#69ddb4;
+  --fenix-ui-danger:#ff9a9a;
+}
+@media(prefers-color-scheme:dark){
+  html[data-theme="system"]{
+    --fenix-ui-bg:#08111a;
+    --fenix-ui-surface:#111d29;
+    --fenix-ui-surface-2:#182635;
+    --fenix-ui-text:#f4f7fb;
+    --fenix-ui-muted:#b4c1cd;
+    --fenix-ui-border:#34485b;
+    --fenix-ui-input:#0b1621;
+    --fenix-ui-input-text:#f7fafc;
+    --fenix-ui-header:#060d14;
+    --fenix-ui-header-text:#f8fafc;
+    --fenix-ui-accent:#ff8a4a;
+    --fenix-ui-accent-text:#1c0c04;
+    --fenix-ui-link:#ffb27e;
+    --fenix-ui-good:#69ddb4;
+    --fenix-ui-danger:#ff9a9a;
+  }
+}
+
+/* Dashboard — final semantic contrast layer */
+body:not(.fenix-studio-shell){background-color:var(--fenix-ui-bg);color:var(--fenix-ui-text)}
+body:not(.fenix-studio-shell) .main,
+body:not(.fenix-studio-shell) .panel,
+body:not(.fenix-studio-shell) .stat,
+body:not(.fenix-studio-shell) .module,
+body:not(.fenix-studio-shell) .project-card,
+body:not(.fenix-studio-shell) .project-strip,
+body:not(.fenix-studio-shell) .import-status,
+body:not(.fenix-studio-shell) .project-dialog{color:var(--fenix-ui-text)}
+body:not(.fenix-studio-shell) .panel,
+body:not(.fenix-studio-shell) .stat,
+body:not(.fenix-studio-shell) .module,
+body:not(.fenix-studio-shell) .project-card,
+body:not(.fenix-studio-shell) .project-strip,
+body:not(.fenix-studio-shell) .import-status,
+body:not(.fenix-studio-shell) .project-dialog{background-color:var(--fenix-ui-surface);border-color:var(--fenix-ui-border)}
+body:not(.fenix-studio-shell) h1,
+body:not(.fenix-studio-shell) h2,
+body:not(.fenix-studio-shell) h3,
+body:not(.fenix-studio-shell) h4,
+body:not(.fenix-studio-shell) strong,
+body:not(.fenix-studio-shell) label{color:inherit}
+body:not(.fenix-studio-shell) p,
+body:not(.fenix-studio-shell) small,
+body:not(.fenix-studio-shell) .muted,
+body:not(.fenix-studio-shell) .panel-head>span,
+body:not(.fenix-studio-shell) .project-card p,
+body:not(.fenix-studio-shell) .project-card-bottom small{color:var(--fenix-ui-muted)}
+body:not(.fenix-studio-shell) input,
+body:not(.fenix-studio-shell) select,
+body:not(.fenix-studio-shell) textarea{background:var(--fenix-ui-input);color:var(--fenix-ui-input-text);border-color:var(--fenix-ui-border)}
+body:not(.fenix-studio-shell) option{background:var(--fenix-ui-input);color:var(--fenix-ui-input-text)}
+body:not(.fenix-studio-shell) .btn:not(.primary):not(.danger),
+body:not(.fenix-studio-shell) button:not(.primary):not(.danger):not(.nav-button){background:var(--fenix-ui-surface-2);color:var(--fenix-ui-text);border-color:var(--fenix-ui-border)}
+body:not(.fenix-studio-shell) .btn.primary,
+body:not(.fenix-studio-shell) button.primary{background:linear-gradient(135deg,var(--fenix-ui-accent),#ffad73);color:var(--fenix-ui-accent-text)}
+body:not(.fenix-studio-shell) a:not(.btn):not(.nav a){color:var(--fenix-ui-link)}
+body:not(.fenix-studio-shell) .sidebar{background:var(--fenix-ui-header);color:var(--fenix-ui-header-text)}
+body:not(.fenix-studio-shell) .sidebar .nav a,
+body:not(.fenix-studio-shell) .sidebar .nav-button{color:#d3dde6}
+body:not(.fenix-studio-shell) .sidebar .nav a:hover,
+body:not(.fenix-studio-shell) .sidebar .nav a.active,
+body:not(.fenix-studio-shell) .sidebar .nav-button:hover{color:#fff;background:#2b4154}
+
+/* Cart intentionally dark in both themes — explicitly fix all descendants. */
+body:not(.fenix-studio-shell) .cart-hero{background:linear-gradient(145deg,#24394c,#1d3041 58%,#3b2a1e);color:#f8fafc;border-color:#50667a}
+body:not(.fenix-studio-shell) .cart-hero h1,
+body:not(.fenix-studio-shell) .cart-hero h2,
+body:not(.fenix-studio-shell) .cart-hero h3,
+body:not(.fenix-studio-shell) .cart-hero h4,
+body:not(.fenix-studio-shell) .cart-hero strong,
+body:not(.fenix-studio-shell) .cart-hero .cart-count{color:#fff}
+body:not(.fenix-studio-shell) .cart-hero p,
+body:not(.fenix-studio-shell) .cart-hero small,
+body:not(.fenix-studio-shell) .cart-hero .muted,
+body:not(.fenix-studio-shell) .cart-hero .panel-head>span,
+body:not(.fenix-studio-shell) .cart-hero .cart-empty{color:#c9d4de}
+body:not(.fenix-studio-shell) .cart-hero .btn:not(.primary){background:#30485d;color:#fff;border-color:#526a7f}
+
+/* All Studios — override legacy module CSS with accessible semantic colors. */
+body.fenix-studio-shell{background:var(--fenix-ui-bg)!important;color:var(--fenix-ui-text)!important}
+body.fenix-studio-shell>header,
+body.fenix-studio-shell .top,
+body.fenix-studio-shell .master-header{background:var(--fenix-ui-header)!important;color:var(--fenix-ui-header-text)!important}
+body.fenix-studio-shell .panel,
+body.fenix-studio-shell .preview,
+body.fenix-studio-shell .card,
+body.fenix-studio-shell .ctp-panel,
+body.fenix-studio-shell .ctp-preview,
+body.fenix-studio-shell .controls,
+body.fenix-studio-shell .workspace,
+body.fenix-studio-shell .fenix-surface,
+body.fenix-studio-shell .page-card{background:var(--fenix-ui-surface)!important;color:var(--fenix-ui-text)!important;border-color:var(--fenix-ui-border)!important}
+body.fenix-studio-shell h1,
+body.fenix-studio-shell h2,
+body.fenix-studio-shell h3,
+body.fenix-studio-shell h4,
+body.fenix-studio-shell h5,
+body.fenix-studio-shell label,
+body.fenix-studio-shell strong,
+body.fenix-studio-shell legend{color:var(--fenix-ui-text)!important}
+body.fenix-studio-shell p,
+body.fenix-studio-shell small,
+body.fenix-studio-shell .muted,
+body.fenix-studio-shell .hint,
+body.fenix-studio-shell .note,
+body.fenix-studio-shell .type-help,
+body.fenix-studio-shell .project-info{color:var(--fenix-ui-muted)!important}
+body.fenix-studio-shell input,
+body.fenix-studio-shell select,
+body.fenix-studio-shell textarea{background:var(--fenix-ui-input)!important;color:var(--fenix-ui-input-text)!important;border-color:var(--fenix-ui-border)!important;-webkit-text-fill-color:var(--fenix-ui-input-text)}
+body.fenix-studio-shell input::placeholder,
+body.fenix-studio-shell textarea::placeholder{color:var(--fenix-ui-muted)!important;opacity:.8}
+body.fenix-studio-shell option{background:var(--fenix-ui-input)!important;color:var(--fenix-ui-input-text)!important}
+body.fenix-studio-shell button:not(.primary):not(.primary-big):not(#saveCart):not(#exportPdf),
+body.fenix-studio-shell .button:not(.primary),
+body.fenix-studio-shell .btn:not(.primary),
+body.fenix-studio-shell .back{background:var(--fenix-ui-surface-2)!important;color:var(--fenix-ui-text)!important;border-color:var(--fenix-ui-border)!important}
+body.fenix-studio-shell button.primary,
+body.fenix-studio-shell .primary-big,
+body.fenix-studio-shell #saveCart,
+body.fenix-studio-shell #exportPdf{background:linear-gradient(135deg,var(--fenix-ui-accent),#ffad73)!important;color:var(--fenix-ui-accent-text)!important;border-color:transparent!important}
+body.fenix-studio-shell button.secondary,
+body.fenix-studio-shell #downloadPng{background:#31506a!important;color:#fff!important;border-color:#466782!important}
+body.fenix-studio-shell a{color:var(--fenix-ui-link)}
+body.fenix-studio-shell>header a,
+body.fenix-studio-shell .top a,
+body.fenix-studio-shell .master-header a{color:#fff!important}
+body.fenix-studio-shell .status{background:color-mix(in srgb,var(--fenix-ui-good) 12%,var(--fenix-ui-surface))!important;color:var(--fenix-ui-good)!important}
+body.fenix-studio-shell .danger{color:var(--fenix-ui-danger)!important}
+
+/* Canvas area is always neutral so the white printable page is clearly separated. */
+body.fenix-studio-shell .canvas-wrap,
+body.fenix-studio-shell .hero{background:#cfd8e1!important;color:#17202a!important}
+html[data-theme="dark"] body.fenix-studio-shell .canvas-wrap,
+html[data-theme="dark"] body.fenix-studio-shell .hero{background:#263544!important;color:#f4f7fb!important}
+@media(prefers-color-scheme:dark){html[data-theme="system"] body.fenix-studio-shell .canvas-wrap,html[data-theme="system"] body.fenix-studio-shell .hero{background:#263544!important;color:#f4f7fb!important}}
+body.fenix-studio-shell canvas{background:#fff!important;color:#111!important}
+
+/* Keyboard accessibility / clear focus. */
+:focus-visible{outline:3px solid color-mix(in srgb,var(--fenix-ui-accent) 75%,white)!important;outline-offset:2px}

@@ -1,0 +1,45 @@
+/* FENIX Portable Mobile — warstwa mobilna nad wspólnym FP. Bez zmian logiki Core. */
+:root{--fpm-touch:50px}
+.solution-availability{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-weight:750}.solution-availability.has-solution::before{content:"✓"}.solution-availability.no-solution{opacity:.66}.solution-availability.no-solution::before{content:"–"}
+@media(max-width:900px){
+  body{overscroll-behavior-y:contain}
+  button,.button,.btn,input:not([type="checkbox"]):not([type="radio"]),select,textarea{min-height:var(--fpm-touch)!important;font-size:16px!important}
+  .shell{grid-template-columns:1fr!important}
+  .sidebar{position:static!important;height:auto!important;padding:16px!important;border-right:0!important;border-bottom:1px solid var(--sidebar-line)!important}
+  .brand{margin-bottom:12px!important}.brand p::after{content:" · FPM";color:var(--accent)}
+  .nav-label{margin:12px 8px 6px!important}.nav{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  .nav a,.nav-button{min-height:48px!important;padding:10px!important}
+  .theme-box{margin-top:12px!important;max-width:none!important}
+  .main{padding:16px 12px 32px!important}
+  .topbar{align-items:flex-start!important;flex-direction:column!important;gap:12px!important}
+  .topbar h2{font-size:26px!important}.topbar .actions{width:100%!important}.topbar .actions>*{flex:1 1 140px!important}
+  .project-strip{padding:15px!important;margin-bottom:14px!important}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}.stat{padding:14px!important}
+  .modules{grid-template-columns:1fr!important}.module{min-height:132px!important;padding:16px!important}
+  .project-assets-entry-grid,.project-cards,.form-grid{grid-template-columns:1fr!important}
+  .project-assets-toolbar{grid-template-columns:1fr!important}
+  .pages-project{grid-template-columns:1fr!important}
+  .cart-item{padding:14px!important;border:1px solid var(--line)!important;border-radius:12px!important;margin-bottom:8px!important}
+  .cart-item>div:last-child{width:100%!important}.cart-item .btn{flex:1!important;text-align:center!important}
+}
+@media(max-width:620px){
+  .nav{grid-template-columns:1fr 1fr!important}
+  .stats{grid-template-columns:1fr 1fr!important}
+  .stats .stat.ready{grid-column:1/-1}
+  .panel{padding:14px!important}
+  dialog{width:calc(100vw - 20px)!important}
+}
+/* Studia: zachowujemy preferowany układ góra/dół, ale zwiększamy ergonomię dotykową. */
+@media(max-width:900px){
+  body.fenix-studio-shell header{padding:14px!important;gap:10px!important}
+  body.fenix-studio-shell header .header-actions{width:100%!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  body.fenix-studio-shell .maze-layout,body.fenix-studio-shell .word-search-layout{padding:10px!important;gap:14px!important}
+  body.fenix-studio-shell .maze-layout .controls,body.fenix-studio-shell .word-search-layout .controls{padding:12px!important}
+  .control-sections{gap:8px!important}.control-sections summary{padding:15px 14px!important;font-size:15px!important}
+  .control-sections .form-grid,.form-grid.compact{grid-template-columns:1fr!important;padding:12px!important}
+  .asset-maze-grid,.deco-choices{grid-template-columns:1fr!important}
+  .asset-role-card,.asset-role-card-wide{grid-column:auto!important}
+  .actions{display:grid!important;grid-template-columns:1fr!important}.actions>*{width:100%!important}
+  .preview-section{padding:12px!important}.preview-heading{align-items:flex-start!important;flex-direction:column!important}
+  body.fenix-studio-shell .maze-layout canvas,body.fenix-studio-shell .word-search-layout canvas{width:min(100%,520px)!important;margin-top:10px!important}
+}

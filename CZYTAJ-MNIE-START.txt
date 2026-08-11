@@ -1,0 +1,28 @@
+FENIX PORTABLE 0.18.0
+=====================
+
+WINDOWS
+1. Rozpakuj cały folder FENIX-Portable.
+2. Uruchom: START-FENIX-WINDOWS.bat
+3. Jeśli Windows zapyta o aplikację, wybierz swoją przeglądarkę.
+
+LINUX
+1. Rozpakuj cały folder FENIX-Portable.
+2. Nadaj uprawnienie do uruchamiania pliku START-FENIX-LINUX.sh, jeśli system tego wymaga.
+3. Uruchom: START-FENIX-LINUX.sh
+4. Alternatywnie otwórz index.html w przeglądarce.
+
+PRACA MIĘDZY DOMEM I BIUREM
+- Na komputerze źródłowym użyj na Dashboardzie: „Eksportuj projekt”.
+- Otrzymasz plik .fenixproject zawierający strony, ustawienia i własne assety.
+- Skopiuj ten plik na drugi komputer.
+- Na drugim komputerze użyj: „Importuj projekt”.
+- Import tworzy nową kopię projektu i nie nadpisuje istniejącego.
+
+KONTROLA
+- Dashboard → Diagnostyka uruchamia testy rendererów, schematu danych, Maze Core i walidatora.
+
+WAŻNE
+- Nie przenoś pojedynczych plików z folderu aplikacji. Kopiuj cały folder FENIX-Portable.
+- Projekty przechowuj i przenoś przez .fenixproject.
+- Finalny PDF przygotowuj w Book Builderze.

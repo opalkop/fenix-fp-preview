@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FENIX Activity Book Studio</title>
+  <script>try{const t=localStorage.getItem('fenix-ui-theme')||'light';document.documentElement.dataset.theme=t}catch{document.documentElement.dataset.theme='light'}</script>
+  <script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('fenix-motion')}catch{document.documentElement.classList.add('fenix-motion')}</script>
+  <link rel="stylesheet" href="assets/app.css">
+  <link rel="stylesheet" href="assets/contrast-fix.css">
+  <link rel="stylesheet" href="assets/dashboard-v2.css">
+  <link rel="stylesheet" href="assets/project-assets.css">
+  <link rel="stylesheet" href="assets/dashboard-motion.css">
+  <link rel="stylesheet" href="assets/dashboard-intro.css">
+</head>
+<body class="dashboard-v2">
+<div id="fenixIntro" class="fenix-intro" role="dialog" aria-modal="true" aria-labelledby="fenixIntroTitle">
+  <div class="fenix-intro-card">
+    <div class="fenix-intro-mark" aria-hidden="true">F</div>
+    <p class="fenix-intro-kicker">FENIX PORTABLE</p>
+    <h1 id="fenixIntroTitle" class="fenix-intro-title">FENIX</h1>
+    <p class="fenix-intro-subtitle">Activity Book Studio · środowisko produkcyjne</p>
+    <button id="fenixIntroEnter" class="fenix-intro-enter" type="button">Wejdź do Studio<small>kliknięcie aktywuje dźwięk i dashboard</small></button>
+    <p class="fenix-intro-hint">Możesz też kliknąć tło albo nacisnąć Enter / Spację</p>
+  </div>
+</div>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="mark">F</div><div><h1>FENIX Studio</h1><p>Dashboard UX · v2</p></div></div>
+    <div class="nav-label">Przestrzeń robocza</div>
+    <nav class="nav">
+      <a class="active" href="index.html"><span class="nav-icon">●</span>Dashboard</a>
+      <a class="project-assets-nav" href="#projectAssets"><span class="nav-icon">◆</span>Assety projektu <span class="project-assets-badge">WAŻNE</span></a>
+      <a href="#projectLibrary"><span class="nav-icon">▤</span>Projekty <span id="sideProjectCount" class="badge">1</span></a>
+      <a href="#modules"><span class="nav-icon">▦</span>Moduły <span class="badge">15</span></a>
+      <a href="#pagesProject"><span class="nav-icon">▣</span>Strony projektu <span id="sideCartCount" class="badge">0</span></a>
+      <a href="modules/book-builder/index.html"><span class="nav-icon">▤</span>Book Builder</a>
+    </nav>
+    <div class="nav-label">Narzędzia</div>
+    <nav class="nav">
+      <button class="nav-button" id="importProject"><span class="nav-icon">↓</span>Import projektu</button>
+      <button class="nav-button" id="importMobile"><span class="nav-icon">↑</span>Import Mobile</button>
+    </nav>
+    <div class="theme-box"><label for="themeSelect">Motyw interfejsu</label><select id="themeSelect"><option value="light">Jasny</option><option value="dark">Ciemny</option><option value="system">Systemowy</option></select></div>
+    <input id="importProjectFile" type="file" accept=".fenixproject,.fenixpack,.json,application/json" hidden>
+    <input id="importMobileFile" type="file" accept=".fenixmobile,.json,application/json" hidden>
+  </aside>
+
+  <main class="main"><div class="main-inner">
+    <header class="topbar">
+      <div><div class="eyebrow">FENIX Activity Book Studio</div><h2>Kokpit produkcyjny</h2><p>Projekt → Studia → Strony projektu → Book Builder → PDF</p></div>
+      <div class="actions"><button class="btn" id="importProjectTop">Importuj projekt</button><button class="btn primary" id="newProjectTop">Nowy projekt</button><button id="importMobileTop" class="sr-only-dashboard" hidden>Import Mobile</button></div>
+    </header>
+
+    <section class="project-strip" id="projects"><div><span class="section-kicker">AKTYWNY PROJEKT</span><h3 id="activeProjectName">Mój pierwszy projekt</h3><p id="activeProjectMeta">8,5 × 11 cala · bez spadów · 300 DPI</p></div><span class="active-badge">AKTYWNY</span></section>
+
+    <section class="stats">
+      <article class="stat"><div class="label">Strony projektu</div><strong id="statPages">0</strong><small>strony główne</small></article>
+      <article class="stat"><div class="label">Potencjalne rozwiązania</div><strong id="statSolutions">0</strong><small>możliwe do wygenerowania</small></article>
+      <article class="stat"><div class="label">Szacowany skład</div><strong id="statPdf">0</strong><small>maks. z rozwiązaniami</small></article>
+      <article class="stat"><div class="label">Wykorzystane moduły</div><strong id="statModules">0 / 15</strong><small>pełny zestaw</small></article>
+      <article class="stat ready"><div class="label">Gotowość składu</div><strong id="statReady">0%</strong><small>kontrola projektu</small></article>
+    </section>
+
+    <section id="modules"><div class="modules-heading"><span class="section-kicker">STUDIA PRODUKCYJNE</span><h3>Wybierz moduł</h3><p>Każde Studio to osobne narzędzie. Wspólne są projekt, dane i finalny skład.</p></div><div id="grid" class="modules"></div></section>
+
+    <div class="below-fold">
+      <section class="panel project-assets-panel" id="projectAssets">
+        <div class="panel-head"><div><span class="section-kicker">ASSETY PROJEKTU</span><h3>Wspólne zasoby aktywnego projektu</h3></div><span id="projectAssetsCount">0 assetów</span></div>
+        <p class="project-assets-lead">Jedna biblioteka dla całego projektu. Studia korzystają z tych samych assetów przez referencję, bez tworzenia osobnych kopii.</p>
+        <div class="project-assets-entry-grid">
+          <button id="projectAssetImport" class="project-assets-entry primary-entry" type="button"><span>＋</span><strong>Wczytaj z PC</strong><small>PNG, JPG/JPEG, WEBP lub SVG</small></button>
+          <button id="projectAssetGenerate" class="project-assets-entry" type="button"><span>✦</span><strong>Wygeneruj asset</strong><small>Miejsce przygotowane pod przyszłe API</small></button>
+          <button id="projectAssetLibrary" class="project-assets-entry" type="button"><span>◫</span><strong>Biblioteka Feniksa</strong><small>Miejsce na odzyskane i wspólne zasoby</small></button>
+        </div>
+        <input id="projectAssetFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden>
+        <div id="projectAssetsStatus" class="project-assets-status" aria-live="polite">Gotowy. Wczytane assety zostaną zapisane wyłącznie w aktywnym projekcie.</div>
+
+        <div class="project-assets-toolbar">
+          <label class="asset-search"><span>Szukaj</span><input id="projectAssetSearch" type="search" placeholder="np. rocket, dino…"></label>
+          <label><span>Rola</span><select id="projectAssetTagFilter"><option value="">Wszystkie</option><option value="gameplay">Gameplay</option><option value="content">Content</option><option value="deco">Deco</option></select></label>
+          <label><span>Walidacja</span><select id="projectAssetStatusFilter"><option value="">Wszystkie</option><option value="ok">OK</option><option value="warning">Uwagi</option><option value="error">Błędy</option></select></label>
+          <label><span>Sortowanie</span><select id="projectAssetSort"><option value="newest">Najnowsze</option><option value="oldest">Najstarsze</option><option value="name">Nazwa A–Z</option></select></label>
+          <button id="projectAssetValidateAll" class="asset-toolbar-button" type="button">Sprawdź wszystkie B&W</button>
+        </div>
+        <div class="project-assets-toolbar-meta"><span id="projectAssetsVisibleCount"></span><span>Role są ogólne. Konkretne Studio nada assetowi funkcję na danej stronie.</span></div>
+
+        <div id="projectAssetsEmpty" class="project-assets-empty"><span class="project-assets-symbol">◆</span><div><strong>Ten projekt nie ma jeszcze assetów.</strong><p>Dodaj pierwszy plik z komputera. Fenix zapisze jego metadane i wykona podstawową kontrolę B&W.</p></div></div>
+        <div id="projectAssetsNoMatches" class="project-assets-empty project-assets-no-matches" hidden><span class="project-assets-symbol">⌕</span><div><strong>Brak assetów pasujących do filtrów.</strong><p>Zmień wyszukiwanie albo ustaw filtr na „Wszystkie”.</p></div></div>
+        <div id="projectAssetsGrid" class="project-assets-grid"></div>
+      </section>
+
+      <section class="panel" id="projectLibrary">
+        <div class="panel-head"><div><span class="section-kicker">PROJEKTY</span><h3>Twoje projekty</h3></div><span>Zarządzanie projektem pozostaje dostępne bez zmiany logiki Feniksa.</span></div>
+        <div class="project-tools"><label>Przełącz projekt<select id="projectSelect"></select></label><div class="actions"><button id="editProject" class="btn">Edytuj</button><button id="newProject" class="btn primary">+ Nowy projekt</button></div></div>
+        <div id="projectCards" class="project-cards"></div>
+      </section>
+
+      <div id="mobileImportStatus" class="import-status" aria-live="polite">Gotowy do importu projektu <code>.fenixproject</code>, <code>.fenixpack</code> lub projektu Mobile.</div>
+
+      <section class="panel" id="pagesProject">
+        <div class="panel-head"><div><span class="section-kicker">AKTUALNY PROJEKT</span><h3>Strony projektu</h3></div><span id="cartStatus">0 stron · +0 rozwiązań · do 0 stron</span></div>
+        <div class="pages-project"><div id="cartList" class="cart-list"></div><aside class="cart-summary"><div class="cart-count"><span id="cartCountLarge">0</span> <small>stron głównych</small></div><p class="muted"><strong id="cartSolutionCount">0 potencjalnych rozwiązań</strong><br><span id="cartEstimatedCount">Szacowany skład: do 0 stron.</span></p><p class="muted">Rozwiązania są pochodną strony zadania. Book Builder zdecyduje później, czy i gdzie je dodać.</p><div class="progress"><i id="cartProgress"></i></div><div class="cart-actions"><a id="openBookBuilder" class="btn primary" href="modules/book-builder/index.html">Przejdź do składu książki →</a><button id="exportCart" class="btn">Eksportuj strony projektu</button><button id="exportProject" class="btn">Eksportuj projekt</button><button id="clearCart" class="btn">Usuń wszystkie strony</button></div></aside></div>
+      </section>
+    </div>
+  </div></main>
+</div>
+
+<dialog id="projectDialog" class="project-dialog"><form id="projectForm" method="dialog"><div class="dialog-head"><div><span class="section-kicker">USTAWIENIA PROJEKTU</span><h3 id="projectDialogTitle">Nowy projekt</h3></div><button type="button" id="closeProjectDialog" class="dialog-close" aria-label="Zamknij">×</button></div><input id="projectId" type="hidden"><label>Nazwa projektu<input id="projectName" required maxlength="80" placeholder="np. Jungle Activity Book 4–6"></label><div class="form-grid"><label>Format<select id="projectFormat"><option value="8.5x11">8,5 × 11 cala</option><option value="6x9">6 × 9 cala</option><option value="a4">A4</option></select></label><label>Spady<select id="projectBleed"><option value="no-bleed">Bez spadów</option><option value="bleed">Ze spadami</option></select></label><label>Grupa wiekowa<input id="projectAge" placeholder="np. 4–6 lat"></label><label>Temat<input id="projectTopic" placeholder="np. dżungla, pojazdy"></label></div><div class="dialog-actions"><button type="button" id="deleteProject" class="btn danger" hidden>Usuń projekt</button><button type="button" id="cancelProject" class="btn">Anuluj</button><button type="submit" class="btn primary">Zapisz projekt</button></div></form></dialog>
+<script src="core/page-schema.js"></script><script src="core/project-validator.js"></script><script src="core/asset-validator.js"></script><script src="core/fenix-core.js"></script><script src="assets/launcher.js"></script><script src="assets/project-assets.js"></script><script src="assets/help-overlay.js"></script><script src="assets/dashboard-motion.js"></script><script src="assets/dashboard-sound.js"></script><script src="assets/dashboard-intro.js"></script>
+</body></html>
