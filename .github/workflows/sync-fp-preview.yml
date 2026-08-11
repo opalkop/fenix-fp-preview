@@ -21,8 +21,16 @@ jobs:
           fetch-depth: 0
 
       - name: Clone current FP source
+        env:
+          FENIX_SOURCE_TOKEN: ${{ secrets.FENIX_SOURCE_TOKEN }}
         run: |
-          git clone --depth 1 --branch feature/fenix-portable-mobile https://github.com/opalkop/fenix.git /tmp/fenix-source
+          if [ -z "$FENIX_SOURCE_TOKEN" ]; then
+            echo "FENIX_SOURCE_TOKEN secret is missing."
+            exit 1
+          fi
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$FENIX_SOURCE_TOKEN" | base64 -w0)" \
+            clone --depth 1 --branch feature/fenix-portable-mobile \
+            https://github.com/opalkop/fenix.git /tmp/fenix-source
 
       - name: Mirror FP into preview
         run: |
