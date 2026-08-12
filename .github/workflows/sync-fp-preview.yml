@@ -1,14 +1,17 @@
 name: Sync FP Preview
 
 on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - '.github/workflows/sync-fp-preview.yml'
-  workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
 
 jobs:
   sync:
@@ -51,15 +54,27 @@ jobs:
             /tmp/fenix-source/ ./
 
       - name: Commit synchronized preview
+        id: sync_commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "Preview already matches source."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git commit -m "Sync FP preview from source [skip ci]"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
-# Preview mirror helper. Source of truth remains opalkop/fenix.
+      - name: Trigger GitHub Pages rebuild
+        if: steps.sync_commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --request POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            https://api.github.com/repos/opalkop/fenix-fp-preview/pages/builds
