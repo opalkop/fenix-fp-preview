@@ -5,43 +5,43 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Intro Studio · FENIX</title>
   <link rel="stylesheet" href="../../assets/app.css">
-  <link rel="stylesheet" href="intro.css?v=0.19.1">
+  <link rel="stylesheet" href="../../assets/fpm.css">
+  <link rel="stylesheet" href="intro.css?v=0.20.0">
 </head>
-<body data-module="intro-studio" data-engine="intro">
+<body data-module="intro-studio" data-engine="specialized">
   <header>
     <div>
       <p class="eyebrow">FENIX / STUDIO STRUKTURALNE</p>
       <h1>Intro Studio</h1>
-      <p>Ustal, o których aktywnościach i elementach książki ma mówić wprowadzenie.</p>
+      <p>Twórz i edytuj strony wprowadzające dokładnie tak, jak mają wyglądać w finalnej książce.</p>
     </div>
-    <div class="header-actions"><a class="button ghost" href="../../index.html#modules">← Dashboard</a></div>
+    <div class="header-actions">
+      <a class="button ghost" href="../../index.html#modules">← Dashboard</a>
+      <button id="downloadPng" type="button">Eksport PNG 300 DPI</button>
+    </div>
   </header>
 
   <main class="intro-layout">
     <section class="card intro-controls">
       <div id="projectInfo" class="project-info"></div>
-      <div class="intro-step"><span>1</span><div><strong>Wybierz zawartość Intro</strong><p>Zaznaczenie nie dodaje ani nie usuwa stron książki. Określa wyłącznie, co ma zostać opisane we wprowadzeniu.</p></div></div>
-      <div class="intro-toolbar">
-        <button id="selectUsed" class="ghost" type="button">Zaznacz Studia użyte w projekcie</button>
-        <button id="clearSelection" class="ghost" type="button">Wyczyść wybór</button>
-      </div>
-      <div id="introChoices" class="intro-choices"></div>
-      <div id="saveStatus" class="intro-status" aria-live="polite">Wybór zapisuje się automatycznie w aktywnym projekcie.</div>
+      <div class="section-title">Strony wprowadzenia</div>
+      <p class="intro-help">Rozwiń wybrany panel. Tytuł i treść wpisane w panelu są odtwarzane w PDF. Każdą stronę dodajesz lub aktualizujesz osobno.</p>
+      <div id="introPanels" class="control-sections"></div>
+      <p id="saveStatus" class="intro-status" aria-live="polite">Wybierz panel strony, którą chcesz przygotować.</p>
     </section>
 
-    <aside class="card intro-preview">
-      <p class="eyebrow">PODSUMOWANIE DLA DASHBOARDU</p>
-      <h2>Co zobaczy Intro?</h2>
-      <div id="selectionCount" class="selection-count">0</div>
-      <div id="selectionSummary" class="selection-summary"></div>
-      <p class="intro-note">To podsumowanie pojawi się również na karcie Intro Studio w Dashboardzie. Projektowanie i dodawanie konkretnych stron Intro będzie następnym krokiem rozwoju tego Studia.</p>
-      <a class="button" href="../../index.html#modules">Zobacz podsumowanie na Dashboardzie</a>
-    </aside>
+    <section class="hero preview-section">
+      <div class="preview-heading">
+        <div><p class="eyebrow">PODGLĄD STRONY</p><strong id="previewLabel">Welcome Page</strong></div>
+        <div id="status">Gotowy</div>
+      </div>
+      <canvas id="page" width="2550" height="3300"></canvas>
+    </section>
   </main>
 
-  <script src="../../core/page-schema.js"></script>
-  <script src="../../core/fenix-core.js?v=0.19.1"></script>
-  <script src="../../config/module-registry.js?v=0.19.1"></script>
-  <script src="intro.js?v=0.19.1"></script>
+  <script src="../../core/page-schema.js?v=0.20.0"></script>
+  <script src="../../core/fenix-core.js?v=0.20.0"></script>
+  <script src="intro-renderer.js?v=0.20.0"></script>
+  <script src="intro.js?v=0.20.0"></script>
 </body>
 </html>

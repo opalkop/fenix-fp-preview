@@ -8,7 +8,7 @@
    results.innerHTML="";let passed=0,failed=0;const test=(parent,name,fn)=>row(parent,name,fn)?passed++:failed++;
    const registry=group("1. Rejestr modułów");
    test(registry,"Rejestr istnieje",()=>{assert(window.FenixModuleRegistry,"Brak FenixModuleRegistry")});
-   test(registry,"10 unikalnych modułów",()=>{const all=FenixModuleRegistry.all(),slugs=all.map(x=>x.slug);assert(all.length===10,`Jest ${all.length}`);assert(new Set(slugs).size===slugs.length,"Powtarzające się slug-i");return `${all.length} modułów`});
+   test(registry,"12 unikalnych modułów",()=>{const all=FenixModuleRegistry.all(),slugs=all.map(x=>x.slug);assert(all.length===12,`Jest ${all.length}`);assert(new Set(slugs).size===slugs.length,"Powtarzające się slug-i");return `${all.length} modułów`});
    test(registry,"8 standardowych rendererów",()=>{const standard=FenixModuleRegistry.standard();assert(standard.length===8,`Jest ${standard.length}`);standard.forEach(module=>assert(FenixStandardRenderers.modules.includes(module.slug),`Brak renderera ${module.slug}`));return "wszystkie podpięte"});
    FenixModuleRegistry.all().forEach(module=>test(registry,`Typy bez duplikatów: ${module.name}`,()=>{const ids=module.types.map(type=>type[0]);assert(new Set(ids).size===ids.length,"Powtórzony typ ćwiczenia");return `${ids.length} typów`}));
 
@@ -40,6 +40,10 @@
    test(maze,"Deterministyczność tego samego seeda",()=>{const a=FenixMaze.build(18,24,12345),b=FenixMaze.build(18,24,12345);assert(JSON.stringify(a)===JSON.stringify(b),"Ten sam seed daje inny labirynt");return "deterministyczny"});
    test(maze,"Rozwiązanie prowadzi od startu do mety",()=>{const m=FenixMaze.build(18,24,9876),path=FenixMaze.solve(m);assert(path.length>1,"Brak ścieżki");assert(path[0][0]===m.start.x&&path[0][1]===m.start.y,"Zły start");const end=path[path.length-1];assert(end[0]===m.end.x&&end[1]===m.end.y,"Zła meta");return `${path.length} pól`});
    test(maze,"Renderer ćwiczenia i rozwiązania",()=>{const page=FenixPageSchema.normalize({id:"maze",module:"maze-studio",title:"Find the Way!",recipe:{module:"maze-studio",seed:42,settings:{cols:18,rows:24,theme:"classic",endpointMode:"random"}}});const a=FenixMaze.render(page,{solution:false}),b=FenixMaze.render(page,{solution:true});assert(a.canvas.width===850&&a.canvas.height===1100,"Zły canvas");assert(JSON.stringify(a.endpoints)===JSON.stringify(b.endpoints),"Ćwiczenie i rozwiązanie mają inne punkty");return "spójny"});
+
+   const intro=group("6. Intro Studio");
+   test(intro,"Pięć typów stron Intro",()=>{assert(FenixIntroRenderer.PAGE_TYPES.length===5,"Nieprawidłowa liczba paneli");return "5 paneli"});
+   test(intro,"Renderer odtwarza recepturę strony",()=>{const page=FenixPageSchema.normalize({module:"intro-studio",title:"Welcome!",recipe:{module:"intro-studio",settings:{pageType:"welcome",title:"Welcome!",body:"Final PDF text",footer:"Begin!",style:"framed",alignment:"center"}}}),canvas=FenixIntroRenderer.render(page,{width:850,height:1100});assert(canvas.width===850&&canvas.height===1100,"Niepoprawny canvas");return "850 × 1100"});
 
    headline.textContent=failed?`Diagnostyka: ${failed} błędów`:"Diagnostyka: wszystkie testy zaliczone";
    headline.className=failed?"fail":"ok";totals.textContent=`PASS: ${passed} · FAIL: ${failed}`;

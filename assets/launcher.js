@@ -31,24 +31,17 @@
     grid.insertAdjacentHTML("beforebegin",`<div class="module-status-legend" aria-label="Status modułów"><span class="module-status-key ready"><i></i>Gotowe</span><span class="module-status-key development"><i></i>W rozwoju</span><span class="module-status-key planned"><i></i>Planowane</span></div>`);
   }
   const modulePageCounts=project=>project.pages.reduce((counts,page)=>{const slug=FenixPageSchema.moduleOf(page);if(slug)counts[slug]=(counts[slug]||0)+1;return counts},{});
-  const introSummary=selected=>{
-    const names=dashboardModules.filter(module=>module.slug!=="intro-studio"&&selected.has(module.slug)).map(module=>module.name.replace(/ Studio$/,""));
-    if(!names.length)return'<span class="module-intro-empty">Nie skonfigurowano</span>';
-    const visible=names.slice(0,3).join(", "),more=names.length>3?` +${names.length-3}`:"";
-    return`<span class="module-intro-count">✓ ${names.length}</span><span class="module-intro-names">${escapeHtml(visible+more)}</span>`;
-  };
   function renderModules(){
-    const project=FenixCore.getActiveProject(),introSelected=new Set(FenixCore.getIntroPlan().selectedModules),pageCounts=modulePageCounts(project);
+    const project=FenixCore.getActiveProject(),pageCounts=modulePageCounts(project);
     grid.innerHTML=dashboardModules.map(module=>{
-      const pageCount=pageCounts[module.slug]||0,isIntro=module.slug==="intro-studio";
+      const pageCount=pageCounts[module.slug]||0;
       const statusClass=` status-${module.dashboardStatus}${module.status==="structure"?" status-structure":""}${pageCount?" has-project-pages":""}`;
       const statusBadge=module.dashboardStatus==="ready"?'<span class="module-badge ready">GOTOWE</span>':module.dashboardStatus==="development"?'<span class="module-badge development">W ROZWOJU</span>':'<span class="module-badge planned">PLANOWANE</span>';
       const typeBadge=module.status==="structure"?'<span class="module-badge structure">STRUKTURA</span>':"";
       const pagesBadge=pageCount?`<span class="module-project-badge pages">W PROJEKCIE · ${pageCount} STR.</span>`:"";
       const href=`modules/${module.slug}/index.html`,interactive=!module.planned;
       const studioAction=module.planned?'<span class="module-placeholder">Do zaprojektowania →</span>':`<a class="module-link" href="${href}">Otwórz Studio →</a>`;
-      const introState=isIntro?`<div class="module-intro-summary"><small>W INTRO</small>${introSummary(introSelected)}</div>`:"";
-      return `<article class="module${statusClass}${interactive?" module-clickable":""}" data-module-slug="${module.slug}"${interactive?` data-module-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(module.name)}"`:""}><div class="module-top"><span class="module-icon">${escapeHtml(module.dashboardIcon||module.icon||"MOD")}</span><div class="module-badges">${statusBadge}${typeBadge}</div></div><div class="module-project-state">${pagesBadge}</div><h4>${escapeHtml(module.name)}</h4><p>${escapeHtml(module.dashboardDescription||module.description||"")}</p>${introState}<div class="module-actions">${studioAction}</div></article>`;
+      return `<article class="module${statusClass}${interactive?" module-clickable":""}" data-module-slug="${module.slug}"${interactive?` data-module-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(module.name)}"`:""}><div class="module-top"><span class="module-icon">${escapeHtml(module.dashboardIcon||module.icon||"MOD")}</span><div class="module-badges">${statusBadge}${typeBadge}</div></div><div class="module-project-state">${pagesBadge}</div><h4>${escapeHtml(module.name)}</h4><p>${escapeHtml(module.dashboardDescription||module.description||"")}</p><div class="module-actions">${studioAction}</div></article>`;
     }).join("");
   }
   grid.addEventListener("click",event=>{
