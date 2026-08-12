@@ -34,7 +34,7 @@
       solution:{available:false,imageData:null},
       validation:{kdp:{status:"ok",messages:[]}},
       production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},
-      source:{app:"intro-studio",version:"0.20.0",format:"native"}
+      source:{app:"intro-studio",version:"0.20.2",format:"native"}
     });
   }
   function renderPreview(){
@@ -60,6 +60,7 @@
     const page=existingPage(type),panel=panels.querySelector(`[data-page-type="${type}"]`),button=panel.querySelector("[data-save-page]");
     panel.classList.toggle("is-in-project",Boolean(page));
     panel.querySelector("[data-page-state]").textContent=page?"✓ W PROJEKCIE":"NIE DODANO";
+    panel.querySelector("[data-include-page]").checked=Boolean(page);
     button.textContent=page?"Aktualizuj stronę":"Dodaj do Stron projektu";
   }
   function savePage(type){
@@ -70,10 +71,22 @@
     saveStatus.classList.add("saved");
     setTimeout(()=>saveStatus.classList.remove("saved"),1800);
   }
+  function setIncluded(type,included,checkbox){
+    const page=existingPage(type);
+    if(included){savePage(type);return}
+    if(!page){updatePanelState(type);return}
+    if(!confirm(`Usunąć stronę „${page.title}” z książki? Jej panel pozostanie dostępny w Intro Studio.`)){checkbox.checked=true;return}
+    FenixCore.removePage(page.id);
+    updatePanelState(type);
+    saveStatus.textContent=`Usunięto stronę „${page.title}” z projektu.`;
+    saveStatus.classList.add("saved");
+    setTimeout(()=>saveStatus.classList.remove("saved"),1800);
+  }
   function renderPanels(){
     panels.innerHTML=PAGE_TYPES.map((definition,index)=>`<details data-page-type="${definition.id}" ${index===0?"open":""}>
       <summary><span><strong>${escapeHtml(definition.label)}</strong><small>${escapeHtml(definition.description)}</small></span><em data-page-state>NIE DODANO</em></summary>
       <div class="intro-panel-body">
+        <label class="include-page"><input type="checkbox" data-include-page><span><strong>Uwzględnij tę stronę w książce</strong><small>Zaznaczenie dodaje stronę do projektu, a odznaczenie ją usuwa.</small></span></label>
         <label>Tytuł strony<input data-field="title" maxlength="120"></label>
         <label>Treść strony<textarea data-field="body" rows="9" maxlength="1800"></textarea><small>To jest pełna treść, która pojawi się na finalnej stronie PDF.</small></label>
         <div class="form-grid">
@@ -90,7 +103,8 @@
       applyPage(type,page);
       updatePanelState(type);
       panel.addEventListener("toggle",()=>{if(panel.open)setActive(type)});
-      panel.querySelectorAll("input,textarea,select").forEach(input=>input.addEventListener("input",()=>{activeType=type;queuePreview()}));
+      panel.querySelectorAll("input:not([data-include-page]),textarea,select").forEach(input=>input.addEventListener("input",()=>{activeType=type;queuePreview()}));
+      panel.querySelector("[data-include-page]").addEventListener("change",event=>{activeType=type;setIncluded(type,event.target.checked,event.target);queuePreview()});
       panel.querySelector("[data-save-page]").addEventListener("click",()=>savePage(type));
       panel.querySelector("[data-reset-page]").addEventListener("click",()=>{applyPage(type,null);activeType=type;renderPreview();saveStatus.textContent="Przywrócono propozycję. Zapisz stronę, aby dodać ją do projektu."});
     });
