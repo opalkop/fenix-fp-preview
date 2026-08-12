@@ -8,7 +8,7 @@
   <script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('fenix-motion')}catch{document.documentElement.classList.add('fenix-motion')}</script>
   <link rel="stylesheet" href="assets/app.css">
   <link rel="stylesheet" href="assets/contrast-fix.css">
-  <link rel="stylesheet" href="assets/dashboard-v2.css">
+  <link rel="stylesheet" href="assets/dashboard-v2.css?v=0.19.0">
   <link rel="stylesheet" href="assets/project-assets.css">
   <link rel="stylesheet" href="assets/dashboard-motion.css">
   <link rel="stylesheet" href="assets/dashboard-intro.css">
@@ -58,11 +58,11 @@
       <article class="stat"><div class="label">Strony projektu</div><strong id="statPages">0</strong><small>strony główne</small></article>
       <article class="stat"><div class="label">Potencjalne rozwiązania</div><strong id="statSolutions">0</strong><small>możliwe do wygenerowania</small></article>
       <article class="stat"><div class="label">Szacowany skład</div><strong id="statPdf">0</strong><small>maks. z rozwiązaniami</small></article>
-      <article class="stat"><div class="label">Wykorzystane moduły</div><strong id="statModules">0 / 15</strong><small>pełny zestaw</small></article>
+      <article class="stat"><div class="label">Wykorzystane moduły</div><strong id="statModules">0 / 15</strong><small>mają strony w projekcie</small></article>
       <article class="stat ready"><div class="label">Gotowość składu</div><strong id="statReady">0%</strong><small>kontrola projektu</small></article>
     </section>
 
-    <section id="modules"><div class="modules-heading"><span class="section-kicker">STUDIA PRODUKCYJNE</span><h3>Wybierz moduł</h3><p>Każde Studio to osobne narzędzie. Wspólne są projekt, dane i finalny skład.</p></div><div id="grid" class="modules"></div></section>
+    <section id="modules"><div class="modules-heading"><span class="section-kicker">STUDIA PRODUKCYJNE</span><h3>Zaplanuj zawartość książki</h3><p>Dodaj potrzebne Studia do planu. Fenix osobno pokaże, z których Studiów są już strony w aktywnym projekcie.</p></div><div id="grid" class="modules"></div></section>
 
     <div class="below-fold">
       <section class="panel project-assets-panel" id="projectAssets">
@@ -107,5 +107,5 @@
 </div>
 
 <dialog id="projectDialog" class="project-dialog"><form id="projectForm" method="dialog"><div class="dialog-head"><div><span class="section-kicker">USTAWIENIA PROJEKTU</span><h3 id="projectDialogTitle">Nowy projekt</h3></div><button type="button" id="closeProjectDialog" class="dialog-close" aria-label="Zamknij">×</button></div><input id="projectId" type="hidden"><label>Nazwa projektu<input id="projectName" required maxlength="80" placeholder="np. Jungle Activity Book 4–6"></label><div class="form-grid"><label>Format<select id="projectFormat"><option value="8.5x11">8,5 × 11 cala</option><option value="6x9">6 × 9 cala</option><option value="a4">A4</option></select></label><label>Spady<select id="projectBleed"><option value="no-bleed">Bez spadów</option><option value="bleed">Ze spadami</option></select></label><label>Grupa wiekowa<input id="projectAge" placeholder="np. 4–6 lat"></label><label>Temat<input id="projectTopic" placeholder="np. dżungla, pojazdy"></label></div><div class="dialog-actions"><button type="button" id="deleteProject" class="btn danger" hidden>Usuń projekt</button><button type="button" id="cancelProject" class="btn">Anuluj</button><button type="submit" class="btn primary">Zapisz projekt</button></div></form></dialog>
-<script src="core/page-schema.js"></script><script src="core/project-validator.js"></script><script src="core/asset-validator.js"></script><script src="core/fenix-core.js"></script><script src="assets/launcher.js"></script><script src="assets/project-assets.js"></script><script src="assets/help-overlay.js"></script><script src="assets/dashboard-motion.js"></script><script src="assets/dashboard-sound.js"></script><script src="assets/dashboard-intro.js"></script>
+<script src="core/page-schema.js"></script><script src="core/project-validator.js"></script><script src="core/asset-validator.js"></script><script src="core/fenix-core.js?v=0.19.0"></script><script src="assets/launcher.js?v=0.19.0"></script><script src="assets/project-assets.js"></script><script src="assets/help-overlay.js"></script><script src="assets/dashboard-motion.js"></script><script src="assets/dashboard-sound.js"></script><script src="assets/dashboard-intro.js"></script>
 </body></html>
