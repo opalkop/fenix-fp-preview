@@ -78,9 +78,10 @@ const ACTIVE_MODULES=[
     ["sudoku","Sudoku obrazkowe 4×4","Każdy symbol może wystąpić tylko raz w wierszu i kolumnie."],
     ["analogy","Analogie obrazkowe","Należy rozpoznać zależność między symbolami i wybrać prawidłowe uzupełnienie."]
   ]},
-  {slug:"intro-studio",name:"Intro Studio",description:"Twórz i edytuj strony wprowadzające książki.",icon:"IN",dashboardIcon:"IN",dashboardDescription:"Welcome, Mission, How to Use, Rules i Skills",engine:"intro",status:"structure",types:[
+  {slug:"intro-studio",name:"Intro Studio",description:"Twórz i edytuj strony wprowadzające książki.",icon:"IN",dashboardIcon:"IN",dashboardDescription:"Welcome, Mission, Tracker, How to Use, Rules i Skills",engine:"intro",status:"structure",types:[
     ["welcome","Welcome Page","Powitanie i zaproszenie do książki."],
     ["mission","Your Mission","Cel książki i zadanie czytelnika."],
+    ["mission-tracker","Mission Tracker","Strona postępu dla ukończonych aktywności."],
     ["how-to-use","How to Use This Book","Instrukcja korzystania z książki."],
     ["rules","Adventure Rules","Zasady wykonywania aktywności."],
     ["skills","Skills You’ll Practice","Umiejętności rozwijane przez książkę."]

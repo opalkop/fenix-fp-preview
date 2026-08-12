@@ -42,7 +42,7 @@
    test(maze,"Renderer ćwiczenia i rozwiązania",()=>{const page=FenixPageSchema.normalize({id:"maze",module:"maze-studio",title:"Find the Way!",recipe:{module:"maze-studio",seed:42,settings:{cols:18,rows:24,theme:"classic",endpointMode:"random"}}});const a=FenixMaze.render(page,{solution:false}),b=FenixMaze.render(page,{solution:true});assert(a.canvas.width===850&&a.canvas.height===1100,"Zły canvas");assert(JSON.stringify(a.endpoints)===JSON.stringify(b.endpoints),"Ćwiczenie i rozwiązanie mają inne punkty");return "spójny"});
 
    const intro=group("6. Intro Studio");
-   test(intro,"Pięć typów stron Intro",()=>{assert(FenixIntroRenderer.PAGE_TYPES.length===5,"Nieprawidłowa liczba paneli");return "5 paneli"});
+   test(intro,"Sześć typów stron Intro",()=>{assert(FenixIntroRenderer.PAGE_TYPES.length===6,"Nieprawidłowa liczba paneli");return "6 paneli"});
    test(intro,"Renderer odtwarza recepturę strony",()=>{const page=FenixPageSchema.normalize({module:"intro-studio",title:"Welcome!",recipe:{module:"intro-studio",settings:{pageType:"welcome",title:"Welcome!",body:"Final PDF text",footer:"Begin!",style:"framed",alignment:"center"}}}),canvas=FenixIntroRenderer.render(page,{width:850,height:1100});assert(canvas.width===850&&canvas.height===1100,"Niepoprawny canvas");return "850 × 1100"});
 
    headline.textContent=failed?`Diagnostyka: ${failed} błędów`:"Diagnostyka: wszystkie testy zaliczone";
