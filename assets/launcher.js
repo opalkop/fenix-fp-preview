@@ -7,7 +7,7 @@
   await load("../core/page-schema.js",()=>Boolean(window.FenixPageSchema));
   await load("../core/project-validator.js",()=>Boolean(window.FenixProjectValidator));
 
-  const READY_MODULES=new Set(["maze-studio","word-search-studio"]);
+  const READY_MODULES=new Set(["maze-studio","word-search-studio","intro-studio"]);
   const STATUS_ORDER=Object.freeze({ready:0,development:1,planned:2});
   const rawDashboardModules=FenixModuleRegistry.dashboard();
   const dashboardModules=rawDashboardModules.map((module,index)=>({
@@ -31,28 +31,27 @@
     grid.insertAdjacentHTML("beforebegin",`<div class="module-status-legend" aria-label="Status modułów"><span class="module-status-key ready"><i></i>Gotowe</span><span class="module-status-key development"><i></i>W rozwoju</span><span class="module-status-key planned"><i></i>Planowane</span></div>`);
   }
   const modulePageCounts=project=>project.pages.reduce((counts,page)=>{const slug=FenixPageSchema.moduleOf(page);if(slug)counts[slug]=(counts[slug]||0)+1;return counts},{});
+  const introSummary=selected=>{
+    const names=dashboardModules.filter(module=>module.slug!=="intro-studio"&&selected.has(module.slug)).map(module=>module.name.replace(/ Studio$/,""));
+    if(!names.length)return'<span class="module-intro-empty">Nie skonfigurowano</span>';
+    const visible=names.slice(0,3).join(", "),more=names.length>3?` +${names.length-3}`:"";
+    return`<span class="module-intro-count">✓ ${names.length}</span><span class="module-intro-names">${escapeHtml(visible+more)}</span>`;
+  };
   function renderModules(){
-    const project=FenixCore.getActiveProject(),selected=new Set(project.contentPlan?.selectedModules||[]),pageCounts=modulePageCounts(project);
+    const project=FenixCore.getActiveProject(),introSelected=new Set(FenixCore.getIntroPlan().selectedModules),pageCounts=modulePageCounts(project);
     grid.innerHTML=dashboardModules.map(module=>{
-      const inPlan=selected.has(module.slug),pageCount=pageCounts[module.slug]||0;
-      const statusClass=` status-${module.dashboardStatus}${module.status==="structure"?" status-structure":""}${inPlan?" is-planned":""}${pageCount?" has-project-pages":""}`;
+      const pageCount=pageCounts[module.slug]||0,isIntro=module.slug==="intro-studio";
+      const statusClass=` status-${module.dashboardStatus}${module.status==="structure"?" status-structure":""}${pageCount?" has-project-pages":""}`;
       const statusBadge=module.dashboardStatus==="ready"?'<span class="module-badge ready">GOTOWE</span>':module.dashboardStatus==="development"?'<span class="module-badge development">W ROZWOJU</span>':'<span class="module-badge planned">PLANOWANE</span>';
       const typeBadge=module.status==="structure"?'<span class="module-badge structure">STRUKTURA</span>':"";
-      const planBadge=inPlan?'<span class="module-project-badge plan">✓ W PLANIE</span>':"";
       const pagesBadge=pageCount?`<span class="module-project-badge pages">W PROJEKCIE · ${pageCount} STR.</span>`:"";
       const href=`modules/${module.slug}/index.html`,interactive=!module.planned;
       const studioAction=module.planned?'<span class="module-placeholder">Do zaprojektowania →</span>':`<a class="module-link" href="${href}">Otwórz Studio →</a>`;
-      const planAction=`<button class="module-plan-toggle" type="button" data-plan-module="${module.slug}" aria-pressed="${inPlan}">${inPlan?"Usuń z planu":"Dodaj do planu"}</button>`;
-      return `<article class="module${statusClass}${interactive?" module-clickable":""}" data-module-slug="${module.slug}"${interactive?` data-module-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(module.name)}"`:""}><div class="module-top"><span class="module-icon">${escapeHtml(module.dashboardIcon||module.icon||"MOD")}</span><div class="module-badges">${statusBadge}${typeBadge}</div></div><div class="module-project-state">${planBadge}${pagesBadge}</div><h4>${escapeHtml(module.name)}</h4><p>${escapeHtml(module.dashboardDescription||module.description||"")}</p><div class="module-actions">${planAction}${studioAction}</div></article>`;
+      const introState=isIntro?`<div class="module-intro-summary"><small>W INTRO</small>${introSummary(introSelected)}</div>`:"";
+      return `<article class="module${statusClass}${interactive?" module-clickable":""}" data-module-slug="${module.slug}"${interactive?` data-module-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(module.name)}"`:""}><div class="module-top"><span class="module-icon">${escapeHtml(module.dashboardIcon||module.icon||"MOD")}</span><div class="module-badges">${statusBadge}${typeBadge}</div></div><div class="module-project-state">${pagesBadge}</div><h4>${escapeHtml(module.name)}</h4><p>${escapeHtml(module.dashboardDescription||module.description||"")}</p>${introState}<div class="module-actions">${studioAction}</div></article>`;
     }).join("");
   }
   grid.addEventListener("click",event=>{
-    const toggle=event.target.closest("[data-plan-module]");
-    if(toggle){
-      const slug=toggle.dataset.planModule,project=FenixCore.getActiveProject(),selected=project.contentPlan.selectedModules.includes(slug),pageCount=modulePageCounts(project)[slug]||0;
-      if(selected&&pageCount&&!confirm(`Studio nadal ma ${pageCount} ${pageCount===1?"stronę":"stron"} w projekcie. Usunąć je tylko z planu? Strony pozostaną bez zmian.`))return;
-      FenixCore.setModulePlanned(slug,!selected);return;
-    }
     const card=event.target.closest(".module[data-module-href]");if(!card||event.target.closest("a,button,input,select,textarea"))return;location.href=card.dataset.moduleHref;
   });
   grid.addEventListener("keydown",event=>{const card=event.target.closest(".module[data-module-href]");if(!card||event.target!==card||(event.key!=="Enter"&&event.key!==" "))return;event.preventDefault();location.href=card.dataset.moduleHref});
@@ -103,6 +102,6 @@
   const importButton=$("#importMobile"),importButtonTop=$("#importMobileTop"),importFile=$("#importMobileFile");
   function validateMobileProject(data){if(!data||data.type!=="FENIX_MOBILE_PROJECT")throw new Error("To nie jest projekt wyeksportowany z FENIX Mobile.");if(!data.project||!Array.isArray(data.project.pages)||!data.project.pages.length)throw new Error("Plik nie zawiera prawidłowych stron projektu.");return data}
   function desktopPageFromMobile(page,data,index){return FenixPageSchema.normalize({...page,title:page.title||page.recipe?.title||`Strona ${index+1}`,source:{app:"fenix-mobile",version:data.appVersion||"unknown",format:"FENIX_MOBILE_PROJECT",originalId:page.id||null,projectName:data.project.name||null}})}
-  async function importMobileProject(file){let data;try{data=JSON.parse(await file.text())}catch{throw new Error("Nie można odczytać pliku JSON.")}validateMobileProject(data);const imported=data.project.pages.map((page,index)=>desktopPageFromMobile(page,data,index));FenixCore.setCart([...FenixCore.getCart(),...imported],{includeModules:true});return{count:imported.length,name:data.project.name||file.name,profile:data.productionProfile||null,mazeCount:imported.filter(isMaze).length}}
+  async function importMobileProject(file){let data;try{data=JSON.parse(await file.text())}catch{throw new Error("Nie można odczytać pliku JSON.")}validateMobileProject(data);const imported=data.project.pages.map((page,index)=>desktopPageFromMobile(page,data,index));FenixCore.setCart([...FenixCore.getCart(),...imported]);return{count:imported.length,name:data.project.name||file.name,profile:data.productionProfile||null,mazeCount:imported.filter(isMaze).length}}
   const openImport=()=>importFile.click();importButton.onclick=openImport;importButtonTop.onclick=openImport;importFile.onchange=async()=>{const file=importFile.files?.[0];if(!file)return;importButton.disabled=importButtonTop.disabled=true;setImportStatus("Importuję projekt z FENIX Mobile…");try{const result=await importMobileProject(file),format=result.profile?.format||"nieokreślony",bleed=result.profile?.bleed==="bleed"?"ze spadami":"bez spadów";setImportStatus(`Zaimportowano „${result.name}”: ${result.count} stron · ${format} · ${bleed}. Labirynty: ${result.mazeCount}.`,"ok")}catch(error){console.error(error);setImportStatus(error.message||"Import nie powiódł się.","error");alert(error.message||"Nie udało się zaimportować projektu.")}finally{importButton.disabled=importButtonTop.disabled=false;importFile.value=""}};
 })().catch(error=>{console.error(error);alert("FENIX nie uruchomił Dashboardu: "+error.message)});

@@ -77,12 +77,12 @@ const ACTIVE_MODULES=[
     ["matrix","Brakujący element","Ćwiczenie z tabelą obrazkową, w której należy wskazać brakujący symbol."],
     ["sudoku","Sudoku obrazkowe 4×4","Każdy symbol może wystąpić tylko raz w wierszu i kolumnie."],
     ["analogy","Analogie obrazkowe","Należy rozpoznać zależność między symbolami i wybrać prawidłowe uzupełnienie."]
-  ]}
+  ]},
+  {slug:"intro-studio",name:"Intro Studio",description:"Ustal, które aktywności i elementy książki mają zostać opisane we wprowadzeniu.",icon:"IN",dashboardIcon:"IN",dashboardDescription:"Wprowadzenie dopasowane do zawartości książki",engine:"intro",status:"structure",types:[]}
 ];
 
 const PLANNED_MODULES=[
   {slug:"certificate-studio",name:"Certificate Studio",dashboardIcon:"CERT",dashboardDescription:"Certyfikat ukończenia książki",status:"structure",planned:true},
-  {slug:"intro-studio",name:"Intro Studio",dashboardIcon:"IN",dashboardDescription:"Intro + How to Play / How to Use",status:"structure",planned:true},
   {slug:"congratulations-studio",name:"Congratulations Studio",dashboardIcon:"CONG",dashboardDescription:"Strona gratulacyjna na zakończenie",status:"structure",planned:true},
   {slug:"solutions-studio",name:"Solutions Studio",dashboardIcon:"SOL",dashboardDescription:"Skład i organizacja rozwiązań",status:"structure",planned:true}
 ];

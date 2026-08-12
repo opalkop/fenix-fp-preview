@@ -47,24 +47,18 @@ function createCore(initialProjects){
 const legacy={id:"legacy",name:"Starszy projekt",format:"8.5x11",bleed:"no-bleed",pages:[],assets:{},createdAt:"2026-01-01T00:00:00.000Z",updatedAt:"2026-01-01T00:00:00.000Z"};
 const{core,storage}=createCore([legacy]);
 
-assert.deepEqual(core.getContentPlan(),{version:1,selectedModules:[]},"Starszy projekt powinien dostać pusty plan v1.");
-assert.deepEqual(JSON.parse(storage.get("fenix-projects-v1"))[0].contentPlan,{version:1,selectedModules:[]},"Migracja planu powinna zostać zapisana.");
+assert.deepEqual(core.getIntroPlan(),{version:2,scope:"intro",selectedModules:[]},"Starszy projekt powinien dostać pustą konfigurację Intro v2.");
+assert.deepEqual(JSON.parse(storage.get("fenix-projects-v1"))[0].contentPlan,{version:2,scope:"intro",selectedModules:[]},"Migracja konfiguracji Intro powinna zostać zapisana.");
 
-core.setModulePlanned("intro-studio",true);
-assert.equal(core.isModulePlanned("intro-studio"),true,"Studio powinno zostać dodane do planu.");
+core.setIntroModules(["maze-studio","word-search-studio","maze-studio","NIE POPRAWNE"]);
+assert.deepEqual(core.getIntroPlan(),{version:2,scope:"intro",selectedModules:["maze-studio","word-search-studio"]},"Intro powinno zapisać wyłącznie prawidłowe, unikalne identyfikatory Studiów.");
 
-core.addPage({id:"maze-1",module:"maze-studio",title:"Maze"});
-assert.equal(core.isModulePlanned("maze-studio"),true,"Dodanie pierwszej strony powinno automatycznie dodać Studio do planu.");
+core.addPage({id:"color-1",module:"coloring-studio",title:"Coloring"});
+assert.deepEqual(core.getIntroPlan().selectedModules,["maze-studio","word-search-studio"],"Dodanie strony nie może samoczynnie zmieniać treści Intro.");
+core.removePage("color-1");
+assert.deepEqual(core.getIntroPlan().selectedModules,["maze-studio","word-search-studio"],"Usunięcie strony nie może zmieniać treści Intro.");
 
-core.removePage("maze-1");
-assert.equal(core.isModulePlanned("maze-studio"),true,"Usunięcie ostatniej strony nie może usuwać Studia z planu.");
+const imported=core.importProjectPayload({type:"FENIX_PROJECT",version:4,project:{...legacy,id:"source",name:"Import",contentPlan:{version:2,scope:"intro",selectedModules:["word-search-studio","certificate-studio"]}}});
+assert.deepEqual(imported.contentPlan,{version:2,scope:"intro",selectedModules:["word-search-studio","certificate-studio"]},"Import powinien zachować konfigurację Intro.");
 
-core.addPage({id:"maze-2",module:"maze-studio",title:"Maze 2"});
-core.setModulePlanned("maze-studio",false);
-assert.equal(core.isModulePlanned("maze-studio"),false,"Studio powinno dać się usunąć z planu.");
-assert.equal(core.getCart().length,1,"Usunięcie Studia z planu nie może usuwać jego stron.");
-
-const imported=core.importProjectPayload({type:"FENIX_PROJECT",version:4,project:{...legacy,id:"source",name:"Import",contentPlan:{version:1,selectedModules:["word-search-studio","intro-studio"]}}});
-assert.deepEqual(imported.contentPlan,{version:1,selectedModules:["word-search-studio","intro-studio"]},"Import powinien zachować plan zawartości.");
-
-console.log("PASS content-plan: migracja, wybór, automatyczne dopisanie, zachowanie stron i import.");
+console.log("PASS intro-plan: migracja, wybór, niezależność od stron i import.");

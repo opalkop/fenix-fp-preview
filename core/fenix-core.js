@@ -20,9 +20,7 @@ const FenixCore=(()=>{
   const normalizePage=page=>window.FenixPageSchema?.normalize?window.FenixPageSchema.normalize(page):{id:page?.id||uid(),createdAt:page?.createdAt||now(),...clone(page||{})};
   const normalizeTags=value=>[...new Set((Array.isArray(value)?value:[]).map(tag=>String(tag||"").trim().toLowerCase()).filter(Boolean))];
   const normalizeModuleSlugs=value=>[...new Set((Array.isArray(value)?value:[]).map(slug=>String(slug||"").trim().toLowerCase()).filter(slug=>/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)))];
-  const moduleOfPage=page=>String(window.FenixPageSchema?.moduleOf?.(page)||page?.module||page?.recipe?.module||"").trim().toLowerCase();
-  function normalizeContentPlan(value={}){const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};return{version:1,selectedModules:normalizeModuleSlugs(source.selectedModules)}}
-  function includePageModules(contentPlan,pages=[]){const selected=new Set(normalizeContentPlan(contentPlan).selectedModules);pages.forEach(page=>{const slug=moduleOfPage(page);if(slug)selected.add(slug)});return{version:1,selectedModules:[...selected]}}
+  function normalizeContentPlan(value={}){const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};const isIntroPlan=Number(source.version)>=2&&source.scope==="intro";return{version:2,scope:"intro",selectedModules:isIntroPlan?normalizeModuleSlugs(source.selectedModules):[]}}
   function normalizeAsset(asset={},fallbackId=""){
     const meta=asset.meta&&typeof asset.meta==="object"&&!Array.isArray(asset.meta)?clone(asset.meta):{};
     const width=Number(asset.width??meta.width)||0,height=Number(asset.height??meta.height)||0,sizeBytes=Number(asset.sizeBytes??meta.sizeBytes)||0;
@@ -59,12 +57,10 @@ const FenixCore=(()=>{
   function setActiveProject(id){const current=ensureSchema();if(!current.projects.some(project=>project.id===id))return false;current.activeId=id;commit({activeProject:true,cart:true,assets:true});return getActiveProject()}
   function deleteProject(id){const current=ensureSchema();if(current.projects.length===1||!current.projects.some(project=>project.id===id))return false;current.projects=current.projects.filter(project=>project.id!==id);if(current.activeId===id)current.activeId=current.projects[0].id;commit({projects:true,activeProject:true,cart:true,assets:true});return true}
   const getCart=()=>getActiveProject().pages;
-  const getContentPlan=()=>getActiveProject().contentPlan;
-  const isModulePlanned=slug=>getContentPlan().selectedModules.includes(String(slug||"").trim().toLowerCase());
-  function setModulePlanned(slug,selected=true){const normalized=normalizeModuleSlugs([slug])[0];if(!normalized)return false;const project=getActiveProject(),modules=new Set(project.contentPlan.selectedModules);selected?modules.add(normalized):modules.delete(normalized);return updateProject(project.id,{contentPlan:{version:1,selectedModules:[...modules]}})}
-  const toggleModulePlanned=slug=>setModulePlanned(slug,!isModulePlanned(slug));
-  function setCart(items,{includeModules=false}={}){const pages=Array.isArray(items)?items.map(normalizePage):[],patch={pages};if(includeModules)patch.contentPlan=includePageModules(getContentPlan(),pages);updateProject(getActiveProjectId(),patch);return clone(pages)}
-  function addPage(page){const cart=getCart();cart.push(normalizePage(page));setCart(cart,{includeModules:true});return cart.length}
+  const getIntroPlan=()=>getActiveProject().contentPlan;
+  function setIntroModules(slugs=[]){const project=getActiveProject();return updateProject(project.id,{contentPlan:{version:2,scope:"intro",selectedModules:normalizeModuleSlugs(slugs)}})}
+  function setCart(items){const pages=Array.isArray(items)?items.map(normalizePage):[];updateProject(getActiveProjectId(),{pages});return clone(pages)}
+  function addPage(page){const cart=getCart();cart.push(normalizePage(page));setCart(cart);return cart.length}
   function updatePage(id,patch){const cart=getCart(),index=cart.findIndex(item=>item.id===id);if(index<0)return false;cart[index]=normalizePage({...cart[index],...patch,id:cart[index].id,createdAt:cart[index].createdAt,updatedAt:now()});setCart(cart);return clone(cart[index])}
   const removePage=id=>setCart(getCart().filter(item=>item.id!==id)),clear=()=>setCart([]);
   function putAsset({id=null,name="Asset",filename="",mime="image/webp",mimeType="",dataUrl="",source="imported",width=0,height=0,sizeBytes=0,aspectRatio=null,tags=[],validation=null,meta={}}={}){
@@ -113,5 +109,5 @@ const FenixCore=(()=>{
   function exportProject(){const project=getActiveProject();download(`${safeName(project.name)}.fenixproject`,JSON.stringify({type:"FENIX_PROJECT",version:4,schemaVersion:window.FenixPageSchema?.VERSION||3,project},null,2))}
   const downloadCanvas=(canvas,name)=>canvas.toBlob(blob=>{if(!blob)return;const anchor=document.createElement("a");anchor.href=URL.createObjectURL(blob);anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(anchor.href),1000)},"image/png");
   loadState();
-  return Object.freeze({getProjects,getActiveProjectId,getActiveProject,createProject,updateProject,setActiveProject,deleteProject,getContentPlan,isModulePlanned,setModulePlanned,toggleModulePlanned,getCart,setCart,addPage,updatePage,removePage,clear,putAsset,getAsset,listAssets,findAssets,updateAsset,assetUsage,makeAssetRef,resolveAssetRef,removeAsset,importProjectPayload,exportPack,exportProject,download,downloadCanvas});
+  return Object.freeze({getProjects,getActiveProjectId,getActiveProject,createProject,updateProject,setActiveProject,deleteProject,getIntroPlan,setIntroModules,getCart,setCart,addPage,updatePage,removePage,clear,putAsset,getAsset,listAssets,findAssets,updateAsset,assetUsage,makeAssetRef,resolveAssetRef,removeAsset,importProjectPayload,exportPack,exportProject,download,downloadCanvas});
 })();
