@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>FENIX Book Builder — Główny moduł</title>
   <link rel="stylesheet" href="book-builder.css?v=0.22.0">
-  <link rel="stylesheet" href="content-summary.css?v=0.22.0">
+  <link rel="stylesheet" href="content-summary.css?v=0.22.3">
 </head>
 <body data-screen="book-builder" data-engine="specialized">
 <header class="master-header"><div><div class="master-badge">★ GŁÓWNY MODUŁ FENIKSA</div><h1>Book Builder</h1><p>Skład książki, rozwiązania, kontrola projektu i finalny eksport PDF.</p></div><div class="header-actions"><a class="back" href="../../index.html">← Dashboard</a></div></header>
@@ -17,7 +17,7 @@
     <div class="builder-control-sections">
       <details open class="gold">
         <summary><span><strong>1. Zawartość książki</strong><small>Strony i Studia użyte w aktywnym projekcie</small></span></summary>
-        <div class="builder-panel-body"><p id="cartSummary">Wczytywanie…</p><div id="contentSummary" class="content-summary"></div><button id="reloadCart">Odśwież strony projektu</button></div>
+        <div class="builder-panel-body"><p id="cartSummary">Wczytywanie…</p><div id="contentSummary" class="content-summary"></div><div class="builder-inline-actions"><button id="autoOrder" class="secondary">Uporządkuj książkę automatycznie</button><button id="reloadCart">Odśwież strony projektu</button></div><p class="hint">Fenix układa najpierw wprowadzenie, następnie ćwiczenia, zakończenie i rozwiązania. Kolejność wewnątrz grup pozostaje bez zmian.</p></div>
       </details>
       <details open>
         <summary><span><strong>2. Ustawienia książki</strong><small>Tytuł, format, numeracja i puste strony</small></span></summary>
@@ -43,13 +43,14 @@
 <script src="../../core/page-schema.js?v=0.22.0"></script>
 <script src="../../core/project-validator.js?v=0.22.0"></script>
 <script src="../../core/production-profile.js?v=0.22.0"></script>
+<script src="../../core/book-order.js?v=0.22.3"></script>
 <script src="../../core/fenix-pdf.js?v=0.22.1"></script>
 <script src="../shared/standard-renderers.js?v=0.22.0"></script>
-<script src="../maze-studio/maze-core.js?v=0.22.0"></script>
-<script src="../word-search-studio/word-search-core.js?v=0.22.2"></script>
+<script src="../maze-studio/maze-core.js?v=0.22.3"></script>
+<script src="../word-search-studio/word-search-core.js?v=0.22.3"></script>
 <script src="../complete-picture/complete-picture-core.js?v=0.22.0"></script>
 <script src="../intro-studio/intro-renderer.js?v=0.22.0"></script>
 <script src="../../core/fenix-core.js?v=0.22.0"></script>
-<script src="book-builder.js?v=0.22.2"></script>
+<script src="book-builder.js?v=0.22.3"></script>
 </body>
 </html>

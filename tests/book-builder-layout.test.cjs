@@ -22,12 +22,14 @@ assert.match(builderCss,/\.book-builder-layout[^\{]*\{[^}]*grid-template-columns
 assert.match(builderCss,/\.book-builder-layout \.book-builder-controls[^\{]*\{[^}]*grid-row:1!important/,"Ustawienia powinny zajmować pierwszy rząd.");
 assert.match(builderCss,/\.book-builder-layout \.book-preview[^\{]*\{[^}]*grid-row:2!important/,"Podgląd powinien zajmować drugi rząd.");
 
-["cartSummary","contentSummary","bookTitle","format","pageNumbers","addBlank","includeSolutions","solutionLayout","validationSummary","previewBook","exportPdf","pageList"].forEach(id=>assert.match(builder,new RegExp(`id="${id}"`),`Brak kontrolki ${id}.`));
+["cartSummary","contentSummary","autoOrder","bookTitle","format","pageNumbers","addBlank","includeSolutions","solutionLayout","validationSummary","previewBook","exportPdf","pageList"].forEach(id=>assert.match(builder,new RegExp(`id="${id}"`),`Brak kontrolki ${id}.`));
+assert.match(builder,/core\/book-order\.js/,"Book Builder powinien ładować logikę kolejności książki.");
 assert.match(builder,/core\/fenix-pdf\.js/,"Book Builder powinien ładować lokalny silnik PDF.");
 assert.match(builder,/word-search-studio\/word-search-core\.js/,"Book Builder powinien ładować renderer Word Search.");
 const builderJs=read("modules/book-builder/book-builder.js");
 assert.match(builderJs,/isWordSearch/,"Book Builder powinien rozpoznawać strony Word Search.");
 assert.match(builderJs,/FenixWordSearch\.render/,"Book Builder powinien odtwarzać Word Search z receptury.");
+assert.match(builderJs,/grayscale\(1\)/,"Arkusze rozwiązań powinny być wymuszane jako czarno-białe.");
 assert.match(builderJs,/if\(!canvas\)throw new Error/,"Eksport PDF powinien zgłaszać czytelny błąd brakującego canvasa.");
 assert.doesNotMatch(builderJs,/window\.print\s*\(/,"Finalny eksport nie może otwierać okna drukowania.");
 

@@ -3,3 +3,6 @@
 .content-summary span{color:#667085}
 .content-summary strong{color:#7a4704}
 .content-summary .empty-content{display:block;color:#667085;font-weight:600;line-height:1.4}
+.builder-inline-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.page-section-heading{grid-column:1/-1;margin:8px 0 -3px;padding:9px 12px;border-left:5px solid var(--builder-gold);background:#fff7dd;color:#6e4208;border-radius:7px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.solution-box img{filter:grayscale(1)}
