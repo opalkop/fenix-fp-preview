@@ -3,7 +3,7 @@
 (async()=>{
   const currentScript=[...document.scripts].find(script=>/\/assets\/launcher\.js(?:\?|$)/.test(script.src));
   const load=(relative,test)=>new Promise((resolve,reject)=>{if(test())return resolve();const script=document.createElement("script");script.src=new URL(relative,currentScript?.src||location.href).href;script.onload=resolve;script.onerror=()=>reject(new Error(`Nie udało się załadować ${relative}`));document.head.appendChild(script)});
-  await load("../config/module-registry.js?v=0.21.0",()=>Boolean(window.FenixModuleRegistry));
+  await load("../config/module-registry.js?v=0.22.0",()=>Boolean(window.FenixModuleRegistry));
   await load("../core/page-schema.js",()=>Boolean(window.FenixPageSchema));
   await load("../core/project-validator.js",()=>Boolean(window.FenixProjectValidator));
 
@@ -75,6 +75,9 @@
     $("#cartSolutionCount").textContent=`${solutionCount} ${solutionCount===1?"potencjalne rozwiązanie":"potencjalnych rozwiązań"}`;
     $("#cartEstimatedCount").textContent=`Szacowany skład: do ${estimatedCount} stron.`;
     $("#sideCartCount").textContent=cart.length;$("#statPages").textContent=cart.length;$("#statSolutions").textContent=solutionCount;$("#statPdf").textContent=estimatedCount;$("#statModules").textContent=`${used.size} / ${dashboardModules.length}`;$("#statReady").textContent=`${validation.score}%`;$("#statReady").title=validation.checks.map(check=>`${check.label}: ${check.message}`).join("\n");$("#cartProgress").style.width=`${validation.score}%`;
+    const usedStudios=[...used].filter(slug=>dashboardModules.some(module=>module.slug===slug)).length,builderGateway=$("#bookBuilderGateway");
+    $("#builderPages").textContent=cart.length;$("#builderStudios").textContent=usedStudios;$("#builderReadiness").textContent=`${validation.score}%`;$("#builderAction").textContent=hasPages?"Otwórz Book Builder →":"Otwórz pusty Book Builder →";
+    builderGateway.classList.toggle("is-empty",!hasPages);builderGateway.dataset.readiness=validation.status||"warning";builderGateway.title=validation.checks.map(check=>`${check.label}: ${check.message}`).join("\n");
     $("#cartList").innerHTML=hasPages?cart.map(page=>{const href=studioHref(page),interactive=Boolean(href),solutionText=hasSolution(page)?"Rozwiązanie: dostępne":"Rozwiązanie: brak";return `<div class="cart-item${interactive?" cart-item-clickable":""}"${interactive?` data-page-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(page.title)} w Studio"`:""}><div><strong>${escapeHtml(page.title)}</strong><br><small>${escapeHtml(page.module)} · ${new Date(page.createdAt).toLocaleString()}</small><br><small class="solution-availability ${hasSolution(page)?"has-solution":"no-solution"}">${solutionText}</small>${page.source.app==="fenix-mobile"?`<br><small class="mobile-source">FENIX Mobile · ${kdpText(page)}</small>`:""}</div><div>${isMaze(page)?`<a class="btn" href="${href}">Edytuj</a>`:""}<button data-remove="${page.id}" class="btn">Usuń</button></div></div>`}).join(""):"<div class=\"cart-empty\"><strong>Ten projekt nie ma jeszcze stron.</strong><span>Otwórz Studio, utwórz stronę i zapisz ją do aktywnego projektu.</span></div>";
     setCartActionsState(hasPages);
     document.querySelectorAll("[data-remove]").forEach(button=>button.onclick=()=>FenixCore.removePage(button.dataset.remove));
