@@ -56,6 +56,19 @@ html[data-theme="fenix"] .dashboard-v2 .badge{background:#deded9;color:#262729}
 html[data-theme="fenix"] .dashboard-v2 .theme-box{border-color:#c9c9c5;background:rgba(255,255,255,.58)}
 html[data-theme="fenix"] .dashboard-v2 .theme-box label{color:#60615f}
 html[data-theme="fenix"] .dashboard-v2 .theme-box select{border-color:#aaa9a4;background:#fff;color:#111214}
+/* Dashboard controls must not inherit the legacy navy form skin. */
+html[data-theme="fenix"] body.dashboard-v2 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html[data-theme="fenix"] body.dashboard-v2 select,
+html[data-theme="fenix"] body.dashboard-v2 textarea{
+  background:#fff!important;color:#111214!important;-webkit-text-fill-color:#111214!important;
+  border-color:#aaa9a4!important;color-scheme:light!important
+}
+html[data-theme="fenix"] body.dashboard-v2 input::placeholder,
+html[data-theme="fenix"] body.dashboard-v2 textarea::placeholder{color:#72736f!important;-webkit-text-fill-color:#72736f!important;opacity:1}
+html[data-theme="fenix"] body.dashboard-v2 option{background:#fff!important;color:#111214!important}
+html[data-theme="fenix"] body.dashboard-v2 input:focus,
+html[data-theme="fenix"] body.dashboard-v2 select:focus,
+html[data-theme="fenix"] body.dashboard-v2 textarea:focus{background:#fff!important;color:#111214!important;border-color:#111214!important;box-shadow:0 0 0 3px rgba(17,18,20,.14)!important}
 html[data-theme="fenix"] .dashboard-v2 .main{position:relative;z-index:1}
 html[data-theme="fenix"] .dashboard-v2 .main-inner{max-width:1240px}
 html[data-theme="fenix"] .dashboard-v2 .eyebrow,
@@ -74,6 +87,20 @@ html[data-theme="fenix"] .dashboard-v2 .module-badge,
 html[data-theme="fenix"] .dashboard-v2 .module-project-badge{filter:grayscale(1)}
 html[data-theme="fenix"] .dashboard-v2 .btn.primary{background:#111214!important;border-color:#111214!important;color:#fff!important}
 html[data-theme="fenix"] .dashboard-v2 .btn:not(.primary):hover{background:#efefec!important;border-color:#111214!important}
+html[data-theme="fenix"] body.dashboard-v2 button,
+html[data-theme="fenix"] body.dashboard-v2 .btn,
+html[data-theme="fenix"] body.dashboard-v2 [role="button"]{color:#111214!important;-webkit-text-fill-color:#111214!important}
+html[data-theme="fenix"] body.dashboard-v2 button.primary,
+html[data-theme="fenix"] body.dashboard-v2 .btn.primary,
+html[data-theme="fenix"] body.dashboard-v2 .project-assets-entry.primary-entry,
+html[data-theme="fenix"] body.dashboard-v2 .asset-toolbar-button{
+  background:#111214!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#111214!important
+}
+html[data-theme="fenix"] body.dashboard-v2 .project-assets-entry.primary-entry *,
+html[data-theme="fenix"] body.dashboard-v2 .asset-toolbar-button *{color:#fff!important;-webkit-text-fill-color:#fff!important}
+html[data-theme="fenix"] body.dashboard-v2 .project-assets-entry:not(.primary-entry){background:#f5f5f2!important;color:#111214!important;border-color:#aaa9a4!important}
+html[data-theme="fenix"] body.dashboard-v2 .project-assets-entry:not(.primary-entry) strong,
+html[data-theme="fenix"] body.dashboard-v2 .project-assets-entry:not(.primary-entry) small{color:#353638!important;-webkit-text-fill-color:#353638!important}
 html[data-theme="fenix"] .dashboard-v2 .active-badge{border:1px solid #b4b4af;background:#efefec;color:#111214}
 html[data-theme="fenix"] .dashboard-v2 .book-builder-gateway{
   border-color:#111214;background:linear-gradient(118deg,#0c0d0e 0%,#252728 58%,#575957 100%);box-shadow:0 20px 48px rgba(17,18,20,.2)
