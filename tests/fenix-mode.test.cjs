@@ -13,6 +13,7 @@ const css=read("assets/fenix-mode.css");
 assert.match(dashboard,/<option value="fenix">Fenix Mode<\/option>/,"dashboard exposes Fenix Mode");
 assert.match(shell,/<option value="fenix">Fenix Mode<\/option>/,"Studios expose Fenix Mode");
 assert.match(core,/addStyle\("fenix-mode","fenix-mode\.css\?v=0\.22\.7"\)/,"core loads the shared Fenix Mode layer");
+assert.match(core,/studio-shell\.js\?v=0\.22\.7/,"Studios receive the current theme selector without a stale cache");
 assert.match(css,/:root\[data-theme="fenix"\]/,"theme tokens are scoped");
 assert.match(css,/body\.dashboard-v2:before/,"dashboard has the mountain layer");
 assert.match(css,/body\.fenix-studio-shell/,"Studios share the visual theme");
