@@ -7,6 +7,8 @@
   link.rel="stylesheet";
   link.href=new URL("assets/help-overlay.css?v=0.15.0",root).href;
   document.head.appendChild(link);
+  const fenixModeStyle=document.querySelector('link[data-fenix-theme="fenix-mode"]');
+  if(fenixModeStyle)document.head.appendChild(fenixModeStyle);
 
   const button=document.createElement("button");
   button.id="fenixHelpButton";

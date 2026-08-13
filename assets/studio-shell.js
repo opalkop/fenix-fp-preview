@@ -14,9 +14,11 @@
     contrast.dataset.fenixContrast="true";
     document.head.appendChild(contrast);
   }
+  const fenixModeStyle=document.querySelector('link[data-fenix-theme="fenix-mode"]');
+  if(fenixModeStyle)document.head.appendChild(fenixModeStyle);
   if(shellScript&&!document.querySelector('script[data-fenix-help]')){
     const help=document.createElement("script");
-    help.src=new URL("help-overlay.js",shellScript.src).href;
+    help.src=new URL("help-overlay.js?v=0.22.9",shellScript.src).href;
     help.dataset.fenixHelp="true";
     document.body.appendChild(help);
   }
