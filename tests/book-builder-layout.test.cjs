@@ -24,6 +24,11 @@ assert.match(builderCss,/\.book-builder-layout \.book-preview[^\{]*\{[^}]*grid-r
 
 ["cartSummary","contentSummary","bookTitle","format","pageNumbers","addBlank","includeSolutions","solutionLayout","validationSummary","previewBook","exportPdf","pageList"].forEach(id=>assert.match(builder,new RegExp(`id="${id}"`),`Brak kontrolki ${id}.`));
 assert.match(builder,/core\/fenix-pdf\.js/,"Book Builder powinien ładować lokalny silnik PDF.");
-assert.doesNotMatch(read("modules/book-builder/book-builder.js"),/window\.print\s*\(/,"Finalny eksport nie może otwierać okna drukowania.");
+assert.match(builder,/word-search-studio\/word-search-core\.js/,"Book Builder powinien ładować renderer Word Search.");
+const builderJs=read("modules/book-builder/book-builder.js");
+assert.match(builderJs,/isWordSearch/,"Book Builder powinien rozpoznawać strony Word Search.");
+assert.match(builderJs,/FenixWordSearch\.render/,"Book Builder powinien odtwarzać Word Search z receptury.");
+assert.match(builderJs,/if\(!canvas\)throw new Error/,"Eksport PDF powinien zgłaszać czytelny błąd brakującego canvasa.");
+assert.doesNotMatch(builderJs,/window\.print\s*\(/,"Finalny eksport nie może otwierać okna drukowania.");
 
 console.log("PASS book-builder-layout: duży kafel Dashboardu, 5 paneli i wymuszony układ góra–dół.");
