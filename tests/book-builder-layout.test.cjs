@@ -30,6 +30,8 @@ const builderJs=read("modules/book-builder/book-builder.js");
 assert.match(builderJs,/isWordSearch/,"Book Builder powinien rozpoznawać strony Word Search.");
 assert.match(builderJs,/FenixWordSearch\.render/,"Book Builder powinien odtwarzać Word Search z receptury.");
 assert.match(builderJs,/grayscale\(1\)/,"Arkusze rozwiązań powinny być wymuszane jako czarno-białe.");
+assert.match(builderJs,/Activity Page/,"Rozwiązanie powinno wskazywać numer właściwej strony aktywności.");
+assert.match(builderJs,/solutionKey:true/,"Klucz odpowiedzi powinien korzystać z czystego renderu bez nagłówka ćwiczenia.");
 assert.match(builderJs,/if\(!canvas\)throw new Error/,"Eksport PDF powinien zgłaszać czytelny błąd brakującego canvasa.");
 assert.doesNotMatch(builderJs,/window\.print\s*\(/,"Finalny eksport nie może otwierać okna drukowania.");
 
