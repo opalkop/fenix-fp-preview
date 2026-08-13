@@ -14,6 +14,8 @@ function context(){
     beginPath(){},moveTo(){},lineTo(){},arc(){},fill(){},setLineDash(){},fillText(){},
     roundRect(){log.roundRects++},stroke(){log.strokeStyles.push(this.strokeStyle)}
   };
+  Object.defineProperty(ctx,"strokeStyle",{get(){return this._strokeStyle||""},set(value){this._strokeStyle=value}});
+  Object.defineProperty(ctx,"lineWidth",{get(){return this._lineWidth||0},set(value){this._lineWidth=value;log.lineWidths=(log.lineWidths||[]).concat(value)}});
   return ctx;
 }
 function canvas(){const ctx=context();return{width:0,height:0,ctx,getContext:()=>ctx}}
@@ -45,5 +47,7 @@ const wordCanvas=canvas();
 const wordResult=wordSearch.render({module:"word-search-studio",title:"Words",recipe:{seed:3,settings:{cols:6,rows:6,wordCount:2,decoAssetRefs:["deco"],decoCount:4},content:{words:["MOON","STAR"]}}},{solution:true,width:850,height:1100,canvas:wordCanvas,assetImages:{deco:{width:20,height:20}}});
 assert.equal(wordResult.decorations.length,0,"Rozwiązanie Word Search nie może zawierać warstwy Deco.");
 assert.ok(wordCanvas.ctx.log.roundRects>=2,"Słowa w rozwiązaniu powinny być otoczone obwódką, a nie przekreślone.");
+assert.ok(wordCanvas.ctx.log.strokeStyles.includes("#777"),"Obwódka Word Search powinna być jasnoszara.");
+assert.ok(Math.max(...wordCanvas.ctx.log.lineWidths.filter(Number.isFinite))<12,"Obwódka Word Search nie może dominować nad literami.");
 
 console.log("PASS book-order-and-solutions: logiczny skład oraz czarno-białe rozwiązania bez Deco.");
