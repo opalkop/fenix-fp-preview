@@ -171,6 +171,47 @@ html[data-theme="fenix"] .fenix-help-head{background:#111214;color:#fff}
 html[data-theme="fenix"] .fenix-help-card,
 html[data-theme="fenix"] .fenix-help-step{background:#f2f2ef;border-color:#c9c9c5}
 
+/* Explicit contrast boundaries for dark surfaces. These beat legacy module inheritance. */
+html[data-theme="fenix"] .dashboard-v2 .nav a.active,
+html[data-theme="fenix"] .dashboard-v2 .nav a.active span,
+html[data-theme="fenix"] .dashboard-v2 .nav a:hover,
+html[data-theme="fenix"] .dashboard-v2 .nav a:hover span,
+html[data-theme="fenix"] .dashboard-v2 .nav-button:hover,
+html[data-theme="fenix"] .dashboard-v2 .nav-button:hover span{color:#fff!important}
+html[data-theme="fenix"] .dashboard-v2 .nav a.active .badge{color:#111214!important}
+html[data-theme="fenix"] .dashboard-v2 .cart-summary,
+html[data-theme="fenix"] .dashboard-v2 .cart-summary h1,
+html[data-theme="fenix"] .dashboard-v2 .cart-summary h2,
+html[data-theme="fenix"] .dashboard-v2 .cart-summary h3,
+html[data-theme="fenix"] .dashboard-v2 .cart-summary strong,
+html[data-theme="fenix"] .dashboard-v2 .cart-summary .cart-count{color:#fff!important}
+html[data-theme="fenix"] .dashboard-v2 .cart-summary p,
+html[data-theme="fenix"] .dashboard-v2 .cart-summary small,
+html[data-theme="fenix"] .dashboard-v2 .cart-summary .muted{color:#d1d2cf!important}
+html[data-theme="fenix"] .dashboard-v2 .book-builder-gateway h3,
+html[data-theme="fenix"] .dashboard-v2 .book-builder-gateway strong{color:#fff!important}
+html[data-theme="fenix"] .dashboard-v2 .book-builder-gateway p,
+html[data-theme="fenix"] .dashboard-v2 .book-builder-gateway small{color:#d0d1ce!important}
+html[data-theme="fenix"] .dashboard-v2 .project-assets-symbol,
+html[data-theme="fenix"] .dashboard-v2 .project-assets-badge,
+html[data-theme="fenix"] .dashboard-v2 .asset-tags button.active,
+html[data-theme="fenix"] .dashboard-v2 .asset-tags button[aria-pressed="true"]{color:#fff!important}
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head,
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head h1,
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head h2,
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head h3,
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head strong,
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head button{color:#fff!important}
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head button{background:transparent!important;border-color:#777!important;-webkit-text-fill-color:#fff!important}
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head p,
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head small{color:#cfd0cd!important}
+html[data-theme="fenix"] body.fenix-studio-shell button.primary,
+html[data-theme="fenix"] body.fenix-studio-shell .primary-big,
+html[data-theme="fenix"] body.fenix-studio-shell #saveCart,
+html[data-theme="fenix"] body.fenix-studio-shell #exportPdf,
+html[data-theme="fenix"] body.fenix-studio-shell button.secondary,
+html[data-theme="fenix"] body.fenix-studio-shell #downloadPng{color:#fff!important;-webkit-text-fill-color:#fff!important}
+
 @media(max-width:760px){
   html[data-theme="fenix"] body.dashboard-v2:before{right:-32vw;width:132vw;opacity:.2}
   html[data-theme="fenix"] body.dashboard-v2:after{inset:40% 0 0 0}
