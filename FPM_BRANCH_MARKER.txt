@@ -1,4 +1,4 @@
 FENIX Portable Mobile (FPM)
 Base: FENIX Portable
 Role: mobile interface layer over the same project/core architecture.
-Preview version: 0.22.8
+Preview version: 0.22.9
