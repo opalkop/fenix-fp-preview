@@ -42,7 +42,7 @@
       const select=document.createElement("select");
       select.dataset.fenixThemeToggle="true";
       select.setAttribute("aria-label","Motyw interfejsu");
-      select.innerHTML='<option value="light">Jasny</option><option value="dark">Ciemny</option><option value="system">Systemowy</option>';
+      select.innerHTML='<option value="light">Jasny</option><option value="dark">Ciemny</option><option value="system">Systemowy</option><option value="fenix">Fenix Mode</option>';
       select.value=current;
       select.style.width="auto";
       select.addEventListener("change",()=>{try{localStorage.setItem(themeKey,select.value)}catch{}document.documentElement.dataset.theme=select.value;window.dispatchEvent(new CustomEvent("fenix-theme-change",{detail:{theme:select.value}}))});
