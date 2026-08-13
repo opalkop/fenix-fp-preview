@@ -239,6 +239,42 @@ html[data-theme="fenix"] body.fenix-studio-shell #exportPdf,
 html[data-theme="fenix"] body.fenix-studio-shell button.secondary,
 html[data-theme="fenix"] body.fenix-studio-shell #downloadPng{color:#fff!important;-webkit-text-fill-color:#fff!important}
 
+/* One visual rule across every Studio: dark copy on light working surfaces. */
+html[data-theme="fenix"] body.fenix-studio-shell main,
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-unified-main{color:#111214!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(
+  .panel,.card,.box,.controls,.control-panel,.settings,.settings-panel,
+  .preview,.preview-panel,.canvas-panel,.workspace,.tool-panel,.cart,.cart-panel,
+  .module-card,.project-card,.page-card,.content-summary,.builder-panel-body,
+  .intro-controls,.preview-section,.asset-role-card,.appearance-panel,.words-panel,
+  .ctp-panel,.ctp-preview,.fenix-surface
+){background:#fff!important;color:#111214!important;border-color:#c9c9c5!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(
+  h1,h2,h3,h4,h5,h6,label,legend,strong,b,.section-title,.step,.eyebrow,
+  .preview-heading,.workspace-head,.panel-head,.words-meta strong
+){color:#111214!important;-webkit-text-fill-color:#111214!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(
+  p,small,.muted,.hint,.note,.help,.subtitle,.description,.type-help,.project-info,
+  .builder-help,.words-meta,.asset-empty,.deco-choice small
+){color:#5f605e!important;-webkit-text-fill-color:#5f605e!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea
+){background:#fff!important;color:#111214!important;-webkit-text-fill-color:#111214!important;border-color:#aaa9a4!important;color-scheme:light!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(input,textarea)::placeholder{color:#747572!important;-webkit-text-fill-color:#747572!important;opacity:1}
+html[data-theme="fenix"] body.fenix-studio-shell option{background:#fff!important;color:#111214!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(input,select,textarea):focus{background:#fff!important;color:#111214!important;border-color:#111214!important;box-shadow:0 0 0 3px rgba(17,18,20,.14)!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(details,.control-sections details,.builder-control-sections details){background:#fff!important;color:#111214!important;border-color:#c9c9c5!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(details>summary,.control-sections summary,.builder-control-sections summary){background:#eeeeeb!important;color:#111214!important;-webkit-text-fill-color:#111214!important;border-color:#c9c9c5!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(details>summary,.control-sections summary,.builder-control-sections summary) *{color:#111214!important;-webkit-text-fill-color:#111214!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(button,.button,.btn,.back):not(.primary):not(.primary-big):not(.secondary):not(#saveCart):not(#exportPdf):not(#downloadPng){background:#f3f3f0!important;color:#111214!important;-webkit-text-fill-color:#111214!important;border-color:#aaa9a4!important}
+html[data-theme="fenix"] body.fenix-studio-shell :is(.canvas-wrap,.hero){background:#deded9!important;color:#111214!important}
+html[data-theme="fenix"] body.fenix-studio-shell canvas{background:#fff!important;color:#111214!important}
+
+/* Restore white type only on deliberately dark Studio actions and help header. */
+html[data-theme="fenix"] body.fenix-studio-shell :is(button.primary,.primary-big,button.secondary,#saveCart,#exportPdf,#downloadPng),
+html[data-theme="fenix"] body.fenix-studio-shell :is(button.primary,.primary-big,button.secondary,#saveCart,#exportPdf,#downloadPng) *{color:#fff!important;-webkit-text-fill-color:#fff!important}
+html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head :is(h1,h2,h3,strong,p,small,button){color:#fff!important;-webkit-text-fill-color:#fff!important}
+
 @media(max-width:760px){
   html[data-theme="fenix"] body.dashboard-v2:before{right:-32vw;width:132vw;opacity:.2}
   html[data-theme="fenix"] body.dashboard-v2:after{inset:40% 0 0 0}
