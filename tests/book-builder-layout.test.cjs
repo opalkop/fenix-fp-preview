@@ -23,5 +23,7 @@ assert.match(builderCss,/\.book-builder-layout \.book-builder-controls[^\{]*\{[^
 assert.match(builderCss,/\.book-builder-layout \.book-preview[^\{]*\{[^}]*grid-row:2!important/,"Podgląd powinien zajmować drugi rząd.");
 
 ["cartSummary","contentSummary","bookTitle","format","pageNumbers","addBlank","includeSolutions","solutionLayout","validationSummary","previewBook","exportPdf","pageList"].forEach(id=>assert.match(builder,new RegExp(`id="${id}"`),`Brak kontrolki ${id}.`));
+assert.match(builder,/core\/fenix-pdf\.js/,"Book Builder powinien ładować lokalny silnik PDF.");
+assert.doesNotMatch(read("modules/book-builder/book-builder.js"),/window\.print\s*\(/,"Finalny eksport nie może otwierać okna drukowania.");
 
 console.log("PASS book-builder-layout: duży kafel Dashboardu, 5 paneli i wymuszony układ góra–dół.");
