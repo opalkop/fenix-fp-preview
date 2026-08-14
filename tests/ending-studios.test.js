@@ -122,7 +122,10 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(wordSearch.includes("function drawSolutionHighlights"));
   assert(!wordSearch.includes("CIRCLE = START   SQUARE = END"));
   assert(!wordSearch.includes('fillStyle="#ededed"'));
-  assert(wordSearch.includes('fillStyle="#d9d9d9"'),"Rozwiązania WS powinny używać szarych, wypełnionych kapsułek.");
+  assert(wordSearch.includes('strokeStyle="#d6d6d6"'),"Rozwiązania WS powinny używać delikatnego szarego markera.");
+  assert(wordSearch.includes('lineWidth=Math.max(8,cell*.4)'));
+  assert(wordSearch.includes('lineCap="round"'));
+  assert(!wordSearch.includes('strokeStyle="#9a9a9a"'),"Marker WS nie powinien mieć ciemnego obramowania.");
   assert(!wordSearch.includes("String(index+1)"),"Rozwiązania WS nie powinny zawierać numeracji słów.");
   assert(wordSearch.includes("result.placements.map(placement=>placement.word)"));
 }
