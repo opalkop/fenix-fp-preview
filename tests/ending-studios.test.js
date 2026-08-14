@@ -64,6 +64,8 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(styles.includes('details[data-section="2"] .ending-grid'));
   assert(styles.includes('details[data-section="3"] .ending-grid'));
   assert(styles.includes("overflow-wrap:anywhere"));
+  assert(styles.includes("label.qr-asset-upload"));
+  assert(styles.includes("-webkit-text-fill-color:#fff!important"));
   assert(styles.includes(".save-explainer"));
   assert(styles.includes(".ending-status.unsaved"));
   assert(styles.includes("var(--fenix-ui-surface-2"));
