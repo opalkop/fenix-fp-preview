@@ -32,16 +32,17 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
   assert(qrDefinition.groups[0].fields.some(field=>field[0]==="qrAssetRef"&&field[2]==="asset"));
   assert(!qrDefinition.groups.flatMap(group=>group.fields).some(field=>field[0]==="url"));
   const certificate=renderers.DEFINITIONS["certificate-studio"];
-  assert.equal(certificate.groups.length,4);
+  assert.equal(certificate.groups.length,5);
   assert.equal(certificate.defaults.bookTitleMode,"auto");
   assert.equal(certificate.defaults.countMode,"auto");
   assert.equal(certificate.defaults.showAchievementMark,true);
   assert(certificate.groups.flatMap(group=>group.fields).some(field=>field[0]==="showCutGuide"));
-  assert(certificate.groups.flatMap(group=>group.fields).some(field=>field[0]==="signatureAssetRef"&&field[2]==="signature-asset"));
-  const certificatePage=renderers.page("certificate-studio",{...certificate.defaults,signatureAssetRef:"asset-signature-1"});
-  assert.equal(certificatePage.recipe.content.signatureAssetRef,"asset-signature-1");
-  assert.equal(renderers.fromPage(certificatePage,"certificate-studio").signatureAssetRef,"asset-signature-1");
-  const signedCanvas=renderers.render(certificatePage,{signatureAssetImage:{width:800,height:220}});assert.equal(signedCanvas.width,2550);
+  assert(certificate.groups.flatMap(group=>group.fields).some(field=>field[0]==="creatorMarkAssetRef"&&field[2]==="creator-asset"));
+  assert(certificate.groups.some(group=>group.title.includes("Creator Mark")));
+  const certificatePage=renderers.page("certificate-studio",{...certificate.defaults,creatorMarkAssetRef:"asset-creator-1"});
+  assert.equal(certificatePage.recipe.content.creatorMarkAssetRef,"asset-creator-1");
+  assert.equal(renderers.fromPage(certificatePage,"certificate-studio").creatorMarkAssetRef,"asset-creator-1");
+  const markedCanvas=renderers.render(certificatePage,{creatorMarkImage:{width:800,height:220}});assert.equal(markedCanvas.width,2550);
   renderers.modules.forEach(module=>{const canvas=renderers.render({module,recipe:{settings:renderers.DEFINITIONS[module].defaults}});assert.equal(canvas.width,2550);assert.equal(canvas.height,3300)});
   const qr=renderers.qrMatrix("https://example.com/fenix-test");assert.equal(qr.length,57);qr.forEach(row=>assert.equal(row.length,57));
 }
@@ -62,9 +63,9 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(controller.includes('type==="checkbox"'));
   assert(controller.includes('type==="asset"'));
   assert(controller.includes('tags:["qr","content"]'));
-  assert(controller.includes('tags:["signature","content"]'));
-  assert(controller.includes("importSignatureAsset"));
-  assert(controller.includes("refreshSignatureAssets"));
+  assert(controller.includes('tags:["creator-mark","content"]'));
+  assert(controller.includes("importCreatorMark"));
+  assert(controller.includes("refreshCreatorMarkAssets"));
   assert(controller.includes("FenixCore.putAsset"));
   assert(controller.includes("Najpierw dodaj lub wybierz asset kodu QR"));
   assert(controller.includes('data-control="${name}"'));
@@ -81,7 +82,7 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(styles.includes('details[data-section="3"] .ending-grid'));
   assert(styles.includes("overflow-wrap:anywhere"));
   assert(styles.includes("label.qr-asset-upload"));
-  assert(styles.includes("label.signature-asset-upload"));
+  assert(styles.includes("label.creator-asset-upload"));
   assert(styles.includes("-webkit-text-fill-color:#fff!important"));
   assert(styles.includes(".save-explainer"));
   assert(styles.includes(".ending-status.unsaved"));
@@ -101,7 +102,7 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(builder.includes("FenixEndingRenderers.render"));
   assert(builder.includes('module==="qr-studio"'));
   assert(builder.includes("qrAssetImage=await loadImage"));
-  assert(builder.includes("signatureAssetImage=await loadImage"));
+  assert(builder.includes("creatorMarkImage=await loadImage"));
   assert(builderHtml.includes("../shared/ending-renderers.js"));
 }
 
