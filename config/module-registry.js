@@ -88,7 +88,7 @@ const ACTIVE_MODULES=[
   ]},
   {slug:"certificate-studio",name:"Certificate Studio",description:"Projektuj certyfikat ukończenia książki gotowy do wycięcia.",icon:"CERT",dashboardIcon:"CERT",dashboardDescription:"Certyfikat ukończenia książki",dashboardOrder:820,dashboardStatus:"development",engine:"ending",status:"structure",types:[]},
   {slug:"congratulations-studio",name:"Congratulations Studio",description:"Twórz stronę gratulacyjną zamykającą część z ćwiczeniami.",icon:"CONG",dashboardIcon:"CONG",dashboardDescription:"Gotowa strona gratulacyjna domykająca część z ćwiczeniami",dashboardOrder:800,dashboardStatus:"ready",engine:"ending",status:"structure",types:[]},
-  {slug:"qr-studio",name:"QR Studio",description:"Dodawaj gotowy kod QR jako asset projektu i przygotuj stronę prowadzącą do dalszych materiałów.",icon:"QR",dashboardIcon:"QR",dashboardDescription:"Asset kodu QR i dalsza ścieżka dla czytelnika",dashboardOrder:810,dashboardStatus:"ready",engine:"ending",status:"structure",types:[]}
+  {slug:"qr-studio",name:"QR Studio",description:"Dodawaj gotowy kod QR jako asset projektu i przygotuj stronę prowadzącą do dalszych materiałów.",icon:"QR",dashboardIcon:"QR",dashboardDescription:"Asset kodu QR i dalsza ścieżka dla czytelnika",dashboardOrder:810,dashboardStatus:"development",engine:"ending",status:"structure",types:[]}
 ];
 
 const PLANNED_MODULES=[];
