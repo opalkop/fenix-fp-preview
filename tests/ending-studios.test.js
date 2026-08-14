@@ -96,7 +96,7 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(registry.includes('slug:"congratulations-studio"'));
   assert(registry.includes('dashboardOrder:800,dashboardStatus:"ready"'));
   assert(registry.includes('dashboardOrder:810,dashboardStatus:"ready"'));
-  assert(registry.includes('dashboardOrder:820,dashboardStatus:"development"'));
+  assert(registry.includes('dashboardOrder:820,dashboardStatus:"ready"'));
   assert(launcher.includes("module.dashboardStatus||"));
   assert(launcher.includes("a.dashboardOrder-b.dashboardOrder"));
   assert(builder.includes("FenixEndingRenderers.render"));
