@@ -122,8 +122,9 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(wordSearch.includes("function drawSolutionHighlights"));
   assert(!wordSearch.includes("CIRCLE = START   SQUARE = END"));
   assert(!wordSearch.includes('fillStyle="#ededed"'));
-  assert(wordSearch.includes("placement.cells[0]"));
-  assert(wordSearch.includes("String(index+1)"),"Każde słowo powinno mieć jednoznaczny numer początku.");
+  assert(wordSearch.includes('fillStyle="#d9d9d9"'),"Rozwiązania WS powinny używać szarych, wypełnionych kapsułek.");
+  assert(!wordSearch.includes("String(index+1)"),"Rozwiązania WS nie powinny zawierać numeracji słów.");
+  assert(wordSearch.includes("result.placements.map(placement=>placement.word)"));
 }
 
 console.log("ending-studios.test.js: OK");
