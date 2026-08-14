@@ -78,7 +78,7 @@ const ACTIVE_MODULES=[
     ["sudoku","Sudoku obrazkowe 4×4","Każdy symbol może wystąpić tylko raz w wierszu i kolumnie."],
     ["analogy","Analogie obrazkowe","Należy rozpoznać zależność między symbolami i wybrać prawidłowe uzupełnienie."]
   ]},
-  {slug:"intro-studio",name:"Intro Studio",description:"Twórz i edytuj strony wprowadzające książki.",icon:"IN",dashboardIcon:"IN",dashboardDescription:"Welcome, Mission, Tracker, How to Use, Rules i Skills",engine:"intro",status:"structure",types:[
+  {slug:"intro-studio",name:"Intro Studio",description:"Twórz i edytuj strony wprowadzające książki.",icon:"IN",dashboardIcon:"IN",dashboardDescription:"Welcome, Mission, Tracker, How to Use, Rules i Skills",dashboardOrder:0,dashboardStatus:"ready",engine:"intro",status:"structure",types:[
     ["welcome","Welcome Page","Powitanie i zaproszenie do książki."],
     ["mission","Your Mission","Cel książki i zadanie czytelnika."],
     ["mission-tracker","Mission Tracker","Strona postępu dla ukończonych aktywności."],
@@ -86,9 +86,9 @@ const ACTIVE_MODULES=[
     ["rules","Adventure Rules","Zasady wykonywania aktywności."],
     ["skills","Skills You’ll Practice","Umiejętności rozwijane przez książkę."]
   ]},
-  {slug:"certificate-studio",name:"Certificate Studio",description:"Projektuj certyfikat ukończenia książki gotowy do wycięcia.",icon:"CERT",dashboardIcon:"CERT",dashboardDescription:"Certyfikat ukończenia książki",engine:"ending",status:"structure",types:[]},
-  {slug:"congratulations-studio",name:"Congratulations Studio",description:"Twórz stronę gratulacyjną zamykającą część z ćwiczeniami.",icon:"CONG",dashboardIcon:"CONG",dashboardDescription:"Strona gratulacyjna na zakończenie",engine:"ending",status:"structure",types:[]},
-  {slug:"qr-studio",name:"QR Studio",description:"Dodawaj lokalnie generowany kod QR do dalszych materiałów.",icon:"QR",dashboardIcon:"QR",dashboardDescription:"Kod QR i dalsza ścieżka dla czytelnika",engine:"ending",status:"structure",types:[]}
+  {slug:"certificate-studio",name:"Certificate Studio",description:"Projektuj certyfikat ukończenia książki gotowy do wycięcia.",icon:"CERT",dashboardIcon:"CERT",dashboardDescription:"Certyfikat ukończenia książki",dashboardOrder:820,dashboardStatus:"development",engine:"ending",status:"structure",types:[]},
+  {slug:"congratulations-studio",name:"Congratulations Studio",description:"Twórz stronę gratulacyjną zamykającą część z ćwiczeniami.",icon:"CONG",dashboardIcon:"CONG",dashboardDescription:"Gotowa strona gratulacyjna domykająca część z ćwiczeniami",dashboardOrder:800,dashboardStatus:"ready",engine:"ending",status:"structure",types:[]},
+  {slug:"qr-studio",name:"QR Studio",description:"Dodawaj lokalnie generowany kod QR do dalszych materiałów.",icon:"QR",dashboardIcon:"QR",dashboardDescription:"Kod QR i dalsza ścieżka dla czytelnika",dashboardOrder:810,dashboardStatus:"development",engine:"ending",status:"structure",types:[]}
 ];
 
 const PLANNED_MODULES=[];

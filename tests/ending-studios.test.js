@@ -62,9 +62,15 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
 }
 
 {
-  const registry=read("config/module-registry.js"),builder=read("modules/book-builder/book-builder.js"),builderHtml=read("modules/book-builder/index.html");
+  const registry=read("config/module-registry.js"),launcher=read("assets/launcher.js"),builder=read("modules/book-builder/book-builder.js"),builderHtml=read("modules/book-builder/index.html");
   assert(registry.includes('slug:"qr-studio"'));
   assert(!registry.includes('slug:"solutions-studio"'));
+  assert(registry.includes('slug:"congratulations-studio"'));
+  assert(registry.includes('dashboardOrder:800,dashboardStatus:"ready"'));
+  assert(registry.includes('dashboardOrder:810,dashboardStatus:"development"'));
+  assert(registry.includes('dashboardOrder:820,dashboardStatus:"development"'));
+  assert(launcher.includes("module.dashboardStatus||"));
+  assert(launcher.includes("a.dashboardOrder-b.dashboardOrder"));
   assert(builder.includes("FenixEndingRenderers.render"));
   assert(builderHtml.includes("../shared/ending-renderers.js"));
 }
