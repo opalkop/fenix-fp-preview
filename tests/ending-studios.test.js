@@ -16,7 +16,7 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 }
 
 {
-  const methods=["fillRect","strokeRect","beginPath","arc","stroke","fillText","moveTo","lineTo","clearRect","drawImage"];
+  const methods=["fillRect","strokeRect","beginPath","arc","stroke","fillText","moveTo","lineTo","clearRect","drawImage","setLineDash","save","restore"];
   const context=()=>{const value={measureText:text=>({width:String(text).length*25})};methods.forEach(method=>value[method]=()=>{});return value};
   const document={createElement:tag=>{assert.equal(tag,"canvas");const ctx=context();return{width:0,height:0,getContext:()=>ctx}}};
   const sandbox={window:{},document,TextEncoder};vm.createContext(sandbox);vm.runInContext(read("modules/shared/ending-renderers.js"),sandbox);
@@ -27,6 +27,10 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
   assert.equal(congratulations.defaults.showActivityCount,true);
   assert.equal(congratulations.defaults.showQrTransition,true);
   assert.equal(congratulations.defaults.style,"framed");
+  const qrDefinition=renderers.DEFINITIONS["qr-studio"];
+  assert.equal(qrDefinition.groups.length,3);
+  assert(qrDefinition.groups[0].fields.some(field=>field[0]==="qrAssetRef"&&field[2]==="asset"));
+  assert(!qrDefinition.groups.flatMap(group=>group.fields).some(field=>field[0]==="url"));
   renderers.modules.forEach(module=>{const canvas=renderers.render({module,recipe:{settings:renderers.DEFINITIONS[module].defaults}});assert.equal(canvas.width,2550);assert.equal(canvas.height,3300)});
   const qr=renderers.qrMatrix("https://example.com/fenix-test");assert.equal(qr.length,57);qr.forEach(row=>assert.equal(row.length,57));
 }
@@ -45,6 +49,10 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(controller.includes("Masz niezapisane zmiany"));
   assert(controller.includes('id="savePage" type="button" class="primary"'));
   assert(controller.includes('type==="checkbox"'));
+  assert(controller.includes('type==="asset"'));
+  assert(controller.includes('tags:["qr","content"]'));
+  assert(controller.includes("FenixCore.putAsset"));
+  assert(controller.includes("Najpierw dodaj lub wybierz asset kodu QR"));
   assert(controller.includes('data-control="${name}"'));
   assert(controller.includes('data-section="${index+1}"'));
   assert(controller.includes("definition.groups.length+1"));
@@ -67,11 +75,13 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(!registry.includes('slug:"solutions-studio"'));
   assert(registry.includes('slug:"congratulations-studio"'));
   assert(registry.includes('dashboardOrder:800,dashboardStatus:"ready"'));
-  assert(registry.includes('dashboardOrder:810,dashboardStatus:"development"'));
+  assert(registry.includes('dashboardOrder:810,dashboardStatus:"ready"'));
   assert(registry.includes('dashboardOrder:820,dashboardStatus:"development"'));
   assert(launcher.includes("module.dashboardStatus||"));
   assert(launcher.includes("a.dashboardOrder-b.dashboardOrder"));
   assert(builder.includes("FenixEndingRenderers.render"));
+  assert(builder.includes('module==="qr-studio"'));
+  assert(builder.includes("qrAssetImage=await loadImage"));
   assert(builderHtml.includes("../shared/ending-renderers.js"));
 }
 

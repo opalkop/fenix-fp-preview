@@ -22,10 +22,11 @@ window.FenixEndingRenderers=(()=>{
     },
     "qr-studio":{
       name:"QR Studio",label:"Strona z kodem QR",file:"qr",
-      defaults:{title:"KEEP THE ADVENTURE GOING!",body:"Scan the code to discover more activities, bonus materials, or the next part of the adventure.",url:"https://example.com",qrLabel:"SCAN ME",footer:"Ask an adult for help before opening a link.",codeSize:"large",style:"clean"},
+      defaults:{qrAssetRef:"",title:"KEEP THE ADVENTURE GOING!",body:"Scan the code to discover more activities, bonus materials, or the next part of the adventure.",qrLabel:"SCAN ME",footer:"Ask an adult for help before opening a link.",codeSize:"large",style:"clean"},
       groups:[
-        {title:"1. Treść i adres",hint:"Kod powstaje lokalnie w przeglądarce. Adres nie jest wysyłany do żadnej usługi.",fields:[["title","Tytuł strony","text",120],["body","Instrukcja","textarea",700],["url","Adres URL kodu QR","url",271],["qrLabel","Podpis pod kodem","text",80],["footer","Stopka bezpieczeństwa","text",160]]},
-        {title:"2. Kompozycja",hint:"Kod QR pozostaje czarny na białym polu bezpieczeństwa.",fields:[["codeSize","Rozmiar kodu","select",[["large","Duży — zalecany"],["medium","Średni"]]],["style","Styl","select",[["clean","Czysty"],["framed","Ramka strony"],["card","Karta QR"]]]]}
+        {title:"1. Asset kodu QR",hint:"Dodaj gotowy kod QR jako asset aktywnego projektu lub wybierz zapisany wcześniej.",fields:[["qrAssetRef","Kod QR projektu","asset","PNG, JPG, WEBP lub SVG. Najlepiej kwadratowy, czarno-biały plik o wysokim kontraście."]]},
+        {title:"2. Treść strony",hint:"Teksty prowadzące czytelnika do kolejnego materiału.",fields:[["title","Tytuł strony","text",120],["body","Instrukcja","textarea",700],["qrLabel","Podpis pod kodem","text",80],["footer","Stopka bezpieczeństwa","text",160]]},
+        {title:"3. Wygląd strony",hint:"Kod pozostaje na białym polu bezpieczeństwa i jest renderowany bez warstwy deco.",fields:[["codeSize","Rozmiar kodu","select",[["large","Duży — zalecany"],["medium","Średni"]]],["style","Kompozycja","select",[["clean","Czysta"],["framed","Ramka strony"],["card","Karta QR"]]]]}
       ]
     }
   });
@@ -111,26 +112,28 @@ window.FenixEndingRenderers=(()=>{
     const matrix=qrMatrix(value),quiet=4,module=size/(matrix.length+quiet*2);ctx.fillStyle="#fff";ctx.fillRect(x,y,size,size);ctx.fillStyle="#000";
     matrix.forEach((row,r)=>row.forEach((dark,c)=>{if(dark)ctx.fillRect(x+(c+quiet)*module,y+(r+quiet)*module,Math.ceil(module+.15),Math.ceil(module+.15))}));
   }
-  function renderQr(settings,width,height){
+  function renderQr(settings,width,height,qrAssetImage=null){
     const {canvas,ctx,s}=base(width,height,settings.style),cx=width/2,max=1980*s;
     ctx.textAlign="center";ctx.font=`900 ${100*s}px Arial, sans-serif`;wrap(ctx,settings.title,max).slice(0,2).forEach((line,i)=>ctx.fillText(line,cx,520*s+i*115*s));
     textBlock(ctx,settings.body,cx,830*s,1840*s,48*s,72*s,"center",5);
     const qrSize=(settings.codeSize==="medium"?1120:1390)*s,qrX=(width-qrSize)/2,qrY=1250*s;
     if(settings.style==="card"){ctx.lineWidth=4*s;ctx.strokeRect(qrX-70*s,qrY-70*s,qrSize+140*s,qrSize+270*s)}
-    try{drawQr(ctx,settings.url,qrX,qrY,qrSize)}catch(error){ctx.font=`700 ${42*s}px Arial`;ctx.fillText(error.message,cx,qrY+qrSize/2)}
+    ctx.fillStyle="#fff";ctx.fillRect(qrX,qrY,qrSize,qrSize);
+    if(qrAssetImage){const sourceWidth=qrAssetImage.naturalWidth||qrAssetImage.width||1,sourceHeight=qrAssetImage.naturalHeight||qrAssetImage.height||1,inner=qrSize*.9,scale=Math.min(inner/sourceWidth,inner/sourceHeight),drawWidth=sourceWidth*scale,drawHeight=sourceHeight*scale;ctx.save();ctx.imageSmoothingEnabled=false;ctx.filter="grayscale(1) contrast(1.35)";ctx.drawImage(qrAssetImage,qrX+(qrSize-drawWidth)/2,qrY+(qrSize-drawHeight)/2,drawWidth,drawHeight);ctx.restore()}else{ctx.strokeStyle="#777";ctx.lineWidth=4*s;ctx.setLineDash([22*s,16*s]);ctx.strokeRect(qrX+70*s,qrY+70*s,qrSize-140*s,qrSize-140*s);ctx.setLineDash([]);ctx.fillStyle="#555";ctx.font=`800 ${42*s}px Arial, sans-serif`;ctx.fillText("DODAJ ASSET KODU QR",cx,qrY+qrSize/2)}
     ctx.font=`900 ${42*s}px Arial, sans-serif`;ctx.fillText(settings.qrLabel,cx,qrY+qrSize+90*s);
     ctx.font=`400 ${34*s}px Arial, sans-serif`;ctx.fillText(settings.footer,cx,height-245*s);return canvas;
   }
-  function fromPage(page,module){const definition=DEFINITIONS[module],stored=object(page?.recipe?.settings);return{...definition.defaults,...stored}}
+  function fromPage(page,module){const definition=DEFINITIONS[module],stored=object(page?.recipe?.settings),content=object(page?.recipe?.content);return{...definition.defaults,...stored,...(module==="qr-studio"&&content.assetRef?{qrAssetRef:content.assetRef}:{})}}
   function page(module,settings,original=null){
     const definition=DEFINITIONS[module],stamp=new Date().toISOString();
-    return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content:{},meta:{renderer:"ending-v2"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:"ok",messages:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.24.0",format:"native"}});
+    const assetRef=module==="qr-studio"?String(settings.qrAssetRef||""):"";
+    return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content:assetRef?{assetRef}:{},meta:{renderer:"ending-v2"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:module==="qr-studio"&&!assetRef?"warning":"ok",messages:module==="qr-studio"&&!assetRef?["Dodaj asset kodu QR przed eksportem finalnego PDF."]:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.25.0",format:"native"}});
   }
-  function render(pageValue,{width=2550,height=3300}={}){
+  function render(pageValue,{width=2550,height=3300,qrAssetImage=null}={}){
     const module=String(pageValue?.module||pageValue?.recipe?.module||""),settings=fromPage(pageValue,module);
     if(module==="congratulations-studio")return renderCongratulations(settings,width,height);
     if(module==="certificate-studio")return renderCertificate(settings,width,height);
-    if(module==="qr-studio")return renderQr(settings,width,height);
+    if(module==="qr-studio")return renderQr(settings,width,height,qrAssetImage);
     throw new Error(`Nieobsługiwana strona końcowa: ${module}`);
   }
   return Object.freeze({modules:Object.freeze(Object.keys(DEFINITIONS)),DEFINITIONS,fromPage,page,render,qrMatrix});
