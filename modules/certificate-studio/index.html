@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Certificate Studio · FENIX</title>
+  <link rel="stylesheet" href="../../assets/app.css">
+  <link rel="stylesheet" href="../../assets/fpm.css">
+  <link rel="stylesheet" href="../shared/ending-studio.css?v=0.23.0">
+</head>
+<body data-module="certificate-studio" data-engine="specialized">
+  <header>
+    <div><p class="eyebrow">FENIX / STUDIO STRUKTURALNE</p><h1>Certificate Studio</h1><p>Certyfikat ukończenia przygotowany do wydruku i wycięcia.</p></div>
+    <div class="header-actions"><a class="button ghost" href="../../index.html#modules">← Dashboard</a><button id="downloadPng" type="button">Eksport PNG 300 DPI</button></div>
+  </header>
+  <main class="ending-layout">
+    <section class="ending-controls">
+      <div id="projectInfo" class="project-info"></div>
+      <div class="section-title">Ustawienia strony</div>
+      <p class="ending-help">Rozwijaj sekcje i edytuj treść u góry. Podgląd finalnej strony aktualizuje się na bieżąco poniżej.</p>
+      <div id="endingSections" class="control-sections"></div>
+      <p id="saveStatus" class="ending-status" aria-live="polite">Ustaw treść strony i dodaj ją do aktywnego projektu.</p>
+    </section>
+    <section class="preview-section">
+      <div class="preview-heading"><div><p class="eyebrow">PODGLĄD STRONY</p><strong>Certyfikat ukończenia</strong></div><div id="status">Gotowy</div></div>
+      <canvas id="page" width="2550" height="3300"></canvas>
+    </section>
+  </main>
+  <script src="../../core/page-schema.js?v=0.23.0"></script>
+  <script src="../../core/fenix-core.js?v=0.23.0"></script>
+  <script src="../shared/ending-renderers.js?v=0.23.0"></script>
+  <script src="../shared/ending-studio.js?v=0.23.0"></script>
+</body>
+</html>
+

@@ -85,14 +85,13 @@ const ACTIVE_MODULES=[
     ["how-to-use","How to Use This Book","Instrukcja korzystania z książki."],
     ["rules","Adventure Rules","Zasady wykonywania aktywności."],
     ["skills","Skills You’ll Practice","Umiejętności rozwijane przez książkę."]
-  ]}
+  ]},
+  {slug:"certificate-studio",name:"Certificate Studio",description:"Projektuj certyfikat ukończenia książki gotowy do wycięcia.",icon:"CERT",dashboardIcon:"CERT",dashboardDescription:"Certyfikat ukończenia książki",engine:"ending",status:"structure",types:[]},
+  {slug:"congratulations-studio",name:"Congratulations Studio",description:"Twórz stronę gratulacyjną zamykającą część z ćwiczeniami.",icon:"CONG",dashboardIcon:"CONG",dashboardDescription:"Strona gratulacyjna na zakończenie",engine:"ending",status:"structure",types:[]},
+  {slug:"qr-studio",name:"QR Studio",description:"Dodawaj lokalnie generowany kod QR do dalszych materiałów.",icon:"QR",dashboardIcon:"QR",dashboardDescription:"Kod QR i dalsza ścieżka dla czytelnika",engine:"ending",status:"structure",types:[]}
 ];
 
-const PLANNED_MODULES=[
-  {slug:"certificate-studio",name:"Certificate Studio",dashboardIcon:"CERT",dashboardDescription:"Certyfikat ukończenia książki",status:"structure",planned:true},
-  {slug:"congratulations-studio",name:"Congratulations Studio",dashboardIcon:"CONG",dashboardDescription:"Strona gratulacyjna na zakończenie",status:"structure",planned:true},
-  {slug:"solutions-studio",name:"Solutions Studio",dashboardIcon:"SOL",dashboardDescription:"Skład i organizacja rozwiązań",status:"structure",planned:true}
-];
+const PLANNED_MODULES=[];
 
 const freezeModule=module=>Object.freeze({...module,status:module.status||"ready",types:Object.freeze((module.types||[]).map(type=>Object.freeze(type)))});
 window.FenixModules=Object.freeze(ACTIVE_MODULES.map(freezeModule));

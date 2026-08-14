@@ -6,10 +6,10 @@
   const coreScript=[...document.scripts].find(script=>/\/core\/fenix-core\.js(?:\?|$)/.test(script.src));if(!coreScript)return;
   const addStyle=(name,file)=>{if(document.querySelector(`link[data-fenix-theme="${name}"]`))return;const link=document.createElement("link");link.rel="stylesheet";link.href=new URL(`../assets/${file}`,coreScript.src).href;link.dataset.fenixTheme=name;document.head.appendChild(link)};
   const addScript=(name,file)=>{if(document.querySelector(`script[data-fenix-helper="${name}"]`))return;const script=document.createElement("script");script.src=new URL(`../assets/${file}`,coreScript.src).href;script.dataset.fenixHelper=name;document.body.appendChild(script)};
-  addStyle("v2","fenix-v2.css?v=0.18.0");addStyle("variants","fenix-theme-overrides.css?v=0.18.0");addStyle("studio-shell","studio-shell.css?v=0.20.2");addStyle("fenix-mode","fenix-mode.css?v=0.22.11");
+  addStyle("v2","fenix-v2.css?v=0.18.0");addStyle("variants","fenix-theme-overrides.css?v=0.18.0");addStyle("studio-shell","studio-shell.css?v=0.20.2");addStyle("fenix-mode","fenix-mode.css?v=0.23.0");
   const fenixModeStyle=document.querySelector('link[data-fenix-theme="fenix-mode"]');if(fenixModeStyle)document.head.appendChild(fenixModeStyle);
   document.documentElement.dataset.fenixTheme="v2";
-  window.addEventListener("DOMContentLoaded",()=>{if(document.body?.dataset?.module||document.body?.dataset?.screen)addScript("studio-shell","studio-shell.js?v=0.22.11")},{once:true});
+  window.addEventListener("DOMContentLoaded",()=>{if(document.body?.dataset?.module||document.body?.dataset?.screen)addScript("studio-shell","studio-shell.js?v=0.23.0")},{once:true});
 })();
 
 const FenixCore=(()=>{

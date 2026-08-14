@@ -11,8 +11,8 @@ window.FenixBookOrder=Object.freeze((()=>{
   });
   const CLOSING_ORDER=Object.freeze({
     "congratulations-studio":800,
-    "certificate-studio":810,
-    "qr-studio":820,
+    "qr-studio":810,
+    "certificate-studio":820,
     "closing-studio":830,
     "solutions-studio":900
   });
@@ -26,6 +26,17 @@ window.FenixBookOrder=Object.freeze((()=>{
   function sort(pages=[]){
     return pages.map((page,index)=>({page,index,rank:rank(page)})).sort((a,b)=>a.rank-b.rank||a.index-b.index).map(item=>item.page);
   }
+  function parityBlank(){
+    return{_blank:true,_autoParity:true,id:"certificate-parity-blank",schemaVersion:3,module:"blank-page",title:"Pusta strona przed certyfikatem",recipe:{module:"blank-page",seed:null,title:"Pusta strona przed certyfikatem",settings:{automatic:true,reason:"certificate-even-page"},content:{},meta:{},renderState:{}},solution:{available:false,imageData:null}};
+  }
+  function compose(pages=[]){
+    const ordered=sort(pages.filter(page=>!page?._autoParity)),result=[];
+    ordered.forEach(page=>{
+      if(moduleOf(page)==="certificate-studio"&&(result.length+1)%2===1)result.push(parityBlank());
+      result.push(page);
+    });
+    return result;
+  }
   function section(page){
     const value=rank(page);
     if(value<200)return"Wprowadzenie";
@@ -33,5 +44,5 @@ window.FenixBookOrder=Object.freeze((()=>{
     if(value<900)return"Zakończenie";
     return"Rozwiązania";
   }
-  return{INTRO_ORDER,CLOSING_ORDER,rank,sort,section};
+  return{INTRO_ORDER,CLOSING_ORDER,rank,sort,compose,section};
 })());

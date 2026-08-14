@@ -18,7 +18,7 @@ window.FenixIntroRenderer=(()=>{
     skills:{title:"Skills You’ll Practice",body:"This book helps you practice focus, observation, problem-solving, hand-eye coordination, creativity, and confidence. Each activity gives your brain a new and exciting challenge.",footer:"Every page helps your skills grow!"}
   };
   const object=value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-  const STRUCTURAL_MODULES=new Set(["intro-studio","blank-page","certificate-studio","congratulations-studio","solutions-studio"]);
+  const STRUCTURAL_MODULES=new Set(["intro-studio","blank-page","certificate-studio","congratulations-studio","qr-studio","solutions-studio"]);
   function activityCount(project={}){const pages=Array.isArray(project.pages)?project.pages:[];return pages.filter(page=>!STRUCTURAL_MODULES.has(String(page?.module||page?.recipe?.module||""))).length}
   function defaults(type,project={}){
     const base=COPY[type]||COPY.welcome,topic=String(project.topic||"").trim();
