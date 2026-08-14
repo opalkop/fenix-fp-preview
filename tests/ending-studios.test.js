@@ -35,6 +35,17 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
 }
 
 {
+  const controller=read("modules/shared/ending-studio.js"),styles=read("modules/shared/ending-studio.css");
+  assert(controller.includes("Ta strona nie jest jeszcze częścią książki."));
+  assert(controller.includes("Masz niezapisane zmiany"));
+  assert(controller.includes('id="savePage" type="button" class="primary"'));
+  assert(styles.includes(".control-sections .save-section"));
+  assert(styles.includes(".save-explainer"));
+  assert(styles.includes(".ending-status.unsaved"));
+  assert(styles.includes("var(--fenix-ui-surface-2"));
+}
+
+{
   const registry=read("config/module-registry.js"),builder=read("modules/book-builder/book-builder.js"),builderHtml=read("modules/book-builder/index.html");
   assert(registry.includes('slug:"qr-studio"'));
   assert(!registry.includes('slug:"solutions-studio"'));
