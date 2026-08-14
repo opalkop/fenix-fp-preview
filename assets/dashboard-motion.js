@@ -27,7 +27,7 @@
     cards.forEach((card,index)=>{
       if(card.dataset.motionBound==="1")return;
       card.dataset.motionBound="1";
-      card.style.setProperty("--motion-delay",`${330+index*55}ms`);
+      card.style.setProperty("--motion-delay",`${460+index*130}ms`);
       card.classList.add("motion-card-in");
       card.addEventListener("animationend",()=>{
         card.classList.remove("motion-card-in");
@@ -38,8 +38,25 @@
     return true;
   };
 
+  const bindCardNavigation=()=>{
+    const grid=document.querySelector("#grid");
+    if(!grid||grid.dataset.motionNavigation==="1")return;
+    grid.dataset.motionNavigation="1";
+    grid.addEventListener("click",event=>{
+      const link=event.target.closest("a.module-link");
+      if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      const card=link.closest(".module");
+      if(!card||body.classList.contains("motion-leaving"))return;
+      event.preventDefault();
+      body.classList.add("motion-leaving");
+      card.classList.add("motion-card-active");
+      window.setTimeout(()=>{window.location.href=link.href},250);
+    });
+  };
+
   const initialize=()=>{
     startFoundation();
+    bindCardNavigation();
     if(prepareCards())return;
 
     const grid=document.querySelector("#grid");

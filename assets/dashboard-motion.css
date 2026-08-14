@@ -1,8 +1,8 @@
 /* FENIX Dashboard Motion — presentation only. No application logic lives here. */
 html.fenix-motion .dashboard-v2 .sidebar,
 html.fenix-motion .dashboard-v2 .topbar,
-html.fenix-motion .dashboard-v2 .project-command,
-html.fenix-motion .dashboard-v2 .production-pipeline,
+html.fenix-motion .dashboard-v2 .project-strip,
+html.fenix-motion .dashboard-v2 .stats .stat,
 html.fenix-motion .dashboard-v2 .modules-heading{
   opacity:0;
   will-change:transform,opacity,filter;
@@ -14,14 +14,14 @@ html.fenix-motion .dashboard-v2 .sidebar{
   filter:blur(10px);
 }
 html.fenix-motion .dashboard-v2 .topbar{transform:translateY(-10px)}
-html.fenix-motion .dashboard-v2 .project-command{transform:translateY(10px)}
-html.fenix-motion .dashboard-v2 .production-pipeline{transform:translateY(10px)}
+html.fenix-motion .dashboard-v2 .project-strip{transform:translateY(10px)}
+html.fenix-motion .dashboard-v2 .stats .stat{transform:translateY(12px)}
 html.fenix-motion .dashboard-v2 .modules-heading{transform:translateY(9px)}
 
 html.fenix-motion.fenix-motion-start .dashboard-v2 .sidebar,
 html.fenix-motion.fenix-motion-start .dashboard-v2 .topbar,
-html.fenix-motion.fenix-motion-start .dashboard-v2 .project-command,
-html.fenix-motion.fenix-motion-start .dashboard-v2 .production-pipeline,
+html.fenix-motion.fenix-motion-start .dashboard-v2 .project-strip,
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat,
 html.fenix-motion.fenix-motion-start .dashboard-v2 .modules-heading{
   opacity:1;
   transform:none;
@@ -31,16 +31,20 @@ html.fenix-motion.fenix-motion-start .dashboard-v2 .sidebar{
   transition:opacity .48s ease,transform .54s cubic-bezier(.16,.84,.28,1),filter .56s ease;
 }
 html.fenix-motion.fenix-motion-start .dashboard-v2 .topbar{transition:opacity .24s .08s ease,transform .30s .08s cubic-bezier(.2,.75,.25,1)}
-html.fenix-motion.fenix-motion-start .dashboard-v2 .project-command{transition:opacity .26s .13s ease,transform .32s .13s cubic-bezier(.2,.75,.25,1)}
-html.fenix-motion.fenix-motion-start .dashboard-v2 .production-pipeline{transition:opacity .26s .20s ease,transform .32s .20s cubic-bezier(.2,.75,.25,1)}
-html.fenix-motion.fenix-motion-start .dashboard-v2 .modules-heading{transition:opacity .28s .28s ease,transform .34s .28s cubic-bezier(.2,.75,.25,1)}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .project-strip{transition:opacity .26s .14s ease,transform .32s .14s cubic-bezier(.2,.75,.25,1)}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat{transition:opacity .26s ease,transform .32s cubic-bezier(.2,.75,.25,1)}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(1){transition-delay:.20s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(2){transition-delay:.25s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(3){transition-delay:.30s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .stats .stat:nth-child(4){transition-delay:.35s}
+html.fenix-motion.fenix-motion-start .dashboard-v2 .modules-heading{transition:opacity .28s .40s ease,transform .34s .40s cubic-bezier(.2,.75,.25,1)}
 
 /* Cards use a distinct entrance: soft fall + materialization from depth. */
 html.fenix-motion .dashboard-v2 .module.motion-card-in{
   opacity:0;
   transform:translateY(-28px) scale(.962);
   filter:blur(6px);
-  animation:fenix-module-land .46s cubic-bezier(.16,.84,.28,1) var(--motion-delay,0ms) forwards;
+  animation:fenix-module-land .58s cubic-bezier(.16,.84,.28,1) var(--motion-delay,0ms) forwards;
   will-change:transform,opacity,filter;
 }
 @keyframes fenix-module-land{
@@ -63,8 +67,8 @@ html.fenix-motion .dashboard-v2 .module.motion-card-ready:active{transform:trans
 /* Module activation: selected card takes focus, dashboard quietly recedes. */
 html.fenix-motion .dashboard-v2.motion-leaving .sidebar,
 html.fenix-motion .dashboard-v2.motion-leaving .topbar,
-html.fenix-motion .dashboard-v2.motion-leaving .project-command,
-html.fenix-motion .dashboard-v2.motion-leaving .production-pipeline,
+html.fenix-motion .dashboard-v2.motion-leaving .project-strip,
+html.fenix-motion .dashboard-v2.motion-leaving .stats,
 html.fenix-motion .dashboard-v2.motion-leaving .modules-heading,
 html.fenix-motion .dashboard-v2.motion-leaving .below-fold{
   opacity:.32;
