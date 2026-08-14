@@ -312,3 +312,13 @@ html[data-theme="fenix"] .dashboard-v2 .module-search-empty{background:#101b26;c
 html[data-theme="fenix"] .dashboard-v2 .theme-box select{background:#111e2a!important;color:#fff!important;border-color:#34495b!important}
 html[data-theme="fenix"] .dashboard-v2 .btn:not(.primary){background:#111e2a!important;color:#f5f7fa!important;border-color:#3a4c5d!important}
 html[data-theme="fenix"] .dashboard-v2 .btn.primary{background:linear-gradient(135deg,#ff6a21,#e7460b)!important;color:#fff!important;border-color:#ff6a21!important}
+html[data-theme="fenix"] .dashboard-v2 .nav a,html[data-theme="fenix"] .dashboard-v2 .nav-button{color:#b9c7d3!important;-webkit-text-fill-color:#b9c7d3!important}
+html[data-theme="fenix"] .dashboard-v2 .nav a.active,html[data-theme="fenix"] .dashboard-v2 .nav a:hover,html[data-theme="fenix"] .dashboard-v2 .nav-button:hover{background:#192735!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+html[data-theme="fenix"] .dashboard-v2 .nav .badge{background:#1c2c3a!important;color:#dce6ee!important;-webkit-text-fill-color:#dce6ee!important}
+html[data-theme="fenix"] .dashboard-v2 .theme-box{background:rgba(9,18,27,.72)!important;border-color:#2b3d4d!important;color:#fff!important}
+html[data-theme="fenix"] .dashboard-v2 .theme-box button{background:#111e2a!important;color:#f5f7fa!important;-webkit-text-fill-color:#f5f7fa!important;border-color:#34495b!important}
+html[data-theme="fenix"] .dashboard-v2 :is(.module-icon,.module-badge,.module-status-key,.module-status-key i){filter:none!important}
+html[data-theme="fenix"] .dashboard-v2 .module-badge.ready{background:rgba(255,106,33,.16)!important;color:#ff9a68!important;-webkit-text-fill-color:#ff9a68!important}
+html[data-theme="fenix"] .dashboard-v2 .module-badge.development{background:#172b40!important;color:#86bdff!important;-webkit-text-fill-color:#86bdff!important}
+html[data-theme="fenix"] .dashboard-v2 .module-badge.planned{background:#2a2140!important;color:#c1a5ff!important;-webkit-text-fill-color:#c1a5ff!important}
+html[data-theme="fenix"] #fenixHelpButton{background:#122131!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#4a6072!important}
