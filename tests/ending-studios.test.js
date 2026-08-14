@@ -109,9 +109,21 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(builder.includes("sequence.body"));
   assert(builder.includes("sequence.solved"));
   assert(builder.includes("sequence.closing"));
+  assert(builder.includes("hasSolutionsDivider"));
+  assert(builder.includes('ctx.fillText("SOLUTIONS"'));
+  assert(builder.includes('ctx.fillText("Answer Key"'));
+  assert(builder.includes("showSectionTitle:!sequence.hasSolutionsDivider"));
   assert(builder.includes("wprowadzenie → ćwiczenia → rozwiązania → Congratulations → QR → Certificate"));
   assert(builderHtml.includes("../shared/ending-renderers.js"));
   assert(builderHtml.includes("Dodaj dostępne rozwiązania przed zakończeniem książki"));
+}
+
+{
+  const intro=read("modules/intro-studio/intro-renderer.js"),introHtml=read("modules/intro-studio/index.html");
+  assert(intro.includes("compact=count<=4"));
+  assert(intro.includes("gridWidth=compact?"));
+  assert(intro.includes("glyphLimit=compact?190:105"));
+  assert(introHtml.includes("intro-renderer.js?v=0.27.3"));
 }
 
 {

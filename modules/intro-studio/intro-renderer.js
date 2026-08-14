@@ -42,11 +42,11 @@ window.FenixIntroRenderer=(()=>{
   }
   function roundedRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.stroke()}
   function renderTracker(ctx,settings,{width,height,scale,margin,contentWidth,dividerY,footer}){
-    const count=Math.max(1,Math.min(120,Number(settings.trackerCount)||35)),columns=Math.max(3,Math.min(12,Number(settings.trackerColumns)||7)),rows=Math.ceil(count/columns),glyph={star:"☆",circle:"○",square:"□"}[settings.markerShape]||"☆";
+    const count=Math.max(1,Math.min(120,Number(settings.trackerCount)||35)),configuredColumns=Math.max(3,Math.min(12,Number(settings.trackerColumns)||7)),compact=count<=4,columns=compact?count:configuredColumns,rows=Math.ceil(count/columns),glyph={star:"☆",circle:"○",square:"□"}[settings.markerShape]||"☆";
     ctx.textAlign="center";ctx.font=`700 ${Math.round(48*scale)}px Arial, sans-serif`;ctx.fillText(String(settings.body||COPY["mission-tracker"].body),width/2,dividerY+115*scale);
-    const gridTop=dividerY+230*scale,gridBottom=height-(footer?450:300)*scale,cellWidth=contentWidth/columns,cellHeight=(gridBottom-gridTop)/Math.max(1,rows),glyphSize=Math.max(28*scale,Math.min(105*scale,cellWidth*.56,cellHeight*.62));
+    const gridTop=dividerY+230*scale,gridBottom=height-(footer?450:300)*scale,gridWidth=compact?Math.min(contentWidth,count*310*scale):contentWidth,gridLeft=(width-gridWidth)/2,cellWidth=gridWidth/columns,cellHeight=(gridBottom-gridTop)/Math.max(1,rows),glyphLimit=compact?190:105,glyphSize=Math.max(28*scale,Math.min(glyphLimit*scale,cellWidth*.56,cellHeight*.62));
     ctx.font=`400 ${Math.round(glyphSize)}px Arial, sans-serif`;ctx.textBaseline="middle";
-    for(let index=0;index<count;index++){const column=index%columns,row=Math.floor(index/columns),x=margin+cellWidth*(column+.5),y=gridTop+cellHeight*(row+.5);ctx.fillText(glyph,x,y)}
+    for(let index=0;index<count;index++){const column=index%columns,row=Math.floor(index/columns),x=gridLeft+cellWidth*(column+.5),y=gridTop+cellHeight*(row+.5);ctx.fillText(glyph,x,y)}
   }
   function render(page,{canvas=null,width=2550,height=3300}={}){
     const target=canvas||document.createElement("canvas");target.width=width;target.height=height;
