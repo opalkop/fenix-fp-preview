@@ -6,11 +6,11 @@
   const existing=()=>pages().find(page=>page.id===requestedId&&FenixPageSchema.moduleOf(page)===module)||pages().find(page=>FenixPageSchema.moduleOf(page)===module)||null;
   const field=name=>sections.querySelector(`[data-field="${name}"]`);
   function inputHtml(spec){
-    const [name,label,type,option]=spec;if(type==="textarea")return `<label>${escape(label)}<textarea data-field="${name}" rows="5" maxlength="${option}"></textarea></label>`;
-    if(type==="select")return `<label>${escape(label)}<select data-field="${name}">${option.map(([value,text])=>`<option value="${escape(value)}">${escape(text)}</option>`).join("")}</select></label>`;
-    if(type==="checkbox")return `<label class="option-toggle"><input data-field="${name}" type="checkbox"><span><strong>${escape(label)}</strong><small>${escape(option||"")}</small></span></label>`;
-    if(type==="number")return `<label>${escape(label)}<input data-field="${name}" type="number" min="${option?.[0]??1}" max="${option?.[1]??999}"></label>`;
-    return `<label>${escape(label)}<input data-field="${name}" type="${type}" maxlength="${option}"></label>`;
+    const [name,label,type,option]=spec;if(type==="textarea")return `<label data-control="${name}">${escape(label)}<textarea data-field="${name}" rows="5" maxlength="${option}"></textarea></label>`;
+    if(type==="select")return `<label data-control="${name}">${escape(label)}<select data-field="${name}">${option.map(([value,text])=>`<option value="${escape(value)}">${escape(text)}</option>`).join("")}</select></label>`;
+    if(type==="checkbox")return `<label class="option-toggle" data-control="${name}"><input data-field="${name}" type="checkbox"><span><strong>${escape(label)}</strong><small>${escape(option||"")}</small></span></label>`;
+    if(type==="number")return `<label data-control="${name}">${escape(label)}<input data-field="${name}" type="number" min="${option?.[0]??1}" max="${option?.[1]??999}"></label>`;
+    return `<label data-control="${name}">${escape(label)}<input data-field="${name}" type="${type}" maxlength="${option}"></label>`;
   }
   function build(){
     const saveStep=definition.groups.length+1;
