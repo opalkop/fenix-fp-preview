@@ -22,6 +22,11 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
   const sandbox={window:{},document,TextEncoder};vm.createContext(sandbox);vm.runInContext(read("modules/shared/ending-renderers.js"),sandbox);
   const renderers=sandbox.window.FenixEndingRenderers;
   assert.deepEqual([...renderers.modules],["congratulations-studio","certificate-studio","qr-studio"]);
+  const congratulations=renderers.DEFINITIONS["congratulations-studio"];
+  assert.equal(congratulations.groups.length,4);
+  assert.equal(congratulations.defaults.showActivityCount,true);
+  assert.equal(congratulations.defaults.showQrTransition,true);
+  assert.equal(congratulations.defaults.style,"framed");
   renderers.modules.forEach(module=>{const canvas=renderers.render({module,recipe:{settings:renderers.DEFINITIONS[module].defaults}});assert.equal(canvas.width,2550);assert.equal(canvas.height,3300)});
   const qr=renderers.qrMatrix("https://example.com/fenix-test");assert.equal(qr.length,57);qr.forEach(row=>assert.equal(row.length,57));
 }
@@ -39,7 +44,11 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(controller.includes("Ta strona nie jest jeszcze częścią książki."));
   assert(controller.includes("Masz niezapisane zmiany"));
   assert(controller.includes('id="savePage" type="button" class="primary"'));
+  assert(controller.includes('type==="checkbox"'));
+  assert(controller.includes("definition.groups.length+1"));
+  assert(controller.includes("detectedActivityCount"));
   assert(styles.includes(".control-sections .save-section"));
+  assert(styles.includes(".option-toggle"));
   assert(styles.includes(".save-explainer"));
   assert(styles.includes(".ending-status.unsaved"));
   assert(styles.includes("var(--fenix-ui-surface-2"));

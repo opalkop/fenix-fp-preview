@@ -4,10 +4,12 @@ window.FenixEndingRenderers=(()=>{
   const DEFINITIONS=Object.freeze({
     "congratulations-studio":{
       name:"Congratulations Studio",label:"Strona gratulacyjna",file:"congratulations",
-      defaults:{title:"CONGRATULATIONS!",body:"You completed every challenge and reached the end of this adventure. Be proud of your focus, creativity, and determination!",footer:"Amazing work — keep exploring!",alignment:"center",style:"clean"},
+      defaults:{title:"CONGRATULATIONS!",subtitle:"YOU DID IT!",body:"You completed every challenge and reached the end of this adventure. Be proud of your focus, creativity, and determination!",footer:"Amazing work — keep exploring!",showActivityCount:true,countMode:"auto",activityCount:35,activityCountText:"You completed {count} activities!",showSkills:false,skillsText:"Focus · Observation · Problem-solving · Creativity",showQrTransition:true,transitionTitle:"YOUR ADVENTURE DOESN’T HAVE TO END HERE!",transitionText:"Turn the page to discover what comes next.",alignment:"center",style:"framed",titleSize:"standard",spacing:"standard",showAchievementMark:true},
       groups:[
-        {title:"1. Treść strony",hint:"Tytuł, gratulacje i końcowa wiadomość.",fields:[["title","Tytuł","text",120],["body","Treść gratulacji","textarea",900],["footer","Krótka stopka","text",140]]},
-        {title:"2. Kompozycja",hint:"Czysty, czarno-biały układ finalnej strony.",fields:[["alignment","Wyrównanie","select",[["center","Do środka"],["left","Do lewej"]]],["style","Styl","select",[["clean","Czysty"],["framed","Ramka"],["celebration","Odznaka osiągnięcia"]]]]}
+        {title:"1. Główny komunikat",hint:"Tytuł, podtytuł, gratulacje i końcowa stopka.",fields:[["title","Tytuł","text",120],["subtitle","Krótki podtytuł","text",100],["body","Treść gratulacji","textarea",900],["footer","Końcowa stopka","text",160]]},
+        {title:"2. Podsumowanie osiągnięcia",hint:"Opcjonalna liczba ukończonych aktywności i ćwiczone umiejętności.",fields:[["showActivityCount","Pokaż liczbę ukończonych aktywności","checkbox","Liczba może zostać pobrana automatycznie z aktywnego projektu."],["countMode","Sposób liczenia","select",[["auto","Automatycznie z projektu"],["manual","Ustaw ręcznie"]]],["activityCount","Liczba aktywności","number",[1,999]],["activityCountText","Komunikat z liczbą","text",180],["showSkills","Pokaż ćwiczone umiejętności","checkbox","Dodaje krótką linię z najważniejszymi umiejętnościami."],["skillsText","Umiejętności","textarea",300]]},
+        {title:"3. Przejście do strony QR",hint:"Zapowiedź następnej strony bez powtarzania samego kodu QR.",fields:[["showQrTransition","Pokaż przejście do QR Studio","checkbox","Czytelnik otrzyma informację, że przygoda może trwać dalej."],["transitionTitle","Nagłówek przejścia","text",160],["transitionText","Treść przejścia","textarea",360]]},
+        {title:"4. Wygląd strony",hint:"Czarny tekst, białe tło i układ odpowiedni do wnętrza KDP.",fields:[["style","Ramka strony","select",[["clean","Bez ramki"],["framed","Delikatna ramka"],["bold-frame","Mocniejsza ramka"]]],["alignment","Wyrównanie","select",[["center","Do środka"],["left","Do lewej"]]],["titleSize","Rozmiar tytułu","select",[["small","Mniejszy"],["standard","Standardowy"],["large","Duży"]]],["spacing","Odstępy","select",[["compact","Kompaktowe"],["standard","Standardowe"],["airy","Przestronne"]]],["showAchievementMark","Pokaż prosty symbol osiągnięcia","checkbox","Czarno-biały znak ✓ w obrysie koła — bez warstwy deco."]]}
       ]
     },
     "certificate-studio":{
@@ -46,17 +48,22 @@ window.FenixEndingRenderers=(()=>{
   function base(width,height,style){
     const canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;const ctx=canvas.getContext("2d"),s=width/2550;
     ctx.fillStyle="#fff";ctx.fillRect(0,0,width,height);ctx.fillStyle="#111";ctx.strokeStyle="#111";ctx.lineCap="round";ctx.lineJoin="round";
-    if(style==="framed"||style==="classic"||style==="double-frame"){ctx.lineWidth=5*s;ctx.strokeRect(120*s,120*s,width-240*s,height-240*s)}
+    if(style==="framed"||style==="bold-frame"||style==="classic"||style==="double-frame"){ctx.lineWidth=(style==="bold-frame"?10:5)*s;ctx.strokeRect(120*s,120*s,width-240*s,height-240*s)}
     if(style==="double-frame"){ctx.lineWidth=2*s;ctx.strokeRect(150*s,150*s,width-300*s,height-300*s)}
     return{canvas,ctx,s};
   }
   function renderCongratulations(settings,width,height){
-    const {canvas,ctx,s}=base(width,height,settings.style),left=settings.alignment==="left",x=left?245*s:width/2,align=left?"left":"center",max=2060*s;
-    if(settings.style==="celebration"){ctx.lineWidth=6*s;ctx.beginPath();ctx.arc(width/2,430*s,120*s,0,Math.PI*2);ctx.stroke();ctx.font=`900 ${110*s}px Arial`;ctx.textAlign="center";ctx.fillText("✓",width/2,470*s)}
-    ctx.textAlign=align;ctx.font=`900 ${112*s}px Arial, sans-serif`;const titleLines=wrap(ctx,settings.title,max);titleLines.forEach((line,i)=>ctx.fillText(line,x,(settings.style==="celebration"?790:650)*s+i*130*s));
-    const divider=(settings.style==="celebration"?900:790)*s+titleLines.length*120*s;ctx.lineWidth=5*s;ctx.beginPath();ctx.moveTo(left?x:x-320*s,divider);ctx.lineTo(left?x+640*s:x+320*s,divider);ctx.stroke();
-    textBlock(ctx,settings.body,x,divider+210*s,max,58*s,92*s,align,13);
-    ctx.textAlign="center";ctx.font=`700 ${44*s}px Arial, sans-serif`;ctx.fillText(settings.footer,width/2,height-300*s);return canvas;
+    const {canvas,ctx,s}=base(width,height,settings.style),left=settings.alignment==="left",x=left?245*s:width/2,align=left?"left":"center",max=2060*s,gap={compact:.78,standard:1,airy:1.22}[settings.spacing]||1,titleSize={small:88,standard:108,large:128}[settings.titleSize]||108;
+    let y=settings.showAchievementMark?590*s:470*s;
+    if(settings.showAchievementMark){ctx.lineWidth=5*s;ctx.beginPath();ctx.arc(width/2,330*s,90*s,0,Math.PI*2);ctx.stroke();ctx.lineWidth=12*s;ctx.beginPath();ctx.moveTo(width/2-42*s,330*s);ctx.lineTo(width/2-10*s,365*s);ctx.lineTo(width/2+50*s,295*s);ctx.stroke()}
+    ctx.textAlign=align;ctx.font=`900 ${titleSize*s}px Arial, sans-serif`;const titleLines=wrap(ctx,settings.title,max).slice(0,3),titleLine=(titleSize+20)*s;titleLines.forEach((line,index)=>ctx.fillText(line,x,y+index*titleLine));y+=titleLines.length*titleLine;
+    if(settings.subtitle){y+=45*s*gap;ctx.font=`900 ${48*s}px Arial, sans-serif`;ctx.fillText(settings.subtitle,x,y);y+=65*s}
+    y+=55*s*gap;ctx.lineWidth=5*s;ctx.beginPath();ctx.moveTo(left?x:x-320*s,y);ctx.lineTo(left?x+640*s:x+320*s,y);ctx.stroke();
+    y=textBlock(ctx,settings.body,x,y+125*s*gap,max,52*s,78*s,align,7);
+    if(settings.showActivityCount){y+=75*s*gap;const message=String(settings.activityCountText||"You completed {count} activities!").replaceAll("{count}",String(Math.max(1,Number(settings.activityCount)||1)));ctx.font=`900 ${50*s}px Arial, sans-serif`;wrap(ctx,message,max).slice(0,2).forEach((line,index)=>ctx.fillText(line,x,y+index*65*s));y+=Math.min(2,wrap(ctx,message,max).length)*65*s}
+    if(settings.showSkills&&settings.skillsText){y+=65*s*gap;ctx.font=`800 ${30*s}px Arial, sans-serif`;ctx.fillText("SKILLS PRACTICED",x,y);y=textBlock(ctx,settings.skillsText,x,y+60*s,max,38*s,56*s,align,3)}
+    if(settings.showQrTransition){y=Math.max(y+95*s*gap,1980*s);ctx.lineWidth=3*s;ctx.beginPath();ctx.moveTo(left?x:x-250*s,y);ctx.lineTo(left?x+500*s:x+250*s,y);ctx.stroke();y+=90*s*gap;ctx.font=`900 ${40*s}px Arial, sans-serif`;wrap(ctx,settings.transitionTitle,max).slice(0,2).forEach((line,index)=>ctx.fillText(line,x,y+index*55*s));y+=Math.min(2,wrap(ctx,settings.transitionTitle,max).length)*55*s+35*s;textBlock(ctx,settings.transitionText,x,y,max,38*s,58*s,align,4)}
+    ctx.textAlign="center";ctx.font=`700 ${40*s}px Arial, sans-serif`;ctx.fillText(settings.footer,width/2,height-270*s);return canvas;
   }
   function renderCertificate(settings,width,height){
     const {canvas,ctx,s}=base(width,height,settings.style),cx=width/2;
@@ -117,7 +124,7 @@ window.FenixEndingRenderers=(()=>{
   function fromPage(page,module){const definition=DEFINITIONS[module],stored=object(page?.recipe?.settings);return{...definition.defaults,...stored}}
   function page(module,settings,original=null){
     const definition=DEFINITIONS[module],stamp=new Date().toISOString();
-    return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content:{},meta:{renderer:"ending-v1"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:"ok",messages:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.23.0",format:"native"}});
+    return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content:{},meta:{renderer:"ending-v2"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:"ok",messages:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.24.0",format:"native"}});
   }
   function render(pageValue,{width=2550,height=3300}={}){
     const module=String(pageValue?.module||pageValue?.recipe?.module||""),settings=fromPage(pageValue,module);
