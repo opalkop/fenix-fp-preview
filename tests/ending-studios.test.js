@@ -5,13 +5,15 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 {
   const sandbox={window:{}};vm.createContext(sandbox);vm.runInContext(read("core/book-order.js"),sandbox);
   const order=sandbox.window.FenixBookOrder;
-  for(let activities=0;activities<10;activities++){
+  for(let activities=0;activities<10;activities++)for(let solutionPageCount=0;solutionPageCount<5;solutionPageCount++){
     const pages=Array.from({length:activities},(_,index)=>({id:String(index),module:"maze-studio"}));
     pages.push({module:"certificate-studio"},{module:"qr-studio"},{module:"congratulations-studio"});
-    const composed=order.compose(pages),modules=composed.map(page=>page.module),certificatePage=modules.indexOf("certificate-studio")+1;
-    assert(certificatePage%2===0,"Certyfikat musi znajdować się na stronie parzystej.");
+    const composed=order.compose(pages,{solutionPageCount}),modules=composed.map(page=>page.module),body=composed.filter(page=>!order.isClosing(page)),closing=composed.filter(page=>order.isClosing(page)),certificatePage=body.length+solutionPageCount+closing.findIndex(page=>page.module==="certificate-studio")+1;
+    assert(certificatePage%2===0,"Certyfikat musi znajdować się na stronie parzystej po doliczeniu rozwiązań.");
     assert(modules.indexOf("congratulations-studio")<modules.indexOf("qr-studio"));
     assert(modules.indexOf("qr-studio")<modules.indexOf("certificate-studio"));
+    const automaticBlank=composed.findIndex(page=>page._autoParity);
+    if(automaticBlank>=0)assert(automaticBlank<modules.indexOf("congratulations-studio"),"Automatyczna pusta strona musi poprzedzać rozwiązania i zakończenie.");
   }
 }
 
@@ -103,7 +105,25 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(builder.includes('module==="qr-studio"'));
   assert(builder.includes("qrAssetImage=await loadImage"));
   assert(builder.includes("creatorMarkImage=await loadImage"));
+  assert(builder.includes("function productionSequence"));
+  assert(builder.includes("sequence.body"));
+  assert(builder.includes("sequence.solved"));
+  assert(builder.includes("sequence.closing"));
+  assert(builder.includes("wprowadzenie → ćwiczenia → rozwiązania → Congratulations → QR → Certificate"));
   assert(builderHtml.includes("../shared/ending-renderers.js"));
+  assert(builderHtml.includes("Dodaj dostępne rozwiązania przed zakończeniem książki"));
+}
+
+{
+  const maze=read("modules/maze-studio/maze-core.js"),wordSearch=read("modules/word-search-studio/word-search-core.js");
+  assert(maze.includes("function drawSolutionRoute"));
+  assert(maze.includes("ctx.setLineDash"));
+  assert(maze.includes("items=solution?[]:pageDecorations"),"Rozwiązanie Maze nie może zawierać dekoracji.");
+  assert(wordSearch.includes("function drawSolutionHighlights"));
+  assert(!wordSearch.includes("CIRCLE = START   SQUARE = END"));
+  assert(!wordSearch.includes('fillStyle="#ededed"'));
+  assert(wordSearch.includes("placement.cells[0]"));
+  assert(wordSearch.includes("String(index+1)"),"Każde słowo powinno mieć jednoznaczny numer początku.");
 }
 
 console.log("ending-studios.test.js: OK");

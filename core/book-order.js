@@ -26,16 +26,14 @@ window.FenixBookOrder=Object.freeze((()=>{
   function sort(pages=[]){
     return pages.map((page,index)=>({page,index,rank:rank(page)})).sort((a,b)=>a.rank-b.rank||a.index-b.index).map(item=>item.page);
   }
+  const isClosing=page=>{const value=rank(page);return value>=800&&value<900};
   function parityBlank(){
     return{_blank:true,_autoParity:true,id:"certificate-parity-blank",schemaVersion:3,module:"blank-page",title:"Pusta strona przed certyfikatem",recipe:{module:"blank-page",seed:null,title:"Pusta strona przed certyfikatem",settings:{automatic:true,reason:"certificate-even-page"},content:{},meta:{},renderState:{}},solution:{available:false,imageData:null}};
   }
-  function compose(pages=[]){
-    const ordered=sort(pages.filter(page=>!page?._autoParity)),result=[];
-    ordered.forEach(page=>{
-      if(moduleOf(page)==="certificate-studio"&&(result.length+1)%2===1)result.push(parityBlank());
-      result.push(page);
-    });
-    return result;
+  function compose(pages=[],options={}){
+    const ordered=sort(pages.filter(page=>!page?._autoParity)),body=ordered.filter(page=>!isClosing(page)),closing=ordered.filter(isClosing),solutionPageCount=Math.max(0,Number(options.solutionPageCount)||0),certificateIndex=closing.findIndex(page=>moduleOf(page)==="certificate-studio");
+    if(certificateIndex>=0){const certificatePage=body.length+solutionPageCount+certificateIndex+1;if(certificatePage%2===1)body.push(parityBlank())}
+    return[...body,...closing];
   }
   function section(page){
     const value=rank(page);
@@ -44,5 +42,5 @@ window.FenixBookOrder=Object.freeze((()=>{
     if(value<900)return"Zakończenie";
     return"Rozwiązania";
   }
-  return{INTRO_ORDER,CLOSING_ORDER,rank,sort,compose,section};
+  return{INTRO_ORDER,CLOSING_ORDER,rank,sort,compose,section,isClosing};
 })());
