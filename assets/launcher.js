@@ -25,28 +25,51 @@
   themeSelect.value=localStorage.getItem("fenix-ui-theme")||"light";
   themeSelect.addEventListener("change",()=>{const theme=themeSelect.value;localStorage.setItem("fenix-ui-theme",theme);document.documentElement.dataset.theme=theme;window.dispatchEvent(new CustomEvent("fenix-theme-change",{detail:{theme}}))});
 
+  const viewByHash={"#projectAssets":"assets","#projectLibrary":"projects","#pagesProject":"pages","#modules":"dashboard","":"dashboard"};
+  function setDashboardView(view="dashboard",syncHash=false){
+    const allowed=new Set(["dashboard","assets","projects","pages"]),next=allowed.has(view)?view:"dashboard";
+    document.body.dataset.dashboardView=next;
+    document.querySelectorAll(".sidebar .nav a").forEach(link=>{
+      const href=link.getAttribute("href"),linkView=viewByHash[href]||(href==="index.html"?"dashboard":null);
+      link.classList.toggle("active",linkView===next&&!(next==="dashboard"&&href==="#modules"));
+    });
+    if(syncHash){const hash=next==="assets"?"#projectAssets":next==="projects"?"#projectLibrary":next==="pages"?"#pagesProject":"";history.replaceState(null,"",`${location.pathname}${hash}`)}
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  document.querySelectorAll('.sidebar .nav a[href^="#"]').forEach(link=>link.addEventListener("click",event=>{
+    const hash=link.getAttribute("href"),view=viewByHash[hash]||"dashboard";event.preventDefault();setDashboardView(view,true);
+    if(hash==="#modules")requestAnimationFrame(()=>document.querySelector("#modules")?.scrollIntoView({behavior:"smooth",block:"start"}));
+  }));
+  document.addEventListener("click",event=>{const link=event.target.closest('a[href="#modules"],a[href="#pagesProject"]');if(!link||link.closest(".sidebar"))return;event.preventDefault();const hash=link.getAttribute("href");setDashboardView(viewByHash[hash]||"dashboard",hash==="#pagesProject");if(hash==="#modules")requestAnimationFrame(()=>document.querySelector("#modules")?.scrollIntoView({behavior:"smooth",block:"start"}))});
+  setDashboardView(viewByHash[location.hash]||"dashboard");
+
   const grid=$("#grid");
   if(grid&&!grid.previousElementSibling?.classList.contains("module-status-legend")){
     grid.insertAdjacentHTML("beforebegin",`<div class="module-status-legend" aria-label="Status modułów"><span class="module-status-key ready"><i></i>Gotowe</span><span class="module-status-key development"><i></i>W rozwoju</span><span class="module-status-key planned"><i></i>Planowane</span></div>`);
   }
+  const moduleSearch=$("#moduleSearch");
+  let moduleQuery="";
   const modulePageCounts=project=>project.pages.reduce((counts,page)=>{const slug=FenixPageSchema.moduleOf(page);if(slug)counts[slug]=(counts[slug]||0)+1;return counts},{});
   function renderModules(){
     const project=FenixCore.getActiveProject(),pageCounts=modulePageCounts(project);
-    grid.innerHTML=dashboardModules.map(module=>{
+    const visibleModules=dashboardModules.filter(module=>`${module.name} ${module.dashboardDescription||module.description||""} ${module.dashboardIcon||module.icon||""}`.toLocaleLowerCase("pl").includes(moduleQuery));
+    grid.innerHTML=visibleModules.map(module=>{
       const pageCount=pageCounts[module.slug]||0;
       const statusClass=` status-${module.dashboardStatus}${module.status==="structure"?" status-structure":""}${pageCount?" has-project-pages":""}`;
       const statusBadge=module.dashboardStatus==="ready"?'<span class="module-badge ready">GOTOWE</span>':module.dashboardStatus==="development"?'<span class="module-badge development">W ROZWOJU</span>':'<span class="module-badge planned">PLANOWANE</span>';
-      const typeBadge=module.status==="structure"?'<span class="module-badge structure">STRUKTURA</span>':"";
-      const pagesBadge=pageCount?`<span class="module-project-badge pages">W PROJEKCIE · ${pageCount} STR.</span>`:"";
       const href=`modules/${module.slug}/index.html`,interactive=!module.planned;
-      const studioAction=module.planned?'<span class="module-placeholder">Do zaprojektowania →</span>':`<a class="module-link" href="${href}">Otwórz Studio →</a>`;
-      return `<article class="module${statusClass}${interactive?" module-clickable":""}" data-module-slug="${module.slug}"${interactive?` data-module-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(module.name)}"`:""}><div class="module-top"><span class="module-icon">${escapeHtml(module.dashboardIcon||module.icon||"MOD")}</span><div class="module-badges">${statusBadge}${typeBadge}</div></div><div class="module-project-state">${pagesBadge}</div><h4>${escapeHtml(module.name)}</h4><p>${escapeHtml(module.dashboardDescription||module.description||"")}</p><div class="module-actions">${studioAction}</div></article>`;
-    }).join("");
+      const pageLabel=pageCount?`${pageCount} ${pageCount===1?"strona":"stron"} w projekcie`:"Brak stron w projekcie";
+      const action=module.planned?'<span class="module-placeholder">W przygotowaniu</span>':'<span class="module-enter" aria-hidden="true">→</span>';
+      return `<article class="module${statusClass}${interactive?" module-clickable":""}" data-module-slug="${module.slug}"${interactive?` data-module-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(module.name)}"`:""}><div class="module-top"><span class="module-icon">${escapeHtml(module.dashboardIcon||module.icon||"MOD")}</span><div class="module-badges">${statusBadge}</div></div><h4>${escapeHtml(module.name)}</h4><p>${escapeHtml(module.dashboardDescription||module.description||"")}</p><div class="module-footer"><span class="module-page-count">${pageLabel}</span>${action}</div></article>`;
+    }).join("")||'<div class="module-search-empty"><strong>Nie znalazłem takiego Studio.</strong><span>Wyczyść wyszukiwanie albo wpisz krótszą nazwę.</span></div>';
   }
+  const openModule=card=>{if(document.body.classList.contains("motion-leaving"))return;document.body.classList.add("motion-leaving");card.classList.add("motion-card-active");window.setTimeout(()=>{location.href=card.dataset.moduleHref},matchMedia("(prefers-reduced-motion: reduce)").matches?0:220)};
   grid.addEventListener("click",event=>{
-    const card=event.target.closest(".module[data-module-href]");if(!card||event.target.closest("a,button,input,select,textarea"))return;location.href=card.dataset.moduleHref;
+    const card=event.target.closest(".module[data-module-href]");if(!card||event.target.closest("a,button,input,select,textarea"))return;openModule(card);
   });
-  grid.addEventListener("keydown",event=>{const card=event.target.closest(".module[data-module-href]");if(!card||event.target!==card||(event.key!=="Enter"&&event.key!==" "))return;event.preventDefault();location.href=card.dataset.moduleHref});
+  grid.addEventListener("keydown",event=>{const card=event.target.closest(".module[data-module-href]");if(!card||event.target!==card||(event.key!=="Enter"&&event.key!==" "))return;event.preventDefault();openModule(card)});
+  moduleSearch?.addEventListener("input",()=>{moduleQuery=moduleSearch.value.trim().toLocaleLowerCase("pl");renderModules()});
+  document.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();setDashboardView("dashboard");moduleSearch?.focus();moduleSearch?.select()}});
   document.querySelectorAll(".nav .badge").forEach(badge=>{if(badge.closest("a")?.getAttribute("href")==="#modules")badge.textContent=dashboardModules.length});
 
   const projectSelect=$("#projectSelect"),projectCards=$("#projectCards"),projectDialog=$("#projectDialog"),projectForm=$("#projectForm"),projectId=$("#projectId"),projectName=$("#projectName"),projectFormat=$("#projectFormat"),projectBleed=$("#projectBleed"),projectAge=$("#projectAge"),projectTopic=$("#projectTopic"),deleteProjectButton=$("#deleteProject");
@@ -75,6 +98,13 @@
     $("#cartEstimatedCount").textContent=`Szacowany skład: do ${estimatedCount} stron.`;
     $("#sideCartCount").textContent=cart.length;$("#statPages").textContent=cart.length;$("#statSolutions").textContent=solutionCount;$("#statPdf").textContent=estimatedCount;$("#statModules").textContent=`${used.size} / ${dashboardModules.length}`;$("#statReady").textContent=`${validation.score}%`;$("#statReady").title=validation.checks.map(check=>`${check.label}: ${check.message}`).join("\n");$("#cartProgress").style.width=`${validation.score}%`;
     const usedStudios=[...used].filter(slug=>dashboardModules.some(module=>module.slug===slug)).length,builderGateway=$("#bookBuilderGateway");
+    const readinessOrb=$("#readinessOrb"),continueProject=$("#continueProject");
+    readinessOrb.style.setProperty("--readiness",validation.score);readinessOrb.setAttribute("aria-label",`Gotowość składu: ${validation.score} procent`);
+    $("#pipelineStudiosMeta").textContent=`${usedStudios} ${usedStudios===1?"użyte":"użytych"}`;$("#pipelinePagesMeta").textContent=`${cart.length} ${cart.length===1?"strona":"stron"}`;
+    $("#pipelineStudios").classList.toggle("is-complete",usedStudios>0);$("#pipelinePages").classList.toggle("is-complete",hasPages);$("#pipelineBuilder").classList.toggle("is-current",hasPages);$("#pipelinePdf").classList.toggle("is-complete",validation.score===100&&hasPages);
+    if(!hasPages){$("#nextStepTitle").textContent="Utwórz pierwszą stronę";$("#nextStepCopy").textContent="Rozpocznij w Intro Studio albo wybierz pierwszą aktywność.";continueProject.href="#modules";continueProject.textContent="Wybierz Studio →"}
+    else if(validation.score<80){$("#nextStepTitle").textContent="Rozwijaj zawartość";$("#nextStepCopy").textContent="Dodaj kolejne strony i przygotuj pełniejszy skład książki.";continueProject.href="#modules";continueProject.textContent="Dodaj strony →"}
+    else{$("#nextStepTitle").textContent="Złóż książkę";$("#nextStepCopy").textContent="Projekt jest gotowy, aby przejść do finalnego układu.";continueProject.href="modules/book-builder/index.html";continueProject.textContent="Otwórz Book Builder →"}
     $("#builderPages").textContent=cart.length;$("#builderStudios").textContent=usedStudios;$("#builderReadiness").textContent=`${validation.score}%`;$("#builderAction").textContent=hasPages?"Otwórz Book Builder →":"Otwórz pusty Book Builder →";
     builderGateway.classList.toggle("is-empty",!hasPages);builderGateway.dataset.readiness=validation.status||"warning";builderGateway.title=validation.checks.map(check=>`${check.label}: ${check.message}`).join("\n");
     $("#cartList").innerHTML=hasPages?cart.map(page=>{const href=studioHref(page),interactive=Boolean(href),solutionText=hasSolution(page)?"Rozwiązanie: dostępne":"Rozwiązanie: brak";return `<div class="cart-item${interactive?" cart-item-clickable":""}"${interactive?` data-page-href="${href}" role="link" tabindex="0" aria-label="Otwórz ${escapeHtml(page.title)} w Studio"`:""}><div><strong>${escapeHtml(page.title)}</strong><br><small>${escapeHtml(page.module)} · ${new Date(page.createdAt).toLocaleString()}</small><br><small class="solution-availability ${hasSolution(page)?"has-solution":"no-solution"}">${solutionText}</small>${page.source.app==="fenix-mobile"?`<br><small class="mobile-source">FENIX Mobile · ${kdpText(page)}</small>`:""}</div><div>${isMaze(page)?`<a class="btn" href="${href}">Edytuj</a>`:""}<button data-remove="${page.id}" class="btn">Usuń</button></div></div>`}).join(""):"<div class=\"cart-empty\"><strong>Ten projekt nie ma jeszcze stron.</strong><span>Otwórz Studio, utwórz stronę i zapisz ją do aktywnego projektu.</span></div>";

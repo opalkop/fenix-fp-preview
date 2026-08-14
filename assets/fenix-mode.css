@@ -280,3 +280,35 @@ html[data-theme="fenix"] body.fenix-studio-shell .fenix-help-head :is(h1,h2,h3,s
   html[data-theme="fenix"] body.dashboard-v2:after{inset:40% 0 0 0}
 }
 @media(prefers-reduced-motion:reduce){html[data-theme="fenix"] *{scroll-behavior:auto!important}}
+
+/* Fenix Mode identity — ember control room, dashboard only. */
+html[data-theme="fenix"] body.dashboard-v2{
+  --dv2-bg:#071019;--dv2-sidebar:#050b11;--dv2-sidebar-active:#192735;
+  --dv2-panel:#101b26;--dv2-line:#2a3b4b;--dv2-text:#f5f7fa;--dv2-muted:#aebdca;
+  --dv2-orange:#ff6a21;--dv2-orange-soft:#3a2117;--dv2-blue:#7eb9ff;--dv2-blue-soft:#172b40;
+  --dv2-purple:#b99aff;--dv2-purple-soft:#2a2140;--dv2-green:#62d2a5;
+  background:radial-gradient(circle at 72% -8%,rgba(255,86,24,.14),transparent 30%),linear-gradient(145deg,#071019,#0a141e 58%,#111016)!important;color:var(--dv2-text)!important
+}
+html[data-theme="fenix"] body.dashboard-v2:before{opacity:.08;filter:sepia(1) saturate(5);mix-blend-mode:screen}
+html[data-theme="fenix"] body.dashboard-v2:after{background:radial-gradient(circle at 74% 72%,rgba(255,78,18,.09),transparent 26%);opacity:1}
+html[data-theme="fenix"] .dashboard-v2 .sidebar{background:linear-gradient(180deg,#050b11,#08111a 72%,#120d0c)!important;color:#fff!important;border-right:1px solid #263645!important}
+html[data-theme="fenix"] .dashboard-v2 .brand .mark{background:linear-gradient(145deg,#ff7a35,#e7430b)!important;color:#fff!important;box-shadow:0 0 26px rgba(255,92,28,.28)}
+html[data-theme="fenix"] .dashboard-v2 .brand h1{color:#fff!important}html[data-theme="fenix"] .dashboard-v2 .brand p{color:#91a5b7!important}
+html[data-theme="fenix"] .dashboard-v2 .main{color:var(--dv2-text)!important}
+html[data-theme="fenix"] .dashboard-v2 .topbar h2,html[data-theme="fenix"] .dashboard-v2 .topbar p,html[data-theme="fenix"] .dashboard-v2 .modules-heading h3,html[data-theme="fenix"] .dashboard-v2 .modules-heading p{color:var(--dv2-text)!important}
+html[data-theme="fenix"] .dashboard-v2 .topbar p,html[data-theme="fenix"] .dashboard-v2 .modules-heading p{color:var(--dv2-muted)!important}
+html[data-theme="fenix"] .dashboard-v2 .project-command,html[data-theme="fenix"] .dashboard-v2 .production-pipeline,html[data-theme="fenix"] .dashboard-v2 .pipeline-step,html[data-theme="fenix"] .dashboard-v2 .module,html[data-theme="fenix"] .dashboard-v2 .panel,html[data-theme="fenix"] .dashboard-v2 .import-status{background-color:var(--dv2-panel)!important;color:var(--dv2-text)!important;border-color:var(--dv2-line)!important;box-shadow:none!important}
+html[data-theme="fenix"] .dashboard-v2 .project-command{background:radial-gradient(circle at 68% 0,rgba(255,92,28,.15),transparent 34%),linear-gradient(145deg,#111e2a,#0d1822)!important;box-shadow:0 22px 54px rgba(0,0,0,.28)!important}
+html[data-theme="fenix"] .dashboard-v2 :is(.project-command h3,.project-command-metrics strong,.project-next-step>strong,.readiness-orb strong,.pipeline-step b,.module h4,.panel h3){color:var(--dv2-text)!important}
+html[data-theme="fenix"] .dashboard-v2 :is(.project-command-copy>p,.project-command-metrics small,.project-next-step p,.readiness-orb small,.pipeline-step small,.module p,.module-page-count,.panel-head>span){color:var(--dv2-muted)!important}
+html[data-theme="fenix"] .dashboard-v2 .project-command-metrics>span{background:rgba(255,255,255,.035);border-color:var(--dv2-line)!important}
+html[data-theme="fenix"] .dashboard-v2 .readiness-orb:before{background:#0d1822;box-shadow:inset 0 0 0 1px var(--dv2-line)}
+html[data-theme="fenix"] .dashboard-v2 .pipeline-step.is-current{background:var(--dv2-orange-soft)!important}
+html[data-theme="fenix"] .dashboard-v2 .studio-search input{background:#0d1822!important;color:var(--dv2-text)!important;border-color:var(--dv2-line)!important}
+html[data-theme="fenix"] .dashboard-v2 .studio-search kbd{background:#071019;color:#b8c4ce;border-color:#34495b}
+html[data-theme="fenix"] .dashboard-v2 .module{background:linear-gradient(160deg,#111d28,#0f1923)!important}
+html[data-theme="fenix"] .dashboard-v2 .module:hover{box-shadow:0 16px 38px rgba(0,0,0,.34)!important}
+html[data-theme="fenix"] .dashboard-v2 .module-search-empty{background:#101b26;color:#fff;border-color:#34495b}
+html[data-theme="fenix"] .dashboard-v2 .theme-box select{background:#111e2a!important;color:#fff!important;border-color:#34495b!important}
+html[data-theme="fenix"] .dashboard-v2 .btn:not(.primary){background:#111e2a!important;color:#f5f7fa!important;border-color:#3a4c5d!important}
+html[data-theme="fenix"] .dashboard-v2 .btn.primary{background:linear-gradient(135deg,#ff6a21,#e7460b)!important;color:#fff!important;border-color:#ff6a21!important}
