@@ -14,10 +14,12 @@ window.FenixEndingRenderers=(()=>{
     },
     "certificate-studio":{
       name:"Certificate Studio",label:"Certyfikat ukończenia",file:"certificate",
-      defaults:{title:"CERTIFICATE OF COMPLETION",preamble:"This certificate is proudly presented to",achievement:"for successfully completing every activity in this book.",dateLabel:"Date",signatureLabel:"Signature",footer:"Keep learning. Keep creating. Keep growing.",style:"classic"},
+      defaults:{title:"CERTIFICATE OF COMPLETION",preamble:"This certificate is proudly presented to",nameLabel:"Name",achievement:"for successfully completing every activity and reaching the end of this adventure.",showBookTitle:true,bookTitleMode:"auto",bookTitle:"MY ACTIVITY BOOK",showActivityCount:true,countMode:"auto",activityCount:35,activityCountText:"Completed {count} activities",showDate:true,dateLabel:"Date",showSignature:true,signatureLabel:"Parent / Teacher Signature",footer:"Keep learning. Keep creating. Keep growing.",style:"classic",titleSize:"standard",spacing:"standard",showAchievementMark:true,showCutGuide:false},
       groups:[
-        {title:"1. Treść certyfikatu",hint:"Teksty pozostają edytowalne, a miejsce na imię jest puste do wpisania.",fields:[["title","Nagłówek","text",120],["preamble","Tekst nad imieniem","text",180],["achievement","Treść osiągnięcia","textarea",500],["footer","Stopka","text",160]]},
-        {title:"2. Pola do wypełnienia",hint:"Podpisy pod liniami na datę i podpis.",fields:[["dateLabel","Podpis daty","text",50],["signatureLabel","Podpis opiekuna / nauczyciela","text",70],["style","Styl","select",[["classic","Klasyczny"],["minimal","Minimalny"],["double-frame","Podwójna ramka"]]]]}
+        {title:"1. Główna treść certyfikatu",hint:"Nagłówek, wprowadzenie, miejsce na imię i opis osiągnięcia.",fields:[["title","Nagłówek","text",120],["preamble","Tekst nad imieniem","text",180],["nameLabel","Podpis pola na imię","text",60],["achievement","Treść osiągnięcia","textarea",600]]},
+        {title:"2. Podsumowanie ukończenia",hint:"Nazwa książki i liczba aktywności mogą zostać pobrane automatycznie z projektu.",fields:[["showBookTitle","Pokaż nazwę książki","checkbox","Dodaje nazwę aktywnego projektu pod opisem osiągnięcia."],["bookTitleMode","Źródło nazwy książki","select",[["auto","Automatycznie z projektu"],["manual","Ustaw ręcznie"]]],["bookTitle","Nazwa książki","text",160],["showActivityCount","Pokaż liczbę ukończonych aktywności","checkbox","Liczba nie obejmuje stron strukturalnych, pustych ani rozwiązań."],["countMode","Sposób liczenia","select",[["auto","Automatycznie z projektu"],["manual","Ustaw ręcznie"]]],["activityCount","Liczba aktywności","number",[1,999]],["activityCountText","Komunikat z liczbą","text",160]]},
+        {title:"3. Pola do uzupełnienia",hint:"Wybierz pola, które dziecko lub opiekun uzupełni po wydrukowaniu.",fields:[["showDate","Pokaż pole daty","checkbox","Dodaje linię do ręcznego wpisania daty."],["dateLabel","Podpis pola daty","text",60],["showSignature","Pokaż pole podpisu","checkbox","Dodaje linię na podpis rodzica, opiekuna lub nauczyciela."],["signatureLabel","Podpis pola podpisu","text",90],["footer","Końcowa stopka","text",180]]},
+        {title:"4. Wygląd i wydruk",hint:"Czarno-biały certyfikat bez warstwy deco; Book Builder umieści go na stronie parzystej.",fields:[["style","Ramka certyfikatu","select",[["minimal","Bez ramki"],["classic","Klasyczna ramka"],["double-frame","Podwójna ramka"]]],["titleSize","Rozmiar nagłówka","select",[["small","Mniejszy"],["standard","Standardowy"],["large","Duży"]]],["spacing","Odstępy","select",[["compact","Kompaktowe"],["standard","Standardowe"],["airy","Przestronne"]]],["showAchievementMark","Pokaż symbol ukończenia","checkbox","Prosty czarno-biały znak ✓ — bez warstwy deco."],["showCutGuide","Pokaż linię wycięcia","checkbox","Delikatna przerywana linia przy krawędzi strony."]]}
       ]
     },
     "qr-studio":{
@@ -67,16 +69,19 @@ window.FenixEndingRenderers=(()=>{
     ctx.textAlign="center";ctx.font=`700 ${40*s}px Arial, sans-serif`;ctx.fillText(settings.footer,width/2,height-270*s);return canvas;
   }
   function renderCertificate(settings,width,height){
-    const {canvas,ctx,s}=base(width,height,settings.style),cx=width/2;
-    ctx.textAlign="center";ctx.font=`900 ${105*s}px Arial, sans-serif`;wrap(ctx,settings.title,1900*s).slice(0,2).forEach((line,i)=>ctx.fillText(line,cx,620*s+i*120*s));
-    ctx.lineWidth=4*s;ctx.beginPath();ctx.moveTo(720*s,880*s);ctx.lineTo(1830*s,880*s);ctx.stroke();
-    ctx.font=`400 ${48*s}px Arial, sans-serif`;ctx.fillText(settings.preamble,cx,1150*s);
-    ctx.lineWidth=4*s;ctx.beginPath();ctx.moveTo(520*s,1510*s);ctx.lineTo(2030*s,1510*s);ctx.stroke();
-    ctx.font=`italic ${34*s}px Arial, sans-serif`;ctx.fillText("Name",cx,1570*s);
-    textBlock(ctx,settings.achievement,cx,1840*s,1740*s,54*s,82*s,"center",6);
-    const y=2520*s;ctx.lineWidth=3*s;ctx.beginPath();ctx.moveTo(430*s,y);ctx.lineTo(1050*s,y);ctx.moveTo(1500*s,y);ctx.lineTo(2120*s,y);ctx.stroke();
-    ctx.font=`400 ${34*s}px Arial, sans-serif`;ctx.fillText(settings.dateLabel,740*s,y+62*s);ctx.fillText(settings.signatureLabel,1810*s,y+62*s);
-    ctx.font=`700 ${38*s}px Arial, sans-serif`;ctx.fillText(settings.footer,cx,height-300*s);return canvas;
+    const {canvas,ctx,s}=base(width,height,settings.style),cx=width/2,gap={compact:.86,standard:1,airy:1.14}[settings.spacing]||1,titleSize={small:86,standard:105,large:122}[settings.titleSize]||105;
+    if(settings.showCutGuide){ctx.save();ctx.strokeStyle="#777";ctx.lineWidth=2*s;ctx.setLineDash([18*s,14*s]);ctx.strokeRect(72*s,72*s,width-144*s,height-144*s);ctx.restore()}
+    let y=settings.showAchievementMark?560*s:440*s;
+    if(settings.showAchievementMark){ctx.lineWidth=5*s;ctx.beginPath();ctx.arc(cx,310*s,82*s,0,Math.PI*2);ctx.stroke();ctx.lineWidth=11*s;ctx.beginPath();ctx.moveTo(cx-38*s,310*s);ctx.lineTo(cx-8*s,342*s);ctx.lineTo(cx+46*s,279*s);ctx.stroke()}
+    ctx.textAlign="center";ctx.font=`900 ${titleSize*s}px Arial, sans-serif`;const titleLines=wrap(ctx,settings.title,1920*s).slice(0,2),titleLine=(titleSize+20)*s;titleLines.forEach((line,index)=>ctx.fillText(line,cx,y+index*titleLine));y+=titleLines.length*titleLine+65*s*gap;
+    ctx.lineWidth=4*s;ctx.beginPath();ctx.moveTo(720*s,y);ctx.lineTo(1830*s,y);ctx.stroke();y+=165*s*gap;
+    ctx.font=`400 ${46*s}px Arial, sans-serif`;wrap(ctx,settings.preamble,1740*s).slice(0,2).forEach((line,index)=>ctx.fillText(line,cx,y+index*62*s));y+=150*s*gap;
+    ctx.lineWidth=4*s;ctx.beginPath();ctx.moveTo(520*s,y);ctx.lineTo(2030*s,y);ctx.stroke();ctx.font=`italic ${32*s}px Arial, sans-serif`;ctx.fillText(settings.nameLabel||"Name",cx,y+58*s);y+=220*s*gap;
+    y=textBlock(ctx,settings.achievement,cx,y,1760*s,50*s,74*s,"center",5)+45*s*gap;
+    if(settings.showBookTitle&&settings.bookTitle){ctx.font=`900 ${47*s}px Arial, sans-serif`;const bookLines=wrap(ctx,settings.bookTitle,1740*s).slice(0,2);bookLines.forEach((line,index)=>ctx.fillText(line,cx,y+index*62*s));y+=bookLines.length*62*s+35*s*gap}
+    if(settings.showActivityCount){const message=String(settings.activityCountText||"Completed {count} activities").replaceAll("{count}",String(Math.max(1,Number(settings.activityCount)||1)));ctx.font=`700 ${38*s}px Arial, sans-serif`;wrap(ctx,message,1680*s).slice(0,2).forEach((line,index)=>ctx.fillText(line,cx,y+index*52*s))}
+    const fieldY=2550*s,fields=[settings.showDate&&{label:settings.dateLabel},settings.showSignature&&{label:settings.signatureLabel}].filter(Boolean);ctx.lineWidth=3*s;ctx.font=`400 ${32*s}px Arial, sans-serif`;if(fields.length===1){ctx.beginPath();ctx.moveTo(765*s,fieldY);ctx.lineTo(1785*s,fieldY);ctx.stroke();ctx.fillText(fields[0].label,cx,fieldY+60*s)}else if(fields.length===2){ctx.beginPath();ctx.moveTo(390*s,fieldY);ctx.lineTo(1080*s,fieldY);ctx.moveTo(1470*s,fieldY);ctx.lineTo(2160*s,fieldY);ctx.stroke();ctx.fillText(fields[0].label,735*s,fieldY+60*s);ctx.fillText(fields[1].label,1815*s,fieldY+60*s)}
+    ctx.font=`700 ${36*s}px Arial, sans-serif`;wrap(ctx,settings.footer,1800*s).slice(0,2).forEach((line,index)=>ctx.fillText(line,cx,height-285*s+index*48*s));return canvas;
   }
 
   // Lokalny, samowystarczalny QR: wersja 10-L, tryb bajtowy, do 271 bajtów UTF-8.
@@ -127,7 +132,7 @@ window.FenixEndingRenderers=(()=>{
   function page(module,settings,original=null){
     const definition=DEFINITIONS[module],stamp=new Date().toISOString();
     const assetRef=module==="qr-studio"?String(settings.qrAssetRef||""):"";
-    return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content:assetRef?{assetRef}:{},meta:{renderer:"ending-v2"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:module==="qr-studio"&&!assetRef?"warning":"ok",messages:module==="qr-studio"&&!assetRef?["Dodaj asset kodu QR przed eksportem finalnego PDF."]:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.25.0",format:"native"}});
+    return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content:assetRef?{assetRef}:{},meta:{renderer:"ending-v2"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:module==="qr-studio"&&!assetRef?"warning":"ok",messages:module==="qr-studio"&&!assetRef?["Dodaj asset kodu QR przed eksportem finalnego PDF."]:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.26.0",format:"native"}});
   }
   function render(pageValue,{width=2550,height=3300,qrAssetImage=null}={}){
     const module=String(pageValue?.module||pageValue?.recipe?.module||""),settings=fromPage(pageValue,module);

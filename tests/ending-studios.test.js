@@ -31,6 +31,12 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
   assert.equal(qrDefinition.groups.length,3);
   assert(qrDefinition.groups[0].fields.some(field=>field[0]==="qrAssetRef"&&field[2]==="asset"));
   assert(!qrDefinition.groups.flatMap(group=>group.fields).some(field=>field[0]==="url"));
+  const certificate=renderers.DEFINITIONS["certificate-studio"];
+  assert.equal(certificate.groups.length,4);
+  assert.equal(certificate.defaults.bookTitleMode,"auto");
+  assert.equal(certificate.defaults.countMode,"auto");
+  assert.equal(certificate.defaults.showAchievementMark,true);
+  assert(certificate.groups.flatMap(group=>group.fields).some(field=>field[0]==="showCutGuide"));
   renderers.modules.forEach(module=>{const canvas=renderers.render({module,recipe:{settings:renderers.DEFINITIONS[module].defaults}});assert.equal(canvas.width,2550);assert.equal(canvas.height,3300)});
   const qr=renderers.qrMatrix("https://example.com/fenix-test");assert.equal(qr.length,57);qr.forEach(row=>assert.equal(row.length,57));
 }
@@ -57,6 +63,8 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(controller.includes('data-section="${index+1}"'));
   assert(controller.includes("definition.groups.length+1"));
   assert(controller.includes("detectedActivityCount"));
+  assert(controller.includes("syncCertificateFields"));
+  assert(controller.includes("Nazwa pobrana z aktywnego projektu"));
   assert(styles.includes(".control-sections .save-section"));
   assert(styles.includes(".option-toggle"));
   assert(styles.includes("flex:0 0 21px!important"));
