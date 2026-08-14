@@ -46,12 +46,16 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(controller.includes('id="savePage" type="button" class="primary"'));
   assert(controller.includes('type==="checkbox"'));
   assert(controller.includes('data-control="${name}"'));
+  assert(controller.includes('data-section="${index+1}"'));
   assert(controller.includes("definition.groups.length+1"));
   assert(controller.includes("detectedActivityCount"));
   assert(styles.includes(".control-sections .save-section"));
   assert(styles.includes(".option-toggle"));
   assert(styles.includes("flex:0 0 21px!important"));
   assert(styles.includes('[data-control="activityCountText"]'));
+  assert(styles.includes('details[data-section="2"] .ending-grid'));
+  assert(styles.includes('details[data-section="3"] .ending-grid'));
+  assert(styles.includes("overflow-wrap:anywhere"));
   assert(styles.includes(".save-explainer"));
   assert(styles.includes(".ending-status.unsaved"));
   assert(styles.includes("var(--fenix-ui-surface-2"));
