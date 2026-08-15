@@ -25,7 +25,7 @@ const ACTIVE_MODULES=[
     ["patterns","Wzory symetryczne","Powtarzalne ornamenty z dużymi zamkniętymi polami."],
     ["color-number","Koloruj według numerów","Pola oznaczone numerami odpowiadającymi kolorom."]
   ]},
-  {slug:"tracing-studio",name:"Tracing Studio",description:"Linie, kształty i symbole do ćwiczenia motoryki małej.",icon:"〰",dashboardIcon:"TR",dashboardDescription:"Linie, kształty i ćwiczenia śledzenia",engine:"standard",types:[
+  {slug:"tracing-studio",name:"Tracing Studio",description:"Linie, kształty i symbole do ćwiczenia motoryki małej.",icon:"〰",dashboardIcon:"TR",dashboardDescription:"Linie, kształty i ćwiczenia śledzenia",dashboardStatus:"ready",engine:"standard",types:[
     ["waves","Fale","Rzędy falistych linii do ćwiczenia płynnego ruchu ręki."],
     ["zigzag","Zygzaki","Łamane ścieżki o regulowanej trudności."],
     ["loops","Pętle","Powtarzalne pętle przygotowujące do pisania."],
