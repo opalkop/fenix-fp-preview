@@ -3,11 +3,11 @@
 (async()=>{
   const currentScript=[...document.scripts].find(script=>/\/assets\/launcher\.js(?:\?|$)/.test(script.src));
   const load=(relative,test)=>new Promise((resolve,reject)=>{if(test())return resolve();const script=document.createElement("script");script.src=new URL(relative,currentScript?.src||location.href).href;script.onload=resolve;script.onerror=()=>reject(new Error(`Nie udało się załadować ${relative}`));document.head.appendChild(script)});
-  await load("../config/module-registry.js?v=0.26.3",()=>Boolean(window.FenixModuleRegistry));
+  await load("../config/module-registry.js?v=0.28.0",()=>Boolean(window.FenixModuleRegistry));
   await load("../core/page-schema.js",()=>Boolean(window.FenixPageSchema));
   await load("../core/project-validator.js",()=>Boolean(window.FenixProjectValidator));
 
-  const READY_MODULES=new Set(["maze-studio","word-search-studio","intro-studio"]);
+  const READY_MODULES=new Set(["maze-studio","word-search-studio","coloring-studio","intro-studio"]);
   const rawDashboardModules=FenixModuleRegistry.dashboard();
   const dashboardModules=rawDashboardModules.map((module,index)=>({
     ...module,

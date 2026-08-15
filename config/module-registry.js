@@ -17,7 +17,7 @@ const ACTIVE_MODULES=[
     ["missing-part","Dorysuj brakujący fragment","Uzupełnij usunięty fragment rysunku."],
     ["mirror-pair","Narysuj odbicie lustrzane","Narysuj lustrzane odbicie wzoru."]
   ]},
-  {slug:"coloring-studio",name:"Coloring Studio",description:"Kolorowanki przygotowane do druku i zestawów tematycznych.",icon:"✎",dashboardIcon:"COL",dashboardDescription:"Kolorowanki generowane proceduralnie",engine:"standard",types:[
+  {slug:"coloring-studio",name:"Coloring Studio",description:"Twórz gotowe strony kolorowanek z assetów SVG i PNG aktywnego projektu.",icon:"✎",dashboardIcon:"COL",dashboardDescription:"Kolorowanki z assetów projektu",engine:"coloring",types:[
     ["mandala","Mandala dziecięca","Symetryczna kompozycja z dużymi polami do kolorowania."],
     ["animals","Zwierzęta geometryczne","Proste postacie budowane z figur i grubych konturów."],
     ["flowers","Kwiaty","Kilka dużych kwiatów przygotowanych do druku."],
