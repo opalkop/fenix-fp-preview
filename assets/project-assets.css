@@ -89,3 +89,30 @@
   .dashboard-v2 .asset-actions{display:grid;grid-template-columns:1fr 1fr}.dashboard-v2 .asset-actions button{min-height:42px;font-size:10px}.dashboard-v2 .asset-actions button.danger{grid-column:1/-1}
 }
 @media(max-width:390px){.dashboard-v2 .asset-tags{grid-template-columns:1fr}.dashboard-v2 .asset-tags button{min-height:48px}.dashboard-v2 .project-assets-bulk-role-row{grid-template-columns:1fr}.dashboard-v2 .project-assets-bulk-role-row>*{grid-column:1!important}}
+
+/* Panel może być węższy od całego viewportu (np. obok sidebara). */
+.dashboard-v2 .project-assets-panel{container-type:inline-size}
+.dashboard-v2 .project-asset-thumb{overflow:hidden;isolation:isolate}
+.dashboard-v2 .project-asset-thumb img{display:block;width:100%;height:100%;min-width:0;min-height:0;object-fit:contain}
+.dashboard-v2 .project-asset-info{position:relative;z-index:1;background:var(--dv2-panel)}
+
+@container (max-width:760px){
+  .dashboard-v2 .project-assets-grid{grid-template-columns:1fr!important;gap:14px}
+  .dashboard-v2 .project-assets-bulk{position:relative;top:auto;z-index:1;padding:10px;overflow:hidden}
+  .dashboard-v2 .project-assets-bulk-head{align-items:flex-start;flex-direction:column}
+  .dashboard-v2 .project-assets-bulk-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .dashboard-v2 .project-assets-bulk-actions button{min-width:0;min-height:44px;white-space:normal}
+  .dashboard-v2 .project-assets-bulk-role-row{grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+  .dashboard-v2 .project-assets-bulk-role-row>span{grid-column:1/-1}
+  .dashboard-v2 .project-assets-bulk-role,.dashboard-v2 .project-assets-bulk-clear{min-width:0;white-space:normal}
+  .dashboard-v2 .project-assets-bulk-clear{grid-column:1/-1;min-height:42px}
+  .dashboard-v2 .project-asset-thumb{height:210px}
+  .dashboard-v2 .asset-actions{display:grid;grid-template-columns:1fr 1fr}
+  .dashboard-v2 .asset-actions button{min-width:0;min-height:42px;white-space:normal}
+  .dashboard-v2 .asset-actions button.danger{grid-column:1/-1}
+}
+
+@container (max-width:420px){
+  .dashboard-v2 .project-assets-bulk-role-row,.dashboard-v2 .asset-tags{grid-template-columns:1fr}
+  .dashboard-v2 .project-assets-bulk-role-row>*{grid-column:1!important}
+}
