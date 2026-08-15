@@ -1,1 +1,67 @@
-<!doctype html><html><head><meta charset="utf-8"><title>Tracing Studio — FENIX</title></head><body><script>window.location.href='../studio.html?module=tracing-studio';</script><p><a href="../studio.html?module=tracing-studio">Otwórz Tracing Studio</a></p></body></html>
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tracing Studio — FENIX</title>
+  <link rel="stylesheet" href="../module.css">
+  <link rel="stylesheet" href="tracing.css?v=0.29.0">
+</head>
+<body data-module="tracing-studio">
+  <header class="top">
+    <div><strong>FENIX / <span id="studioName">Tracing Studio</span></strong><br><small id="studioSubtitle">Linie, kształty i ćwiczenia śledzenia · finalny eksport 300 DPI</small></div>
+    <a href="../../index.html">← Dashboard</a>
+  </header>
+
+  <main class="wrap tracing-layout">
+    <section class="panel tracing-panel">
+      <div id="projectInfo" class="project-info"></div>
+      <div>
+        <h2>1. Ustaw ćwiczenie</h2>
+        <p class="hint">Wybierz rodzaj śladu i parametry serii. Podgląd aktualizuje się automatycznie.</p>
+      </div>
+
+      <div class="tracing-controls">
+        <label class="field"><span>Typ ćwiczenia</span><select id="type"></select></label>
+        <label class="field"><span>Preset wieku</span><select id="preset"><option value="">Własne ustawienia</option><option value="preschool">Przedszkole 3–5</option><option value="early">Wczesnoszkolne 5–7</option><option value="advanced">Rozwinięte 7–9</option></select></label>
+        <label class="field"><span>Trudność</span><select id="difficulty"><option value="easy">Łatwa</option><option value="medium" selected>Średnia</option><option value="hard">Trudna</option></select></label>
+        <label class="field"><span>Wiek</span><select id="age"><option>3-5</option><option selected>5-7</option><option>7-9</option></select></label>
+        <label class="field"><span>Liczba stron</span><input id="count" type="number" min="1" max="20" value="5"></label>
+        <label class="field"><span>Język treści</span><select id="language"><option value="en" selected>English</option><option value="pl">Polski</option></select></label>
+      </div>
+
+      <div>
+        <h2>2. Ustaw treść strony</h2>
+      </div>
+      <div class="tracing-copy">
+        <label class="field"><span>Tytuł strony</span><input id="title" value="Tracing Practice"></label>
+        <label class="field"><span>Seed serii</span><input id="seed" value="fenix-tracing-001"></label>
+        <label class="field"><span>Instrukcja (puste = automatyczna)</span><textarea id="instructions"></textarea></label>
+      </div>
+
+      <input id="range" type="hidden" value="20">
+      <input id="extra" type="hidden" value="A">
+
+      <div class="tracing-actions">
+        <button id="generate" class="primary">Odśwież podgląd</button>
+        <button id="randomSeed">Nowy wariant</button>
+        <button id="png" class="secondary">Eksport PNG</button>
+        <button id="cart" class="primary">Dodaj serię do projektu</button>
+      </div>
+      <p id="status" class="status tracing-status"></p>
+    </section>
+
+    <section class="preview tracing-preview">
+      <div class="preview-head">
+        <strong>Podgląd strony</strong>
+        <div class="pager"><button id="prev">←</button><span id="pageCounter">0 / 0</span><button id="next">→</button></div>
+      </div>
+      <div class="canvas-wrap"><canvas id="page" width="850" height="1100"></canvas></div>
+      <div class="hint">Book Builder odtworzy stronę w rozdzielczości produkcyjnej 300 DPI.</div>
+    </section>
+  </main>
+
+  <script src="../../core/fenix-core.js"></script>
+  <script src="../studio-engine.js"></script>
+</body>
+</html>
