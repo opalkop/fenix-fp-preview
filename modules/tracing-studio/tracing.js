@@ -1,0 +1,13 @@
+"use strict";
+(()=>{
+  const $=id=>document.getElementById(id),canvas=$("page"),ctx=canvas.getContext("2d");
+  const state={canvas:null};
+  const instructions={waves:"Trace the waves from left to right.",zigzag:"Trace the zigzags from left to right.",loops:"Trace the loops carefully.",paths:"Follow each path from the dot to the star.",shapes:"Trace each shape carefully.",mixed:"Practice each kind of tracing line."};
+  const val=(id,fallback="")=>$(id)?.value??fallback;
+  function options(){return{type:val("type","waves"),title:val("title","Tracing Practice"),instructions:val("instructions")||instructions[val("type","waves")],seed:val("seed","fenix-tracing-001"),rows:Number(val("rows",7)),amplitude:Number(val("amplitude",90)),spacing:Number(val("spacing",190)),lineWidth:Number(val("lineWidth",8)),dashStyle:val("dashStyle","normal"),titleSize:Number(val("titleSize",112)),instructionSize:Number(val("instructionSize",46)),titleY:Number(val("titleY",230)),showTitle:$("showTitle")?.checked!==false,showInstructions:$("showInstructions")?.checked!==false,showGuides:$("showGuides")?.checked!==false}};
+  function render(){state.canvas=FenixTracingCore.render(options());canvas.width=state.canvas.width;canvas.height=state.canvas.height;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(state.canvas,0,0);$("status").textContent="Podgląd gotowy."}
+  function save(){const o=options(),project=FenixCore.getActiveProject();FenixCore.addPage({module:"tracing-studio",title:o.title,seed:o.seed,recipe:{module:"tracing-studio",seed:o.seed,title:o.title,settings:o},preview:{imageData:null},solution:{available:false,imageData:null},source:{app:"fenix-desktop",version:"0.29.1",format:"native"}});$("status").textContent=`Dodano stronę do projektu „${project.name}”.`}
+  $("generate").onclick=render;$("randomSeed").onclick=()=>{$("seed").value=`fenix-tracing-${Date.now().toString(36)}`;render()};$("png").onclick=()=>{if(!state.canvas)render();FenixCore.downloadCanvas(state.canvas,`tracing-${val("seed")}.png`)};$("cart").onclick=save;
+  ["type","title","instructions","seed","rows","amplitude","spacing","lineWidth","dashStyle","titleSize","instructionSize","titleY","showTitle","showInstructions","showGuides"].forEach(id=>$(id)?.addEventListener(["title","instructions","seed"].includes(id)?"input":"change",render));
+  const p=FenixCore.getActiveProject();$("projectInfo").textContent=`Aktywny projekt: ${p.name} · ${p.format} · ${p.bleed==="bleed"?"ze spadami":"bez spadów"}`;render();
+})();
