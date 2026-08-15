@@ -19,7 +19,11 @@
       body:field(type,"body")?.value.trim()||defaults.body,
       footer:field(type,"footer")?.value.trim()||"",
       alignment:field(type,"alignment")?.value||"center",
-      style:field(type,"style")?.value||"clean"
+      style:field(type,"style")?.value||"clean",
+      typographyVersion:2,
+      titleSize:Math.max(72,Math.min(160,Number(field(type,"titleSize")?.value)||defaults.titleSize||112)),
+      bodySize:Math.max(36,Math.min(90,Number(field(type,"bodySize")?.value)||defaults.bodySize||56)),
+      footerSize:Math.max(28,Math.min(72,Number(field(type,"footerSize")?.value)||defaults.footerSize||44))
     };
     if(type==="mission-tracker"){
       settings.countMode=field(type,"countMode")?.value||"auto";
@@ -41,7 +45,7 @@
       solution:{available:false,imageData:null},
       validation:{kdp:{status:"ok",messages:[]}},
       production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},
-      source:{app:"intro-studio",version:"0.21.0",format:"native"}
+      source:{app:"intro-studio",version:"0.27.6",format:"native"}
     });
   }
   function renderPreview(){
@@ -59,7 +63,7 @@
   }
   function applyPage(type,page){
     const defaults=defaultsFor(type),settings=page?.recipe?.settings||{};
-    ["title","body","footer"].forEach(name=>{field(type,name).value=settings[name]??defaults[name]??""});
+    ["title","body","footer"].forEach(name=>{field(type,name).value=settings[name]??defaults[name]??""});["titleSize","bodySize","footerSize"].forEach(name=>{field(type,name).value=settings[name]??defaults[name]});
     field(type,"alignment").value=settings.alignment||"center";
     field(type,"style").value=settings.style||"clean";
     if(type==="mission-tracker"){
@@ -113,6 +117,12 @@
           <label>Krótka stopka<input data-field="footer" maxlength="140" placeholder="Opcjonalnie"></label>
           <label>Wyrównanie treści<select data-field="alignment"><option value="center">Do środka</option><option value="left">Do lewej</option></select></label>
           <label>Styl strony<select data-field="style"><option value="clean">Czysty</option><option value="framed">Delikatna ramka</option><option value="playful">Zabawny</option></select></label>
+        </div>
+        <div class="section-title">Typografia</div>
+        <div class="form-grid">
+          <label>Wielkość tytułu<input data-field="titleSize" type="number" min="72" max="160"></label>
+          <label>Wielkość treści / instrukcji<input data-field="bodySize" type="number" min="36" max="90"></label>
+          <label>Wielkość stopki<input data-field="footerSize" type="number" min="28" max="72"></label>
         </div>
         <div class="panel-actions"><button type="button" data-reset-page class="ghost">Przywróć propozycję</button><button type="button" data-save-page>Dodaj do Stron projektu</button></div>
       </div>

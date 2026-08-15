@@ -21,7 +21,7 @@ window.FenixIntroRenderer=(()=>{
   const STRUCTURAL_MODULES=new Set(["intro-studio","blank-page","certificate-studio","congratulations-studio","qr-studio","solutions-studio"]);
   function activityCount(project={}){const pages=Array.isArray(project.pages)?project.pages:[];return pages.filter(page=>!STRUCTURAL_MODULES.has(String(page?.module||page?.recipe?.module||""))).length}
   function defaults(type,project={}){
-    const base=COPY[type]||COPY.welcome,topic=String(project.topic||"").trim();
+    const base={typographyVersion:2,titleSize:112,bodySize:56,footerSize:44,...(COPY[type]||COPY.welcome)},topic=String(project.topic||"").trim();
     if(type==="welcome"&&topic)return{...base,title:`Welcome to the ${topic.replace(/\b\w/g,char=>char.toUpperCase())} Adventure!`};
     if(type==="mission-tracker")return{...base,trackerCount:activityCount(project)||base.trackerCount};
     return{...base};
@@ -41,9 +41,9 @@ window.FenixIntroRenderer=(()=>{
     return lines;
   }
   function roundedRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.stroke()}
-  function renderTracker(ctx,settings,{width,height,scale,margin,contentWidth,dividerY,footer}){
+  function renderTracker(ctx,settings,{width,height,scale,margin,contentWidth,dividerY,footer,bodySize}){
     const count=Math.max(1,Math.min(120,Number(settings.trackerCount)||35)),configuredColumns=Math.max(3,Math.min(12,Number(settings.trackerColumns)||7)),compact=count<=4,columns=compact?count:configuredColumns,rows=Math.ceil(count/columns),glyph={star:"☆",circle:"○",square:"□"}[settings.markerShape]||"☆";
-    ctx.textAlign="center";ctx.font=`700 ${Math.round(48*scale)}px Arial, sans-serif`;ctx.fillText(String(settings.body||COPY["mission-tracker"].body),width/2,dividerY+115*scale);
+    ctx.textAlign="center";ctx.font=`700 ${Math.round(bodySize*scale)}px Arial, sans-serif`;ctx.fillText(String(settings.body||COPY["mission-tracker"].body),width/2,dividerY+115*scale);
     const gridTop=dividerY+230*scale,gridBottom=height-(footer?450:300)*scale,gridWidth=compact?Math.min(contentWidth,count*310*scale):contentWidth,gridLeft=(width-gridWidth)/2,cellWidth=gridWidth/columns,cellHeight=(gridBottom-gridTop)/Math.max(1,rows),glyphLimit=compact?190:105,glyphSize=Math.max(28*scale,Math.min(glyphLimit*scale,cellWidth*.56,cellHeight*.62));
     ctx.font=`400 ${Math.round(glyphSize)}px Arial, sans-serif`;ctx.textBaseline="middle";
     for(let index=0;index<count;index++){const column=index%columns,row=Math.floor(index/columns),x=gridLeft+cellWidth*(column+.5),y=gridTop+cellHeight*(row+.5);ctx.fillText(glyph,x,y)}
@@ -51,7 +51,7 @@ window.FenixIntroRenderer=(()=>{
   function render(page,{canvas=null,width=2550,height=3300}={}){
     const target=canvas||document.createElement("canvas");target.width=width;target.height=height;
     const ctx=target.getContext("2d"),settings=object(page?.recipe?.settings),type=settings.pageType||"welcome",copy=defaults(type),scale=width/2550;
-    const title=String(settings.title||page?.title||copy.title),body=String(settings.body||copy.body),footer=String(settings.footer??copy.footer),alignment=settings.alignment==="left"?"left":"center",style=["clean","framed","playful"].includes(settings.style)?settings.style:"clean";
+    const title=String(settings.title||page?.title||copy.title),body=String(settings.body||copy.body),footer=String(settings.footer??copy.footer),titleSize=Math.max(72,Math.min(160,Number(settings.titleSize)||copy.titleSize||112)),bodySize=Math.max(36,Math.min(90,Number(settings.bodySize)||copy.bodySize||56)),footerSize=Math.max(28,Math.min(72,Number(settings.footerSize)||copy.footerSize||44)),alignment=settings.alignment==="left"?"left":"center",style=["clean","framed","playful"].includes(settings.style)?settings.style:"clean";
     const margin=230*scale,contentWidth=width-margin*2;
     ctx.save();ctx.fillStyle="#fff";ctx.fillRect(0,0,width,height);ctx.strokeStyle="#111";ctx.fillStyle="#111";
     if(style==="framed"){ctx.lineWidth=5*scale;roundedRect(ctx,105*scale,105*scale,width-210*scale,height-210*scale,38*scale)}
@@ -61,18 +61,18 @@ window.FenixIntroRenderer=(()=>{
     }
     ctx.textAlign=alignment;ctx.textBaseline="alphabetic";
     const x=alignment==="left"?margin:width/2;
-    ctx.font=`900 ${Math.round(112*scale)}px Arial, sans-serif`;
-    const titleLines=wrap(ctx,title,contentWidth),titleLine=128*scale,titleTop=500*scale;
+    ctx.font=`900 ${Math.round(titleSize*scale)}px Arial, sans-serif`;
+    const titleLines=wrap(ctx,title,contentWidth),titleLine=(titleSize+16)*scale,titleTop=500*scale;
     titleLines.forEach((line,index)=>ctx.fillText(line,x,titleTop+index*titleLine));
     const dividerY=titleTop+titleLines.length*titleLine+45*scale;ctx.lineWidth=5*scale;ctx.beginPath();ctx.moveTo(alignment==="left"?margin:width/2-310*scale,dividerY);ctx.lineTo(alignment==="left"?margin+620*scale:width/2+310*scale,dividerY);ctx.stroke();
-    if(type==="mission-tracker")renderTracker(ctx,{...settings,body},{width,height,scale,margin,contentWidth,dividerY,footer});
+    if(type==="mission-tracker")renderTracker(ctx,{...settings,body},{width,height,scale,margin,contentWidth,dividerY,footer,bodySize});
     else{
-      const bodyTop=dividerY+150*scale,maxBottom=height-520*scale,availableHeight=maxBottom-bodyTop;let bodyFont=52*scale,bodyLines=[],bodyLine=0;
+      const bodyTop=dividerY+150*scale,maxBottom=height-520*scale,availableHeight=maxBottom-bodyTop;let bodyFont=bodySize*scale,bodyLines=[],bodyLine=0;
       do{ctx.font=`${Math.round(bodyFont)}px Arial, sans-serif`;bodyLines=wrap(ctx,body,contentWidth);bodyLine=bodyFont*1.5;if(bodyLines.length*bodyLine<=availableHeight)break;bodyFont-=2*scale}while(bodyFont>22*scale);
       if(bodyLines.length*bodyLine>availableHeight){bodyLine=availableHeight/Math.max(1,bodyLines.length);bodyFont=Math.max(14*scale,bodyLine/1.45);ctx.font=`${Math.round(bodyFont)}px Arial, sans-serif`;bodyLines=wrap(ctx,body,contentWidth);bodyLine=availableHeight/Math.max(1,bodyLines.length)}
       bodyLines.forEach((line,index)=>ctx.fillText(line,x,bodyTop+index*bodyLine));
     }
-    if(footer){ctx.font=`700 ${Math.round(42*scale)}px Arial, sans-serif`;ctx.textAlign="center";ctx.fillText(footer,width/2,height-285*scale)}
+    if(footer){ctx.font=`700 ${Math.round(footerSize*scale)}px Arial, sans-serif`;ctx.textAlign="center";ctx.fillText(footer,width/2,height-285*scale)}
     ctx.restore();return target;
   }
   function fromPage(page){const settings=object(page?.recipe?.settings),type=settings.pageType||"welcome";return{...defaults(type),...settings,pageType:type}}

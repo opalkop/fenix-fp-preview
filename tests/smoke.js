@@ -45,6 +45,11 @@
    test(intro,"Sześć typów stron Intro",()=>{assert(FenixIntroRenderer.PAGE_TYPES.length===6,"Nieprawidłowa liczba paneli");return "6 paneli"});
    test(intro,"Renderer odtwarza recepturę strony",()=>{const page=FenixPageSchema.normalize({module:"intro-studio",title:"Welcome!",recipe:{module:"intro-studio",settings:{pageType:"welcome",title:"Welcome!",body:"Final PDF text",footer:"Begin!",style:"framed",alignment:"center"}}}),canvas=FenixIntroRenderer.render(page,{width:850,height:1100});assert(canvas.width===850&&canvas.height===1100,"Niepoprawny canvas");return "850 × 1100"});
 
+   const typography=group("7. Typografia rendererów");
+   test(typography,"Word Search migruje stare ustawienia",()=>{const options=FenixWordSearch.optionsFromPage({title:"Words",recipe:{settings:{titleSize:42,titleY:82},content:{words:["WHALE"]}}});assert(options.titleSize>=110,"Tytuł pozostał za mały");assert(options.titleY>=218,"Pozycja tytułu nie została przeliczona");assert(options.wordListSize>=48,"Lista słów jest za mała");return `${Math.round(options.titleSize)} px`});
+   test(typography,"Intro ma czytelne ustawienia fabryczne",()=>{const defaults=FenixIntroRenderer.defaults("welcome");assert(defaults.titleSize>=100,"Za mały tytuł");assert(defaults.bodySize>=52,"Za mała treść");assert(defaults.footerSize>=40,"Za mała stopka");return `${defaults.titleSize} / ${defaults.bodySize} / ${defaults.footerSize} px`});
+   test(typography,"Strony końcowe udostępniają rozmiary tekstów",()=>{const qr=FenixEndingRenderers.DEFINITIONS["qr-studio"].defaults,certificate=FenixEndingRenderers.DEFINITIONS["certificate-studio"].defaults;assert(qr.titleSize&&qr.bodySize&&qr.footerSize,"Brak ustawień QR");assert(certificate.bodySize&&certificate.labelSize&&certificate.footerSize,"Brak ustawień certyfikatu");return "QR + Certificate"});
+
    headline.textContent=failed?`Diagnostyka: ${failed} błędów`:"Diagnostyka: wszystkie testy zaliczone";
    headline.className=failed?"fail":"ok";totals.textContent=`PASS: ${passed} · FAIL: ${failed}`;
  }
