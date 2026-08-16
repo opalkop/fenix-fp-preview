@@ -1,5 +1,11 @@
 "use strict";
-/** Architecture-only metadata. Existing Studio UX and logic stay unchanged. */
+/**
+ * FENIX Studio Responsibility Map
+ *
+ * Architecture-only metadata. It MUST NOT alter existing Studio UX, renderers,
+ * recipes or available exercise modes. It defines the long-term ownership of
+ * activity mechanics so future development does not create accidental overlap.
+ */
 window.FenixStudioResponsibilities=Object.freeze({
   "maze-studio":Object.freeze({domain:"navigation",purpose:"Find a route from start to finish",owns:["maze-pathfinding"]}),
   "word-search-studio":Object.freeze({domain:"language-puzzle",purpose:"Find words in a letter grid",owns:["word-search"]}),
@@ -17,4 +23,8 @@ window.FenixStudioResponsibilities=Object.freeze({
   "qr-studio":Object.freeze({domain:"book-structure",purpose:"Create the reader continuation/QR page",owns:["qr-page"]}),
   "certificate-studio":Object.freeze({domain:"book-structure",purpose:"Create the completion certificate",owns:["certificate"]})
 });
-window.FenixStudioArchitecture=Object.freeze({get:slug=>window.FenixStudioResponsibilities[slug]||null,owns:(slug,mechanic)=>Boolean(window.FenixStudioResponsibilities[slug]?.owns?.includes(mechanic)),overlaps:slug=>(window.FenixStudioResponsibilities[slug]?.legacyOverlap||[]).slice()});
+window.FenixStudioArchitecture=Object.freeze({
+  get:slug=>window.FenixStudioResponsibilities[slug]||null,
+  owns:(slug,mechanic)=>Boolean(window.FenixStudioResponsibilities[slug]?.owns?.includes(mechanic)),
+  overlaps:slug=>(window.FenixStudioResponsibilities[slug]?.legacyOverlap||[]).slice()
+});
