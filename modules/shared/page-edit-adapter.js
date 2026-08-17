@@ -4,15 +4,17 @@
   if(!requestedId)return;
   let bootAttempts=0;
   function boot(){
-    if(!window.FenixCore||!window.FenixPageSchema){if(++bootAttempts<20)setTimeout(boot,100);return}
+    if(!window.FenixCore){if(++bootAttempts<20)setTimeout(boot,100);return}
+    const moduleOf=item=>window.FenixPageSchema?.moduleOf?FenixPageSchema.moduleOf(item):(item?.module||item?.recipe?.module||"");
+    const normalize=item=>window.FenixPageSchema?.normalize?FenixPageSchema.normalize(item):item;
     const moduleSlug=document.body.dataset.module||params.get("module")||"";
-    const page=FenixCore.getCart().map(FenixPageSchema.normalize).find(item=>item.id===requestedId&&FenixPageSchema.moduleOf(item)===moduleSlug);
+    const page=FenixCore.getCart().map(normalize).find(item=>item.id===requestedId&&moduleOf(item)===moduleSlug);
     if(!page)return;
     const settings=page.recipe?.settings||{},content=page.recipe?.content||{};
     const originalAdd=FenixCore.addPage.bind(FenixCore),originalUpdate=FenixCore.updatePage.bind(FenixCore);
     let editing=true;
     FenixCore.addPage=function(payload){
-      if(editing&&payload&&FenixPageSchema.moduleOf(payload)===moduleSlug){
+      if(editing&&payload&&moduleOf(payload)===moduleSlug){
         originalUpdate(requestedId,payload);
         return FenixCore.getCart().length;
       }
