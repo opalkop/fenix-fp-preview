@@ -25,7 +25,7 @@ window.FenixCompletePicture=(()=>{
   function grid(ctx,x,y,w,h,n=8){const {line}=helpers(ctx);ctx.save();ctx.strokeStyle="#c8cfd6";ctx.lineWidth=1;for(let i=0;i<=n;i++){line(x+i*w/n,y,x+i*w/n,y+h);line(x,y+i*h/n,x+w,y+i*h/n)}ctx.restore()}
   function base(ctx,o,pageNo){ctx.clearRect(0,0,850,1100);ctx.fillStyle="#fff";ctx.fillRect(0,0,850,1100);ctx.strokeStyle="#111";ctx.lineWidth=3;ctx.strokeRect(36,36,778,1028);ctx.fillStyle="#111";ctx.textAlign="center";ctx.font="700 39px Arial";ctx.fillText(String(o.title||"Complete the Picture").slice(0,60),425,92);ctx.font="20px Arial";ctx.fillText(String(o.instruction||"Complete the picture.").slice(0,95),425,132);ctx.textAlign="right";ctx.font="16px Arial";ctx.fillText(String(pageNo+1),780,1024)}
   function render(options={},seed="fenix-ctp",pageNo=0,{solution=false,scale=1,customImage=null}={}){
-    const {canvas,ctx}=createCanvas(scale),o={type:"half-vertical",assetSource:"built-in",asset:"butterfly",difficulty:"medium",scale:.94,lineWidth:4,shadow:.10,shadowScale:1.4,guide:true,dots:false,grid:false,missingGuide:"none",missingGuideOpacity:.16,title:"Complete the Picture",instruction:"Draw the missing half of the picture.",...options},random=rng(seed),cx=425,{line}=helpers(ctx);
+    const {canvas,ctx}=createCanvas(scale),o={type:"half-vertical",assetSource:"built-in",asset:"butterfly",difficulty:"medium",scale:.94,lineWidth:4,shadow:.10,shadowScale:1.4,guide:true,dots:false,grid:false,missingGuide:"none",missingGuideOpacity:.16,missingPartSize:.35,missingPartPosition:"random",title:"Complete the Picture",instruction:"Draw the missing half of the picture.",...options},random=rng(seed),cx=425,{line}=helpers(ctx);
     ctx.strokeStyle="#111";ctx.lineWidth=o.lineWidth;base(ctx,o,pageNo);if(o.grid&&o.type!=="grid-copy")grid(ctx,115,210,620,650,8);
     const drawCurrent=(x,y,s,alpha=1)=>{ctx.save();ctx.globalAlpha=Math.max(0,Math.min(1,alpha));o.assetSource==="upload"?drawCustom(ctx,customImage,x,y,s):drawBuiltIn(ctx,o.asset,x,y,s);ctx.restore()};
     const guideAlpha=o.missingGuide==="none"?0:Math.max(.03,Math.min(.45,o.missingGuideOpacity*(o.missingGuide==="very-faint"?.7:1)));
@@ -34,7 +34,18 @@ window.FenixCompletePicture=(()=>{
     else if(o.type==="mirror-pair"){if(o.guide){ctx.setLineDash([10,10]);line(cx,205,cx,900);ctx.setLineDash([])}drawCurrent(245,555,o.scale*.55);if(solution||guideAlpha){ctx.save();ctx.translate(850,0);ctx.scale(-1,1);drawCurrent(245,555,o.scale*.55,solution?1:guideAlpha);ctx.restore()}}
     else if(o.type==="missing-part"){
       drawCurrent(cx,550,o.scale);
-      if(!solution){const a=random()*Math.PI*2,rad=115+(o.difficulty==="hard"?45:0),mx=cx+Math.cos(a)*rad,my=550+Math.sin(a)*rad,r=o.difficulty==="easy"?78:o.difficulty==="hard"?48:62;ctx.save();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.fill();ctx.restore();if(guideAlpha){ctx.save();ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.clip();drawCurrent(cx,550,o.scale,guideAlpha);ctx.restore()}ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle="#999";ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.stroke();ctx.restore()}}
+      if(!solution){
+        const size=Math.max(.10,Math.min(.60,o.missingPartSize||.35)),r=45+size*180,offset=135;
+        let angle=random()*Math.PI*2;
+        if(o.missingPartPosition==="top")angle=-Math.PI/2;
+        else if(o.missingPartPosition==="bottom")angle=Math.PI/2;
+        else if(o.missingPartPosition==="left")angle=Math.PI;
+        else if(o.missingPartPosition==="right")angle=0;
+        const mx=cx+Math.cos(angle)*offset,my=550+Math.sin(angle)*offset;
+        ctx.save();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.fill();ctx.restore();
+        if(guideAlpha){ctx.save();ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.clip();drawCurrent(cx,550,o.scale,guideAlpha);ctx.restore()}
+        ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle="#999";ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.stroke();ctx.restore()
+      }}
     else{
       if(!solution&&guideAlpha)drawCurrent(cx,550,o.scale,guideAlpha);
       ctx.save();if(!solution){ctx.beginPath();if(o.type==="half-horizontal")ctx.rect(80,180,690,375);else ctx.rect(80,180,345,760);ctx.clip()}drawCurrent(cx,550,o.scale);ctx.restore();if(o.guide){ctx.setLineDash([10,10]);o.type==="half-horizontal"?line(85,555,765,555):line(cx,190,cx,915);ctx.setLineDash([])}
