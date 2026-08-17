@@ -1,1 +1,61 @@
-<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Intro Studio — FENIX</title><link rel="stylesheet" href="../module.css"><link rel="stylesheet" href="intro.css?v=0.27.6"></head><body data-module="intro-studio"><header class="top"><div><strong>FENIX / Intro Studio</strong><br><small>Strony otwierające książkę · każda strona edytowana osobno</small></div><a href="../../index.html#modules">← Dashboard</a></header><main class="wrap intro-layout"><section class="panel intro-editor"><div class="intro-head"><div><h1>Intro Studio</h1><p id="projectInfo" class="hint"></p></div><p class="hint">Zaznacz tylko te strony, które mają wejść do książki. Kliknięcie zapisanej strony w Dashboardzie otworzy dokładnie jej panel i ustawienia.</p></div><div id="introPanels" class="intro-panels"></div><div id="saveStatus" class="save-status" aria-live="polite"></div></section><section class="preview intro-preview"><div class="preview-head"><div><strong>Podgląd strony</strong><small id="previewLabel"></small></div><div class="preview-actions"><button id="downloadPng" type="button">Eksport PNG</button></div></div><div class="canvas-wrap"><canvas id="page" width="2550" height="3300"></canvas></div><p id="status" class="hint">Podgląd aktualny</p></section></main><script src="../../core/page-schema.js?v=0.23.0"></script><script src="../../core/production-profile.js?v=0.22.0"></script><script src="../../core/fenix-core.js?v=0.23.0"></script><script src="intro-renderer.js?v=0.27.6"></script><script src="intro.js?v=0.27.6"></script><script>(()=>{const id=new URLSearchParams(location.search).get("id");if(!id)return;const page=FenixCore.getCart().find(item=>item.id===id&&FenixPageSchema.moduleOf(item)==="intro-studio");const type=page?.recipe?.settings?.pageType;if(!type)return;const panel=document.querySelector(`#introPanels details[data-page-type="${CSS.escape(type)}"]`);if(!panel)return;document.querySelectorAll("#introPanels details").forEach(item=>{if(item!==panel)item.open=false});panel.open=true;panel.scrollIntoView({block:"start"});})();</script></body></html>
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Intro Studio · FENIX</title>
+  <link rel="stylesheet" href="../../assets/app.css">
+  <link rel="stylesheet" href="../../assets/fpm.css">
+  <link rel="stylesheet" href="intro.css?v=0.21.0">
+</head>
+<body data-module="intro-studio" data-engine="specialized">
+  <header>
+    <div>
+      <p class="eyebrow">FENIX / STUDIO STRUKTURALNE</p>
+      <h1>Intro Studio</h1>
+      <p>Twórz i edytuj strony wprowadzające dokładnie tak, jak mają wyglądać w finalnej książce.</p>
+    </div>
+    <div class="header-actions">
+      <a class="button ghost" href="../../index.html#modules">← Dashboard</a>
+      <button id="downloadPng" type="button">Eksport PNG 300 DPI</button>
+    </div>
+  </header>
+
+  <main class="intro-layout">
+    <section class="card intro-controls">
+      <div id="projectInfo" class="project-info"></div>
+      <div class="section-title">Strony wprowadzenia</div>
+      <p class="intro-help">Rozwiń wybrany panel. Tytuł i treść wpisane w panelu są odtwarzane w PDF. Każdą stronę dodajesz lub aktualizujesz osobno.</p>
+      <div id="introPanels" class="control-sections"></div>
+      <p id="saveStatus" class="intro-status" aria-live="polite">Wybierz panel strony, którą chcesz przygotować.</p>
+    </section>
+
+    <section class="hero preview-section">
+      <div class="preview-heading">
+        <div><p class="eyebrow">PODGLĄD STRONY</p><strong id="previewLabel">Welcome Page</strong></div>
+        <div id="status">Gotowy</div>
+      </div>
+      <canvas id="page" width="2550" height="3300"></canvas>
+    </section>
+  </main>
+
+  <script src="../../core/page-schema.js?v=0.21.0"></script>
+  <script src="../../core/fenix-core.js?v=0.22.11"></script>
+  <script src="intro-renderer.js?v=0.27.6"></script>
+  <script src="intro.js?v=0.27.6"></script>
+  <script>
+  (()=>{
+    const id=new URLSearchParams(location.search).get("id");
+    if(!id)return;
+    const page=FenixCore.getCart().find(item=>item.id===id&&FenixPageSchema.moduleOf(item)==="intro-studio");
+    const type=page?.recipe?.settings?.pageType;
+    if(!type)return;
+    const panel=document.querySelector(`#introPanels details[data-page-type="${CSS.escape(type)}"]`);
+    if(!panel)return;
+    document.querySelectorAll("#introPanels details").forEach(item=>{if(item!==panel)item.open=false});
+    panel.open=true;
+    panel.scrollIntoView({block:"start"});
+  })();
+  </script>
+</body>
+</html>
