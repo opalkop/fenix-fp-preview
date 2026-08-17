@@ -37,3 +37,21 @@
     }
   },{capture:true});
 })();
+
+(()=>{
+  const current=[...document.scripts].find(script=>/\/assets\/dashboard-intro\.js(?:\?|$)/.test(script.src));
+  if(!current)return;
+  if(!document.querySelector('link[data-fenix-pages-ux]')){
+    const link=document.createElement("link");
+    link.rel="stylesheet";
+    link.href=new URL("pages-project-ux.css?v=0.30.0",current.src).href;
+    link.dataset.fenixPagesUx="1";
+    document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[data-fenix-pages-ux]')){
+    const script=document.createElement("script");
+    script.src=new URL("pages-project-ux.js?v=0.30.0",current.src).href;
+    script.dataset.fenixPagesUx="1";
+    document.body.appendChild(script);
+  }
+})();
