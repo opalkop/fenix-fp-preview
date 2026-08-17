@@ -1,6 +1,7 @@
 "use strict";
 (()=>{
   if(document.body.dataset.module!=="hidden-objects-studio")return;
+  const moduleOf=item=>window.FenixPageSchema?.moduleOf?FenixPageSchema.moduleOf(item):(item?.module||item?.recipe?.module||"");
   const fieldIds=["density","minSize","maxSize","rotate","seed","title","instructions","titleSize","instructionSize"];
   const assetBySrc=src=>FenixCore.listAssets().find(asset=>asset.dataUrl===src)||null;
   function captureHiddenState(){
@@ -18,7 +19,7 @@
   }
   const originalAdd=FenixCore.addPage.bind(FenixCore);
   FenixCore.addPage=function(payload){
-    if(FenixPageSchema.moduleOf(payload)==="hidden-objects-studio"){
+    if(moduleOf(payload)==="hidden-objects-studio"){
       payload.recipe=payload.recipe||{module:"hidden-objects-studio"};
       payload.recipe.settings={...(payload.recipe.settings||{}),...Object.fromEntries(fieldIds.map(id=>[id,document.getElementById(id)?.value]))};
       payload.recipe.content={...(payload.recipe.content||{}),hiddenState:captureHiddenState()};
@@ -26,7 +27,7 @@
     return originalAdd(payload);
   };
   const requestedId=new URLSearchParams(location.search).get("id");if(!requestedId)return;
-  const page=FenixCore.getCart().find(item=>item.id===requestedId&&FenixPageSchema.moduleOf(item)==="hidden-objects-studio");if(!page)return;
+  const page=FenixCore.getCart().find(item=>item.id===requestedId&&moduleOf(item)==="hidden-objects-studio");if(!page)return;
   const settings=page.recipe?.settings||{},saved=page.recipe?.content?.hiddenState||[];
   Object.entries(settings).forEach(([id,value])=>{const el=document.getElementById(id);if(el&&value!=null){el.value=value;el.dispatchEvent(new Event(el.tagName==="SELECT"?"change":"input",{bubbles:true}))}});
   let tries=0,done=false;
