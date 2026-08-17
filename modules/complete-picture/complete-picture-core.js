@@ -43,7 +43,7 @@ window.FenixCompletePicture=(()=>{
   function grid(ctx,x,y,w,h,n=8){const {line}=helpers(ctx);ctx.save();ctx.strokeStyle="#c8cfd6";ctx.lineWidth=1;for(let i=0;i<=n;i++){line(x+i*w/n,y,x+i*w/n,y+h);line(x,y+i*h/n,x+w,y+i*h/n)}ctx.restore()}
   function base(ctx,o){ctx.clearRect(0,0,850,1100);ctx.fillStyle="#fff";ctx.fillRect(0,0,850,1100);ctx.strokeStyle="#111";ctx.lineWidth=3;ctx.strokeRect(36,36,778,1028);ctx.fillStyle="#111";ctx.textAlign="center";ctx.font="700 39px Arial";ctx.fillText(String(o.title||"Complete the Picture").slice(0,60),425,92);ctx.font="20px Arial";ctx.fillText(String(o.instruction||"Complete the picture.").slice(0,95),425,132)}
   function render(options={},seed="fenix-ctp",pageNo=0,{solution=false,scale=1,customImage=null}={}){
-    const {canvas,ctx}=createCanvas(scale),o={type:"half-vertical",assetSource:"built-in",asset:"butterfly",difficulty:"medium",scale:.94,lineWidth:4,shadow:.10,shadowScale:1.4,shadowAssetScale:1,guide:true,dots:false,grid:false,missingGuide:"none",missingGuideOpacity:.12,missingPartSize:.35,missingPartPosition:"random",title:"Complete the Picture",instruction:"Draw the missing half of the picture.",...options},random=rng(seed),cx=425,{line}=helpers(ctx);
+    const {canvas,ctx}=createCanvas(scale),o={type:"half-vertical",assetSource:"built-in",asset:"butterfly",difficulty:"medium",scale:.94,lineWidth:4,shadow:.10,shadowScale:1.4,shadowAssetScale:1,guide:true,dots:false,grid:false,missingGuide:"none",missingGuideOpacity:.12,missingGuideScale:1,missingPartSize:.35,missingPartPosition:"random",title:"Complete the Picture",instruction:"Draw the missing half of the picture.",...options},random=rng(seed),cx=425,{line}=helpers(ctx);
     ctx.strokeStyle="#111";ctx.lineWidth=o.lineWidth;base(ctx,o);if(o.grid&&o.type!=="grid-copy")grid(ctx,115,210,620,650,8);
     const drawCurrent=(x,y,s,alpha=1)=>{ctx.save();ctx.globalAlpha=Math.max(0,Math.min(1,alpha));o.assetSource==="upload"?drawCustom(ctx,customImage,x,y,s):drawBuiltIn(ctx,o.asset,x,y,s);ctx.restore()};
     const drawGuide=(x,y,s,alpha)=>{if(o.assetSource==="upload")drawCustomOutline(ctx,customImage,x,y,s,alpha,Math.max(1,o.lineWidth*.45));else{ctx.save();ctx.globalAlpha=Math.max(.02,Math.min(.25,alpha));ctx.strokeStyle="#8c949c";ctx.lineWidth=Math.max(1,Math.min(2,o.lineWidth*.45));drawBuiltIn(ctx,o.asset,x,y,s);ctx.restore()}};
@@ -57,12 +57,12 @@ window.FenixCompletePicture=(()=>{
     else if(o.type==="missing-part"){
       drawCurrent(cx,550,o.scale);
       if(!solution){
-        const size=Math.max(.10,Math.min(.60,o.missingPartSize||.35)),r=45+size*180,offset=135;
+        const size=Math.max(.10,Math.min(.60,o.missingPartSize||.35)),r=45+size*180,offset=135,guideScale=o.scale*Math.max(.5,Math.min(1.6,o.missingGuideScale||1));
         let angle=random()*Math.PI*2;
         if(o.missingPartPosition==="top")angle=-Math.PI/2;else if(o.missingPartPosition==="bottom")angle=Math.PI/2;else if(o.missingPartPosition==="left")angle=Math.PI;else if(o.missingPartPosition==="right")angle=0;
         const mx=cx+Math.cos(angle)*offset,my=550+Math.sin(angle)*offset;
         ctx.save();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.fill();ctx.restore();
-        if(guideAlpha){ctx.save();ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.clip();drawGuide(cx,550,o.scale,guideAlpha);ctx.restore()}
+        if(guideAlpha){ctx.save();ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.clip();drawGuide(cx,550,guideScale,guideAlpha);ctx.restore()}
         ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle="#b1b7bd";ctx.beginPath();ctx.arc(mx,my,r,0,Math.PI*2);ctx.stroke();ctx.restore()
       }}
     else{
