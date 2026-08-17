@@ -44,9 +44,16 @@
     return parts.slice(0,4).join(" · ");
   }
 
-  function countsFor(pages){
-    const counts={};for(const page of pages){const mod=moduleOf(page);counts[mod]=(counts[mod]||0)+1}return counts;
+  function kdpText(page,project){
+    const status=page?.validation?.kdp?.status;
+    if(status==="ok")return"KDP ✓ OK";
+    if(status==="error")return"KDP ✕ BŁĄD";
+    if(status==="warning")return"KDP ! UWAGA";
+    const known=Boolean(LABELS[moduleOf(page)]);
+    return known&&project?.format?"KDP ✓ PROFIL PROJEKTU 300 DPI":"KDP · BRAK DANYCH";
   }
+
+  function countsFor(pages){const counts={};for(const page of pages){const mod=moduleOf(page);counts[mod]=(counts[mod]||0)+1}return counts}
 
   function ensureToolbar(pages){
     const section=$("#pagesProject"),list=$("#cartList");if(!section||!list)return;
@@ -54,7 +61,7 @@
     if(!toolbar){toolbar=document.createElement("div");toolbar.className="pages-ux-toolbar";list.parentElement.insertBefore(toolbar,list)}
     const counts=countsFor(pages),activityCount=pages.filter(p=>!STRUCTURAL.has(moduleOf(p))).length,solutions=pages.filter(hasSolution).length;
     const chips=Object.entries(counts).map(([mod,count])=>{const l=LABELS[mod]||{short:mod,name:mod,tone:"other"};return `<span class="pages-ux-chip tone-${esc(l.tone)}"><b>${esc(l.short)}</b><strong>${count}</strong></span>`}).join("");
-    toolbar.innerHTML=`<div class="pages-ux-overview"><div class="pages-ux-total"><span class="pages-ux-kicker">KONTROLA WORKFLOW</span><strong>${activityCount} aktywności</strong><small>${pages.length} stron zapisanych · ${solutions} stron z rozwiązaniem</small></div><div class="pages-ux-chips">${chips}</div></div><div class="pages-ux-help"><b>Nie licz ręcznie.</b> Numery poniżej pokazują kolejność globalną i kolejność w każdym Studio. Ostatnia zapisana karta jest dodatkowo wyróżniona.</div>`;
+    toolbar.innerHTML=`<div class="pages-ux-overview"><div class="pages-ux-total"><span class="pages-ux-kicker">KONTROLA WORKFLOW · AKTYWNA</span><strong>${activityCount} aktywności</strong><small>${pages.length} stron zapisanych · ${solutions} stron z rozwiązaniem</small></div><div class="pages-ux-chips">${chips}</div></div><div class="pages-ux-help"><b>Nie licz ręcznie.</b> Numery poniżej pokazują kolejność globalną i kolejność w każdym Studio. Ostatnia zapisana karta jest dodatkowo wyróżniona.</div>`;
   }
 
   function removeOldHeaders(list){list.querySelectorAll(":scope > .pages-ux-group").forEach(node=>node.remove())}
@@ -71,9 +78,7 @@
         const page=pages[index];if(!page)return;
         const mod=moduleOf(page),label=LABELS[mod]||{short:mod.replace(/-studio$/,'').toUpperCase(),name:mod,tone:"other"};
         const local=moduleSeen[mod]=(moduleSeen[mod]||0)+1;
-        if(mod!==previousModule){
-          const header=document.createElement("div");header.className=`pages-ux-group tone-${label.tone}`;header.innerHTML=`<div><span>${esc(label.short)}</span><strong>${esc(label.name)}</strong></div><b>${counts[mod]||0} ${counts[mod]===1?"strona":"stron"}</b>`;list.insertBefore(header,item);previousModule=mod;
-        }
+        if(mod!==previousModule){const header=document.createElement("div");header.className=`pages-ux-group tone-${label.tone}`;header.innerHTML=`<div><span>${esc(label.short)}</span><strong>${esc(label.name)}</strong></div><b>${counts[mod]||0} ${counts[mod]===1?"strona":"stron"}</b>`;list.insertBefore(header,item);previousModule=mod}
         item.className=item.className.replace(/\btone-\S+/g,"").trim();item.classList.add("pages-ux-item",`tone-${label.tone}`);
         item.dataset.pageId=page.id||"";item.dataset.module=mod;item.dataset.moduleIndex=String(local);item.dataset.globalIndex=String(index+1);
         const left=item.firstElementChild,actions=item.lastElementChild;if(!left||!actions)return;
@@ -81,9 +86,9 @@
         meta.innerHTML=`<span class="pages-ux-module">${esc(label.short)} #${String(local).padStart(2,"0")}</span><span class="pages-ux-global">STRONA ${String(index+1).padStart(2,"0")}/${String(pages.length).padStart(2,"0")}</span><span class="pages-ux-saved">✓ ZAPISANA</span>${page.id===newestId?'<span class="pages-ux-latest">★ OSTATNIO DODANA</span>':''}`;
         let heading=left.querySelector("strong:not(.pages-ux-generated-title)");if(heading)heading.classList.add("pages-ux-original-title");
         let generated=left.querySelector(".pages-ux-generated-title");if(!generated){generated=document.createElement("strong");generated.className="pages-ux-generated-title";meta.insertAdjacentElement("afterend",generated)}
-        generated.textContent=`${label.short} #${String(local).padStart(2,"0")} — ${page.title||label.name}`;
-        if(heading)heading.hidden=true;
+        generated.textContent=`${label.short} #${String(local).padStart(2,"0")} — ${page.title||label.name}`;if(heading)heading.hidden=true;
         const summary=settingsSummary(page);let detail=left.querySelector(".pages-ux-detail");if(!detail){detail=document.createElement("div");detail.className="pages-ux-detail";left.appendChild(detail)}detail.textContent=summary||`${label.name} · pełne ustawienia zapisane w projekcie`;
+        const mobile=left.querySelector(".mobile-source");if(mobile)mobile.textContent=kdpText(page,project);
         if(item.dataset.pageHref&&!actions.querySelector(".pages-ux-edit")){const edit=document.createElement("a");edit.className="btn pages-ux-edit";edit.href=item.dataset.pageHref;edit.textContent="Edytuj tę stronę";actions.prepend(edit)}
       });
     }finally{busy=false}
@@ -92,7 +97,7 @@
   function boot(){
     const list=$("#cartList");if(!list)return;
     new MutationObserver(()=>requestAnimationFrame(enhance)).observe(list,{childList:true,subtree:false});
-    window.addEventListener("fenix-state-change",()=>requestAnimationFrame(enhance));requestAnimationFrame(enhance);
+    window.addEventListener("fenix-state-change",()=>requestAnimationFrame(enhance));requestAnimationFrame(enhance);setTimeout(enhance,300);setTimeout(enhance,1000);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
