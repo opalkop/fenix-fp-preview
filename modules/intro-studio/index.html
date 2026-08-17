@@ -43,19 +43,5 @@
   <script src="../../core/fenix-core.js?v=0.22.11"></script>
   <script src="intro-renderer.js?v=0.27.6"></script>
   <script src="intro.js?v=0.27.6"></script>
-  <script>
-  (()=>{
-    const id=new URLSearchParams(location.search).get("id");
-    if(!id)return;
-    const page=FenixCore.getCart().find(item=>item.id===id&&FenixPageSchema.moduleOf(item)==="intro-studio");
-    const type=page?.recipe?.settings?.pageType;
-    if(!type)return;
-    const panel=document.querySelector(`#introPanels details[data-page-type="${CSS.escape(type)}"]`);
-    if(!panel)return;
-    document.querySelectorAll("#introPanels details").forEach(item=>{if(item!==panel)item.open=false});
-    panel.open=true;
-    panel.scrollIntoView({block:"start"});
-  })();
-  </script>
 </body>
 </html>
