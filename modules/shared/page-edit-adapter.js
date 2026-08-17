@@ -27,6 +27,7 @@
     function hydrate(){
       const merged={...settings,title:page.title||page.recipe?.title||settings.title,seed:page.recipe?.seed??page.seed??settings.seed,instructions:settings.instructions??settings.instruction};
       Object.entries(merged).forEach(([key,value])=>{if(typeof value!=="object")assign(document.getElementById(key),value)});
+      if(document.getElementById("count"))assign(document.getElementById("count"),1);
       const assetRef=content.assetRef||settings.assetRef||content.assetId||settings.assetId;
       if(assetRef){
         const selector=`[data-id="${CSS.escape(String(assetRef))}"], [data-asset-id="${CSS.escape(String(assetRef))}"]`;
