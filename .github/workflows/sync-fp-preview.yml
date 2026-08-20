@@ -1,5 +1,5 @@
 name: Sync FP Preview
-# Manual dispatch marker: 2026-08-12T11:27Z
+# Manual dispatch marker: 2026-08-20T11:15Z
 
 on:
   schedule:
