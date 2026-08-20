@@ -39,3 +39,9 @@
   const boot=()=>{apply();const list=document.getElementById("cartList");if(list)new MutationObserver(()=>requestAnimationFrame(apply)).observe(list,{childList:true,subtree:false});window.addEventListener("fenix-state-change",()=>requestAnimationFrame(apply));setTimeout(apply,300);setTimeout(apply,1000)};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
+
+(()=>{
+  const load=(src,done)=>{if(document.querySelector(`script[data-fenix-sync-src="${src}"]`))return done?.();const s=document.createElement("script");s.src=src;s.dataset.fenixSyncSrc=src;s.onload=()=>done?.();document.body.appendChild(s)};
+  const boot=()=>load("core/sync-core.js?v=1",()=>load("core/sync-ui.js?v=1"));
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();

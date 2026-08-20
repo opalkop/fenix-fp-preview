@@ -1,0 +1,28 @@
+{
+  "format":"FENIX_SHARED_CORE_STATUS",
+  "version":3,
+  "schemaVersion":3,
+  "updated":"2026-08-20",
+  "goal":"Same recipe + same seed + same project assets must produce the same logical KDP activity in FPP and FPM.",
+  "productionPriority":["project-integrity","assets","editable-recipes","solutions","render-consistency","book-order","pdf-output","device-sync"],
+  "modules":{
+    "maze-studio":{"status":"shared-core","moduleVersion":1},
+    "word-search-studio":{"status":"shared-core","moduleVersion":1},
+    "coloring-studio":{"status":"shared-core","moduleVersion":2},
+    "complete-picture":{"status":"shared-core","moduleVersion":2},
+    "tracing-studio":{"status":"shared-core","moduleVersion":2},
+    "matching-studio":{"status":"shared-core","moduleVersion":2},
+    "dot-to-dot-studio":{"status":"shared-core","moduleVersion":2},
+    "hidden-objects-studio":{"status":"logic-synchronized","moduleVersion":2},
+    "logic-studio":{"status":"logic-synchronized","moduleVersion":5}
+  },
+  "rules":[
+    "FPP and FPM are two UIs of one Fenix product model.",
+    "UI may differ; project, recipe, asset and solution semantics may not.",
+    "Windows, Linux and mobile must read the same portable project model.",
+    "Never add a Studio capability to only one frontend without bumping its module contract.",
+    "Newer module versions must not be silently interpreted by an older frontend.",
+    "Shared renderers should be byte-identical where practical.",
+    "KDP production correctness takes priority over cosmetic parity."
+  ]
+}
