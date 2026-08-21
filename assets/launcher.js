@@ -6,6 +6,8 @@
   await load("../config/module-registry.js?v=0.28.0",()=>Boolean(window.FenixModuleRegistry));
   await load("../core/page-schema.js",()=>Boolean(window.FenixPageSchema));
   await load("../core/project-validator.js",()=>Boolean(window.FenixProjectValidator));
+  await load("../core/sync-core.js?v=3",()=>Boolean(window.FenixSync));
+  await load("../core/sync-ui.js?v=3",()=>Boolean(window.__fenixSyncUiReady));
 
   const READY_MODULES=new Set(["maze-studio","word-search-studio","coloring-studio","intro-studio"]);
   const rawDashboardModules=FenixModuleRegistry.dashboard();
