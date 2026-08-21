@@ -61,3 +61,15 @@ body.fenix-studio-shell #cart:disabled,
 body.fenix-studio-shell #saveCart:disabled,
 body.fenix-studio-shell #savePage:disabled,
 body.fenix-studio-shell [data-save-page]:disabled{opacity:.48!important}
+
+/* FENIX Studio contract v4 — works even in legacy/standalone studios. */
+main[class*="layout"],main.wrap{grid-template-columns:1fr!important;grid-auto-flow:row!important;align-items:start!important}
+main[class*="layout"]>.controls,main[class*="layout"]>.panel,main[class*="layout"]>.card.controls,main[class*="layout"]>.ctp-panel,main[class*="layout"]>.intro-controls{grid-column:1!important;grid-row:auto!important;width:100%!important;position:static!important;max-height:none!important;overflow:visible!important}
+main[class*="layout"]>.preview,main[class*="layout"]>.preview-panel,main[class*="layout"]>.preview-section,main[class*="layout"]>.hero,main[class*="layout"]>.workspace,main[class*="layout"]>.ctp-preview{grid-column:1!important;grid-row:auto!important;width:100%!important;position:static!important}
+#generate,#fenixRefreshPreview,button[data-fenix-action="refresh"]{background:#2563eb!important;border-color:#1d4ed8!important;color:#fff!important;font-weight:900!important;box-shadow:0 4px 12px rgba(37,99,235,.28)!important}
+#cart,#saveCart,#savePage,button[data-save-page],button[data-fenix-action="save"]{background:#f97316!important;border-color:#c2410c!important;color:#fff!important;font-weight:900!important;box-shadow:0 4px 12px rgba(249,115,22,.30)!important}
+#png,#downloadPng,button[data-fenix-action="export"]{background:#334155!important;border-color:#263445!important;color:#fff!important;font-weight:850!important}
+#newVariant,#reset,#saveCopy,button[data-fenix-action="variant"]{background:#eef2f6!important;border-color:#cbd5df!important;color:#17202a!important}
+#generate:hover,#fenixRefreshPreview:hover{background:#1d4ed8!important}
+#cart:hover,#saveCart:hover,#savePage:hover{background:#ea580c!important}
+@media(max-width:600px){main[class*="layout"]{padding-left:10px!important;padding-right:10px!important}.actions #generate,.actions #fenixRefreshPreview,.actions #cart,.actions #saveCart,.actions #savePage{flex:1 1 100%!important;width:100%!important}}
