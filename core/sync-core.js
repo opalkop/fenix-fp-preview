@@ -16,29 +16,30 @@ window.FenixSync=(()=>{
   async function githubRequest(url,options={}){const c=requireConfig(),headers={Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",Authorization:`Bearer ${c.token}`,...options.headers},response=await fetch(url,{...options,headers});if(!response.ok&&response.status!==404){const body=await response.text().catch(()=>"");throw new Error(`GitHub Sync ${response.status}: ${body.slice(0,180)}`)}return response}
   const contentsUrl=c=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(c.branch)}`;
   const writeUrl=c=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}`;
+  const gitRefUrl=c=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/git/ref/heads/${encodeURIComponent(c.branch)}`;
+  const commitUrl=(c,sha)=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/git/commits/${encodeURIComponent(sha)}`;
+  const treeUrl=(c,sha)=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/git/trees/${encodeURIComponent(sha)}?recursive=1`;
   async function readRemoteMeta(){const c=requireConfig(),res=await githubRequest(contentsUrl(c));if(res.status===404)return null;return res.json()}
-  async function readRemoteMetaRetry(){for(let i=0;i<4;i++){const meta=await readRemoteMeta();if(meta?.sha)return meta;if(i<3)await sleep(250*(i+1))}return null}
+  async function readRemoteShaViaGit(){const c=requireConfig();const refRes=await githubRequest(gitRefUrl(c));if(refRes.status===404)return null;const ref=await refRes.json();const commitSha=ref?.object?.sha;if(!commitSha)return null;const commitRes=await githubRequest(commitUrl(c,commitSha));const commit=await commitRes.json();const treeSha=commit?.tree?.sha;if(!treeSha)return null;const treeRes=await githubRequest(treeUrl(c,treeSha));const tree=await treeRes.json();const path=String(c.path||"").replace(/^\/+/,"");return tree?.tree?.find(item=>item.path===path)?.sha||null}
+  async function readRemoteSha(){for(let i=0;i<3;i++){const meta=await readRemoteMeta();if(meta?.sha)return meta.sha;if(i<2)await sleep(200*(i+1))}return readRemoteShaViaGit()}
   async function readRemoteText(){const c=requireConfig(),res=await githubRequest(contentsUrl(c),{headers:{Accept:"application/vnd.github.raw+json"}});if(res.status===404)return null;const text=await res.text();if(!text.trim())throw new Error("Plik synchronizacji w GitHubie jest pusty lub niedostępny. Wyślij projekt ponownie z urządzenia, na którym masz poprawną kopię.");return text}
-  async function pull({merge=true}={}){const meta=await readRemoteMeta();if(!meta)return{found:false,bundle:null,stats:null};let text="";if(meta.content){text=unb64utf8(meta.content)}else{text=await readRemoteText()}let bundle;try{bundle=JSON.parse(text)}catch{throw new Error("Nie można odczytać danych synchronizacji z GitHuba. Plik może być uszkodzony albo niekompletny.")}const stats=merge?mergeBundle(bundle):null;localStorage.setItem("fenix-sync-last-pull",new Date().toISOString());return{found:true,bundle,stats,sha:meta.sha}}
+  async function pull({merge=true}={}){const meta=await readRemoteMeta();if(!meta)return{found:false,bundle:null,stats:null};let text="";if(meta.content){text=unb64utf8(meta.content)}else{text=await readRemoteText()}let bundle;try{bundle=JSON.parse(text)}catch{throw new Error("Nie można odczytać danych synchronizacji z GitHuba. Plik może być uszkodzony albo niekompletny.")}const stats=merge?mergeBundle(bundle):null;localStorage.setItem("fenix-sync-last-pull",new Date().toISOString());return{found:true,bundle,stats,sha:meta.sha||null}}
   async function doPush(){
     const c=requireConfig(),bundle=snapshot(),json=JSON.stringify(bundle);
     if(!json||json.length<20)throw new Error("Fenix Sync przerwał wysyłanie: lokalny pakiet projektu jest pusty.");
-    let meta=await readRemoteMetaRetry();
-    const makeBody=sha=>{const body={message:`Fenix Sync ${new Date().toISOString()}`,content:b64utf8(json),branch:c.branch};if(sha)body.sha=sha;return body};
-    let data;
+    let sha=await readRemoteSha();
+    const makeBody=currentSha=>{const body={message:`Fenix Sync ${new Date().toISOString()}`,content:b64utf8(json),branch:c.branch};if(currentSha)body.sha=currentSha;return body};
     try{
-      const res=await githubRequest(writeUrl(c),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(makeBody(meta?.sha||null))});
-      data=await res.json();
+      const res=await githubRequest(writeUrl(c),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(makeBody(sha))});
+      const data=await res.json();localStorage.setItem("fenix-sync-last-push",new Date().toISOString());return{bundle,commit:data.commit?.sha||null,size:json.length};
     }catch(error){
       const message=String(error?.message||error);
       if(!/GitHub Sync 422/i.test(message)||!/sha|wasn't supplied/i.test(message))throw error;
-      meta=await readRemoteMetaRetry();
-      if(!meta?.sha)throw new Error("Fenix Sync nie mógł ustalić aktualnej wersji pliku w GitHubie. Spróbuj ponownie za chwilę.");
-      const retry=await githubRequest(writeUrl(c),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(makeBody(meta.sha))});
-      data=await retry.json();
+      sha=await readRemoteShaViaGit();
+      if(!sha)throw new Error("Fenix Sync nie mógł odczytać SHA istniejącego pliku z GitHuba.");
+      const retry=await githubRequest(writeUrl(c),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(makeBody(sha))});
+      const data=await retry.json();localStorage.setItem("fenix-sync-last-push",new Date().toISOString());return{bundle,commit:data.commit?.sha||null,size:json.length};
     }
-    localStorage.setItem("fenix-sync-last-push",new Date().toISOString());
-    return{bundle,commit:data.commit?.sha||null,size:json.length};
   }
   async function push(){if(pushInFlight)return pushInFlight;pushInFlight=doPush();try{return await pushInFlight}finally{pushInFlight=null}}
   async function sync(){let remote=null;try{remote=await pull({merge:true})}catch(error){if(!/pusty|uszkodzony|niekompletny/i.test(String(error.message||error)))throw error}const pushed=await push();window.dispatchEvent(new CustomEvent("fenix-sync-complete",{detail:{remote,pushed}}));return{remote,pushed}}
