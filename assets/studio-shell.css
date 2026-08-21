@@ -30,7 +30,7 @@ html[data-theme="dark"] body.fenix-studio-shell{--fenix-bg:#111922;--fenix-panel
 @media(max-width:960px){.fenix-studio-shell main.wrap,.fenix-studio-shell .maze-layout,.fenix-studio-shell .ctp-layout,.fenix-studio-shell .layout{grid-template-columns:1fr}.fenix-studio-shell .panel,.fenix-studio-shell .card.controls,.fenix-studio-shell .ctp-panel,.fenix-studio-shell .controls{position:static;max-height:none}.fenix-studio-shell .workspace,.fenix-studio-shell .controls,.fenix-studio-shell .hero,.fenix-studio-shell .ctp-panel,.fenix-studio-shell .ctp-preview{grid-column:1;grid-row:auto}}
 @media(max-width:600px){body.fenix-studio-shell>header,.fenix-studio-shell .top,.fenix-studio-shell .master-header{align-items:flex-start;padding:14px;flex-direction:column}.fenix-studio-shell main.wrap,.fenix-studio-shell .maze-layout,.fenix-studio-shell .ctp-layout,.fenix-studio-shell .layout{padding:12px}.fenix-studio-shell .form-grid,.fenix-studio-shell .row{grid-template-columns:1fr}.fenix-studio-shell .actions>*{flex:1}.fenix-studio-shell .preview-head,.fenix-studio-shell .workspace-head{align-items:flex-start;flex-direction:column}}
 
-/* Unified action buttons across all Fenix Studios. */
+/* FENIX project actions v3 — explicit color hierarchy. */
 body.fenix-studio-shell #generate,
 body.fenix-studio-shell #fenixRefreshPreview{
   background:#2563eb!important;
@@ -49,18 +49,15 @@ body.fenix-studio-shell [data-save-page]{
   font-weight:950!important;
   box-shadow:0 4px 12px rgba(249,115,22,.30)!important;
 }
-body.fenix-studio-shell #png,
-body.fenix-studio-shell #downloadPng{
-  background:#334155!important;
-  border-color:#1f2937!important;
-  color:#fff!important;
-  font-weight:850!important;
-}
 body.fenix-studio-shell #generate:hover,
 body.fenix-studio-shell #fenixRefreshPreview:hover{background:#1d4ed8!important}
 body.fenix-studio-shell #cart:hover,
 body.fenix-studio-shell #saveCart:hover,
 body.fenix-studio-shell #savePage:hover,
 body.fenix-studio-shell [data-save-page]:hover{background:#ea580c!important}
-body.fenix-studio-shell #png:hover,
-body.fenix-studio-shell #downloadPng:hover{background:#1f2937!important}
+body.fenix-studio-shell #generate:disabled,
+body.fenix-studio-shell #fenixRefreshPreview:disabled,
+body.fenix-studio-shell #cart:disabled,
+body.fenix-studio-shell #saveCart:disabled,
+body.fenix-studio-shell #savePage:disabled,
+body.fenix-studio-shell [data-save-page]:disabled{opacity:.48!important}

@@ -77,6 +77,7 @@
     window.addEventListener("fenix-state-change",event=>{if(event.detail?.activeProject||event.detail?.projects)renderProject()});
   }
 
+  // Wspólny kontrakt UX Studiów: zawsze widoczny zapis do projektu i ręczne odświeżenie podglądu.
   const findActionHost=()=>body.querySelector(".actions,.panel-actions.save-actions,.panel-actions,.coloring-actions,.intro-controls,.ending-controls,.controls");
   const findSaveAction=()=>body.querySelector("#cart,#saveCart,#savePage,[data-save-page]");
   const findRefreshAction=()=>[...body.querySelectorAll("button")].find(button=>/odśwież\s+podgląd/i.test(button.textContent||""));
@@ -111,6 +112,7 @@
     if(saveAction?.parentElement===host)host.insertBefore(refresh,saveAction);else host.appendChild(refresh);
   }
 
+  // Jednolita hierarchia kolorów dla KAŻDEGO Studia, niezależnie od jego lokalnego CSS.
   if(!document.getElementById("fenixUnifiedActionColors")){
     const style=document.createElement("style");
     style.id="fenixUnifiedActionColors";
