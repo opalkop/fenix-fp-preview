@@ -29,3 +29,38 @@ body.fenix-studio-shell>header,.fenix-studio-shell .top,.fenix-studio-shell .mas
 html[data-theme="dark"] body.fenix-studio-shell{--fenix-bg:#111922;--fenix-panel:#18232e;--fenix-line:#2b3947;--fenix-text:#eef4f8;--fenix-muted:#aab8c5;--fenix-dark:#0b1118}.fenix-studio-shell input,.fenix-studio-shell select,.fenix-studio-shell textarea{color-scheme:light}html[data-theme="dark"] .fenix-studio-shell input,html[data-theme="dark"] .fenix-studio-shell select,html[data-theme="dark"] .fenix-studio-shell textarea{background:#101820;color:#eef4f8;border-color:#3c4b59;color-scheme:dark}html[data-theme="dark"] .fenix-studio-shell .project-info,html[data-theme="dark"] .fenix-studio-shell .type-help,html[data-theme="dark"] .fenix-studio-shell .note,html[data-theme="dark"] .fenix-studio-shell .hint{background:#101820}html[data-theme="dark"] .fenix-studio-shell button,html[data-theme="dark"] .fenix-studio-shell .button,html[data-theme="dark"] .fenix-studio-shell .btn{background:#22303d;color:#eef4f8;border-color:#3c4b59}
 @media(max-width:960px){.fenix-studio-shell main.wrap,.fenix-studio-shell .maze-layout,.fenix-studio-shell .ctp-layout,.fenix-studio-shell .layout{grid-template-columns:1fr}.fenix-studio-shell .panel,.fenix-studio-shell .card.controls,.fenix-studio-shell .ctp-panel,.fenix-studio-shell .controls{position:static;max-height:none}.fenix-studio-shell .workspace,.fenix-studio-shell .controls,.fenix-studio-shell .hero,.fenix-studio-shell .ctp-panel,.fenix-studio-shell .ctp-preview{grid-column:1;grid-row:auto}}
 @media(max-width:600px){body.fenix-studio-shell>header,.fenix-studio-shell .top,.fenix-studio-shell .master-header{align-items:flex-start;padding:14px;flex-direction:column}.fenix-studio-shell main.wrap,.fenix-studio-shell .maze-layout,.fenix-studio-shell .ctp-layout,.fenix-studio-shell .layout{padding:12px}.fenix-studio-shell .form-grid,.fenix-studio-shell .row{grid-template-columns:1fr}.fenix-studio-shell .actions>*{flex:1}.fenix-studio-shell .preview-head,.fenix-studio-shell .workspace-head{align-items:flex-start;flex-direction:column}}
+
+/* Unified action buttons across all Fenix Studios. */
+body.fenix-studio-shell #generate,
+body.fenix-studio-shell #fenixRefreshPreview{
+  background:#2563eb!important;
+  border-color:#1d4ed8!important;
+  color:#fff!important;
+  font-weight:900!important;
+  box-shadow:0 4px 12px rgba(37,99,235,.28)!important;
+}
+body.fenix-studio-shell #cart,
+body.fenix-studio-shell #saveCart,
+body.fenix-studio-shell #savePage,
+body.fenix-studio-shell [data-save-page]{
+  background:#f97316!important;
+  border-color:#c2410c!important;
+  color:#fff!important;
+  font-weight:950!important;
+  box-shadow:0 4px 12px rgba(249,115,22,.30)!important;
+}
+body.fenix-studio-shell #png,
+body.fenix-studio-shell #downloadPng{
+  background:#334155!important;
+  border-color:#1f2937!important;
+  color:#fff!important;
+  font-weight:850!important;
+}
+body.fenix-studio-shell #generate:hover,
+body.fenix-studio-shell #fenixRefreshPreview:hover{background:#1d4ed8!important}
+body.fenix-studio-shell #cart:hover,
+body.fenix-studio-shell #saveCart:hover,
+body.fenix-studio-shell #savePage:hover,
+body.fenix-studio-shell [data-save-page]:hover{background:#ea580c!important}
+body.fenix-studio-shell #png:hover,
+body.fenix-studio-shell #downloadPng:hover{background:#1f2937!important}
