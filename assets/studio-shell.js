@@ -76,4 +76,52 @@
     renderProject();
     window.addEventListener("fenix-state-change",event=>{if(event.detail?.activeProject||event.detail?.projects)renderProject()});
   }
+
+  // Wspólny kontrakt UX Studiów: zawsze widoczny zapis do projektu i ręczne odświeżenie podglądu.
+  const actionText=element=>String(element?.textContent||"").trim().toLowerCase();
+  const findActionHost=()=>body.querySelector(".actions,.panel-actions.save-actions,.panel-actions,.coloring-actions,.intro-controls,.ending-controls,.controls");
+  const findSaveAction=()=>body.querySelector("#cart,#saveCart,#savePage,[data-save-page]");
+  const findRefreshAction=()=>[...body.querySelectorAll("button")].find(button=>/odśwież\s+podgląd/i.test(button.textContent||""));
+
+  function normalizeStudioActions(){
+    const generate=body.querySelector("#generate");
+    if(generate&&/generuj\s+(stronę|serię)/i.test(generate.textContent||""))generate.textContent="Odśwież podgląd";
+
+    const cart=body.querySelector("#cart");
+    if(cart&&/koszyk/i.test(cart.textContent||""))cart.textContent=/serię/i.test(cart.textContent||"")?"Dodaj serię do projektu":"Dodaj stronę do projektu";
+
+    const save=findSaveAction();
+    if(save&&/dodaj\s+do\s+stron\s+projektu/i.test(save.textContent||""))save.textContent="Dodaj stronę do projektu";
+
+    if(findRefreshAction())return;
+    if(generate){
+      generate.setAttribute("aria-label","Odśwież podgląd strony");
+      return;
+    }
+
+    const host=findActionHost();
+    if(!host||document.getElementById("fenixRefreshPreview"))return;
+    const refresh=document.createElement("button");
+    refresh.id="fenixRefreshPreview";
+    refresh.type="button";
+    refresh.className="ghost";
+    refresh.textContent="Odśwież podgląd";
+    refresh.title="Przelicz i odśwież podgląd strony bez dodawania jej do projektu";
+    refresh.addEventListener("click",()=>{
+      const source=body.querySelector('#title,[data-field="title"],textarea[data-field],input[data-field],select[data-field],#seed');
+      if(source){
+        source.dispatchEvent(new Event("input",{bubbles:true}));
+        source.dispatchEvent(new Event("change",{bubbles:true}));
+      }else{
+        window.dispatchEvent(new Event("resize"));
+      }
+    });
+    const saveAction=findSaveAction();
+    if(saveAction?.parentElement===host)host.insertBefore(refresh,saveAction);
+    else host.appendChild(refresh);
+  }
+
+  normalizeStudioActions();
+  setTimeout(normalizeStudioActions,0);
+  setTimeout(normalizeStudioActions,250);
 })();
