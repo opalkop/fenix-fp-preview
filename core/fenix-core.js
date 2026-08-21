@@ -6,10 +6,11 @@
   const coreScript=[...document.scripts].find(script=>/\/core\/fenix-core\.js(?:\?|$)/.test(script.src));if(!coreScript)return;
   const addStyle=(name,file)=>{if(document.querySelector(`link[data-fenix-theme="${name}"]`))return;const link=document.createElement("link");link.rel="stylesheet";link.href=new URL(`../assets/${file}`,coreScript.src).href;link.dataset.fenixTheme=name;document.head.appendChild(link)};
   const addScript=(name,file)=>{if(document.querySelector(`script[data-fenix-helper="${name}"]`))return;const script=document.createElement("script");script.src=new URL(`../assets/${file}`,coreScript.src).href;script.dataset.fenixHelper=name;document.body.appendChild(script)};
-  addStyle("v2","fenix-v2.css?v=0.18.0");addStyle("variants","fenix-theme-overrides.css?v=0.18.0");addStyle("studio-shell","studio-shell.css?v=0.20.2");addStyle("fenix-mode","fenix-mode.css?v=0.23.0");
+  addStyle("v2","fenix-v2.css?v=0.18.0");addStyle("variants","fenix-theme-overrides.css?v=0.18.0");addStyle("studio-shell","studio-shell.css?v=0.24.0");addStyle("fenix-mode","fenix-mode.css?v=0.23.0");
   const fenixModeStyle=document.querySelector('link[data-fenix-theme="fenix-mode"]');if(fenixModeStyle)document.head.appendChild(fenixModeStyle);
   document.documentElement.dataset.fenixTheme="v2";
-  window.addEventListener("DOMContentLoaded",()=>{if(document.body?.dataset?.module||document.body?.dataset?.screen)addScript("studio-shell","studio-shell.js?v=0.23.0")},{once:true});
+  const loadStudioShell=()=>{const isModule=/\/modules\//.test(location.pathname)||document.body?.dataset?.module||document.body?.dataset?.screen;if(isModule)addScript("studio-shell","studio-shell.js?v=0.24.0")};
+  if(document.readyState==="loading")window.addEventListener("DOMContentLoaded",loadStudioShell,{once:true});else loadStudioShell();
 })();
 
 const FenixCore=(()=>{
@@ -26,21 +27,7 @@ const FenixCore=(()=>{
     const width=Number(asset.width??meta.width)||0,height=Number(asset.height??meta.height)||0,sizeBytes=Number(asset.sizeBytes??meta.sizeBytes)||0;
     const validation=asset.validation&&typeof asset.validation==="object"?clone(asset.validation):meta.validation&&typeof meta.validation==="object"?clone(meta.validation):{status:"warning",messages:["Asset nie był jeszcze walidowany."],metrics:{}};
     const createdAt=asset.createdAt||meta.addedAt||now();
-    return{
-      id:asset.id||fallbackId||uid(),
-      name:String(asset.name||asset.filename||meta.filename||"Asset"),
-      filename:String(asset.filename||meta.filename||asset.name||"Asset"),
-      mime:String(asset.mime||asset.mimeType||meta.mimeType||"image/webp"),
-      dataUrl:String(asset.dataUrl||asset.data||""),
-      source:String(asset.source||meta.source||"imported"),
-      width,height,sizeBytes,
-      aspectRatio:asset.aspectRatio??meta.aspectRatio??(width&&height?Number((width/height).toFixed(4)):null),
-      tags:normalizeTags(asset.tags||meta.tags),
-      validation,
-      meta,
-      createdAt,
-      updatedAt:asset.updatedAt||createdAt
-    };
+    return{id:asset.id||fallbackId||uid(),name:String(asset.name||asset.filename||meta.filename||"Asset"),filename:String(asset.filename||meta.filename||asset.name||"Asset"),mime:String(asset.mime||asset.mimeType||meta.mimeType||"image/webp"),dataUrl:String(asset.dataUrl||asset.data||""),source:String(asset.source||meta.source||"imported"),width,height,sizeBytes,aspectRatio:asset.aspectRatio??meta.aspectRatio??(width&&height?Number((width/height).toFixed(4)):null),tags:normalizeTags(asset.tags||meta.tags),validation,meta,createdAt,updatedAt:asset.updatedAt||createdAt};
   }
   function normalizeAssets(value){const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};return Object.fromEntries(Object.entries(source).map(([id,asset])=>{const normalized=normalizeAsset(asset,id);return[normalized.id,normalized]}))}
   let state=null,schemaMigrated=false;
@@ -61,44 +48,15 @@ const FenixCore=(()=>{
   function addPage(page){const cart=getCart();cart.push(normalizePage(page));setCart(cart);return cart.length}
   function updatePage(id,patch){const cart=getCart(),index=cart.findIndex(item=>item.id===id);if(index<0)return false;cart[index]=normalizePage({...cart[index],...patch,id:cart[index].id,createdAt:cart[index].createdAt,updatedAt:now()});setCart(cart);return clone(cart[index])}
   const removePage=id=>setCart(getCart().filter(item=>item.id!==id)),clear=()=>setCart([]);
-  function putAsset({id=null,name="Asset",filename="",mime="image/webp",mimeType="",dataUrl="",source="imported",width=0,height=0,sizeBytes=0,aspectRatio=null,tags=[],validation=null,meta={}}={}){
-    if(!dataUrl)throw new Error("Brak danych assetu.");const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId);if(!project)return false;const assetId=id||uid(),existing=project.assets[assetId]||{};
-    project.assets[assetId]=normalizeAsset({...existing,id:assetId,name,filename:filename||existing.filename||name,mime:mimeType||mime||existing.mime,dataUrl,source,width:width||existing.width,height:height||existing.height,sizeBytes:sizeBytes||existing.sizeBytes,aspectRatio:aspectRatio??existing.aspectRatio,tags:Array.isArray(tags)&&tags.length?tags:existing.tags||[],validation:validation||existing.validation,meta:{...(existing.meta||{}),...(meta||{})},createdAt:existing.createdAt||now(),updatedAt:now()},assetId);
-    project.updatedAt=now();commit({projects:true,assets:true});return clone(project.assets[assetId])
-  }
+  function putAsset({id=null,name="Asset",filename="",mime="image/webp",mimeType="",dataUrl="",source="imported",width=0,height=0,sizeBytes=0,aspectRatio=null,tags=[],validation=null,meta={}}={}){if(!dataUrl)throw new Error("Brak danych assetu.");const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId);if(!project)return false;const assetId=id||uid(),existing=project.assets[assetId]||{};project.assets[assetId]=normalizeAsset({...existing,id:assetId,name,filename:filename||existing.filename||name,mime:mimeType||mime||existing.mime,dataUrl,source,width:width||existing.width,height:height||existing.height,sizeBytes:sizeBytes||existing.sizeBytes,aspectRatio:aspectRatio??existing.aspectRatio,tags:Array.isArray(tags)&&tags.length?tags:existing.tags||[],validation:validation||existing.validation,meta:{...(existing.meta||{}),...(meta||{})},createdAt:existing.createdAt||now(),updatedAt:now()},assetId);project.updatedAt=now();commit({projects:true,assets:true});return clone(project.assets[assetId])}
   function getAsset(id,projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);return clone(project?.assets?.[id]||null)}
   function listAssets(projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);return Object.values(project?.assets||{}).map(normalizeAsset).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)))}
-  function findAssets(filters={},projectId=getActiveProjectId()){
-    const query=String(filters.query||"").trim().toLowerCase(),tag=String(filters.tag||"").trim().toLowerCase(),status=String(filters.status||"").trim().toLowerCase(),source=String(filters.source||"").trim().toLowerCase();
-    const tags=normalizeTags(filters.tags);
-    return listAssets(projectId).filter(asset=>{
-      if(query&&!`${asset.name} ${asset.filename} ${(asset.tags||[]).join(" ")}`.toLowerCase().includes(query))return false;
-      if(tag&&!(asset.tags||[]).includes(tag))return false;
-      if(tags.length&&!tags.every(item=>(asset.tags||[]).includes(item)))return false;
-      if(status&&String(asset.validation?.status||"").toLowerCase()!==status)return false;
-      if(source&&String(asset.source||"").toLowerCase()!==source)return false;
-      return true;
-    });
-  }
+  function findAssets(filters={},projectId=getActiveProjectId()){const query=String(filters.query||"").trim().toLowerCase(),tag=String(filters.tag||"").trim().toLowerCase(),status=String(filters.status||"").trim().toLowerCase(),source=String(filters.source||"").trim().toLowerCase();const tags=normalizeTags(filters.tags);return listAssets(projectId).filter(asset=>{if(query&&!`${asset.name} ${asset.filename} ${(asset.tags||[]).join(" ")}`.toLowerCase().includes(query))return false;if(tag&&!(asset.tags||[]).includes(tag))return false;if(tags.length&&!tags.every(item=>(asset.tags||[]).includes(item)))return false;if(status&&String(asset.validation?.status||"").toLowerCase()!==status)return false;if(source&&String(asset.source||"").toLowerCase()!==source)return false;return true})}
   function updateAsset(id,patch={}){const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId),existing=project?.assets?.[id];if(!existing)return false;project.assets[id]=normalizeAsset({...existing,...clone(patch),id:existing.id,createdAt:existing.createdAt,updatedAt:now()},id);project.updatedAt=now();commit({projects:true,assets:true});return clone(project.assets[id])}
-  function valueContainsAssetRef(value,id,seen=new Set()){
-    if(value==null)return false;
-    if(typeof value==="string")return value===id;
-    if(typeof value!=="object")return false;
-    if(seen.has(value))return false;seen.add(value);
-    if(Array.isArray(value))return value.some(item=>valueContainsAssetRef(item,id,seen));
-    if(value.assetRef===id||value.assetId===id)return true;
-    return Object.values(value).some(item=>valueContainsAssetRef(item,id,seen));
-  }
-  function assetUsage(id,projectId=getActiveProjectId()){
-    const project=ensureSchema().projects.find(item=>item.id===projectId);if(!project)return[];
-    return project.pages.map(normalizePage).filter(page=>valueContainsAssetRef(page,id)).map(page=>({id:page.id,title:page.title||"Strona",module:page.module||page.recipe?.module||"unknown"}));
-  }
+  function valueContainsAssetRef(value,id,seen=new Set()){if(value==null)return false;if(typeof value==="string")return value===id;if(typeof value!=="object")return false;if(seen.has(value))return false;seen.add(value);if(Array.isArray(value))return value.some(item=>valueContainsAssetRef(item,id,seen));if(value.assetRef===id||value.assetId===id)return true;return Object.values(value).some(item=>valueContainsAssetRef(item,id,seen))}
+  function assetUsage(id,projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);if(!project)return[];return project.pages.map(normalizePage).filter(page=>valueContainsAssetRef(page,id)).map(page=>({id:page.id,title:page.title||"Strona",module:page.module||page.recipe?.module||"unknown"}))}
   function makeAssetRef(id){return getAsset(id)?{type:"project-asset",id}:null}
-  function resolveAssetRef(ref,projectId=getActiveProjectId()){
-    const id=typeof ref==="string"?ref:ref&&typeof ref==="object"?(ref.id||ref.assetId||ref.assetRef):null;
-    return id?getAsset(id,projectId):null;
-  }
+  function resolveAssetRef(ref,projectId=getActiveProjectId()){const id=typeof ref==="string"?ref:ref&&typeof ref==="object"?(ref.id||ref.assetId||ref.assetRef):null;return id?getAsset(id,projectId):null}
   function removeAsset(id,{force=false}={}){const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId);if(!project?.assets?.[id])return false;const usage=assetUsage(id,project.id);if(usage.length&&!force)return{removed:false,reason:"in-use",usage};delete project.assets[id];project.updatedAt=now();commit({projects:true,assets:true});return{removed:true,usage}}
   function importProjectPayload(payload){if(!payload||typeof payload!=="object")throw new Error("Nieprawidłowy plik projektu.");let source;if(payload.type==="FENIX_PROJECT"&&payload.project)source=payload.project;else if(payload.type==="FENIX_PACK"&&payload.project){source={...payload.project,pages:Array.isArray(payload.pages)?payload.pages:[],assets:payload.assets||payload.project.assets||{}}}else if(payload.project&&Array.isArray(payload.project.pages))source=payload.project;else throw new Error("Plik nie jest projektem FENIX.");const project=normalizeProject({...source,id:uid(),name:`${source.name||"Importowany projekt"} — import`,createdAt:now(),updatedAt:now()});project.pages=project.pages.map(normalizePage);const current=ensureSchema();current.projects.unshift(project);current.activeId=project.id;commit({projects:true,activeProject:true,cart:true,assets:true});return clone(project)}
   const download=(name,text,type="application/json")=>{const anchor=document.createElement("a");anchor.href=URL.createObjectURL(new Blob([text],{type}));anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(anchor.href),1000)};
