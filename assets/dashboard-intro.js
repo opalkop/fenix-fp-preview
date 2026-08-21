@@ -1,6 +1,14 @@
 "use strict";
 
 (()=>{
+  try{localStorage.setItem("fenix-ui-theme","light")}catch{}
+  document.documentElement.dataset.theme="light";
+  document.querySelectorAll('link[data-fenix-theme="fenix-mode"]').forEach(link=>link.remove());
+  const stripThemeUi=()=>document.querySelectorAll(".theme-box,[data-fenix-theme-toggle]").forEach(el=>el.remove());
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",stripThemeUi,{once:true});else stripThemeUi();
+})();
+
+(()=>{
   const intro=document.getElementById("fenixIntro");
   if(!intro)return;
   const enter=document.getElementById("fenixIntroEnter");
