@@ -77,8 +77,6 @@
     window.addEventListener("fenix-state-change",event=>{if(event.detail?.activeProject||event.detail?.projects)renderProject()});
   }
 
-  // Wspólny kontrakt UX Studiów: zawsze widoczny zapis do projektu i ręczne odświeżenie podglądu.
-  const actionText=element=>String(element?.textContent||"").trim().toLowerCase();
   const findActionHost=()=>body.querySelector(".actions,.panel-actions.save-actions,.panel-actions,.coloring-actions,.intro-controls,.ending-controls,.controls");
   const findSaveAction=()=>body.querySelector("#cart,#saveCart,#savePage,[data-save-page]");
   const findRefreshAction=()=>[...body.querySelectorAll("button")].find(button=>/odśwież\s+podgląd/i.test(button.textContent||""));
@@ -94,10 +92,7 @@
     if(save&&/dodaj\s+do\s+stron\s+projektu/i.test(save.textContent||""))save.textContent="Dodaj stronę do projektu";
 
     if(findRefreshAction())return;
-    if(generate){
-      generate.setAttribute("aria-label","Odśwież podgląd strony");
-      return;
-    }
+    if(generate){generate.setAttribute("aria-label","Odśwież podgląd strony");return}
 
     const host=findActionHost();
     if(!host||document.getElementById("fenixRefreshPreview"))return;
@@ -109,19 +104,45 @@
     refresh.title="Przelicz i odśwież podgląd strony bez dodawania jej do projektu";
     refresh.addEventListener("click",()=>{
       const source=body.querySelector('#title,[data-field="title"],textarea[data-field],input[data-field],select[data-field],#seed');
-      if(source){
-        source.dispatchEvent(new Event("input",{bubbles:true}));
-        source.dispatchEvent(new Event("change",{bubbles:true}));
-      }else{
-        window.dispatchEvent(new Event("resize"));
-      }
+      if(source){source.dispatchEvent(new Event("input",{bubbles:true}));source.dispatchEvent(new Event("change",{bubbles:true}))}
+      else window.dispatchEvent(new Event("resize"));
     });
     const saveAction=findSaveAction();
-    if(saveAction?.parentElement===host)host.insertBefore(refresh,saveAction);
-    else host.appendChild(refresh);
+    if(saveAction?.parentElement===host)host.insertBefore(refresh,saveAction);else host.appendChild(refresh);
+  }
+
+  if(!document.getElementById("fenixUnifiedActionColors")){
+    const style=document.createElement("style");
+    style.id="fenixUnifiedActionColors";
+    style.textContent=`
+      body.fenix-studio-shell button[data-fenix-action]{min-height:44px!important;padding:10px 16px!important;border-radius:10px!important;font-weight:900!important;transition:transform .12s ease,filter .12s ease,box-shadow .12s ease!important}
+      body.fenix-studio-shell button[data-fenix-action=refresh]{background:#3b82f6!important;border:1px solid #2563eb!important;color:#fff!important;box-shadow:0 4px 12px rgba(37,99,235,.24)!important}
+      body.fenix-studio-shell button[data-fenix-action=save]{background:#ff7a35!important;border:1px solid #e45f1c!important;color:#fff!important;box-shadow:0 4px 12px rgba(228,95,28,.24)!important}
+      body.fenix-studio-shell button[data-fenix-action=export]{background:#334155!important;border:1px solid #263445!important;color:#fff!important;box-shadow:0 3px 10px rgba(51,65,85,.20)!important}
+      body.fenix-studio-shell button[data-fenix-action=variant]{background:#eef2f6!important;border:1px solid #cbd5df!important;color:#17202a!important;box-shadow:none!important}
+      body.fenix-studio-shell button[data-fenix-action]:hover{filter:brightness(.94)!important;transform:translateY(-1px)!important}
+      html[data-theme=dark] body.fenix-studio-shell button[data-fenix-action=variant]{background:#263746!important;border-color:#405467!important;color:#f3f7fa!important}
+      @media(max-width:600px){body.fenix-studio-shell .actions button[data-fenix-action],body.fenix-studio-shell .coloring-actions button[data-fenix-action],body.fenix-studio-shell .panel-actions button[data-fenix-action]{flex:1 1 100%!important;width:100%!important}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function classifyActionButtons(){
+    body.querySelectorAll("button").forEach(button=>{
+      const id=button.id||"",text=String(button.textContent||"").trim();
+      let role="";
+      if(["cart","saveCart","savePage"].includes(id)||button.hasAttribute("data-save-page")||/(dodaj|zapisz|aktualizuj).*(stron|serię|projekt)/i.test(text))role="save";
+      else if(["generate","fenixRefreshPreview"].includes(id)||/odśwież\s+podgląd/i.test(text))role="refresh";
+      else if(["png","downloadPng"].includes(id)||/eksport\s+png/i.test(text))role="export";
+      else if(["newVariant","randomSeed"].includes(id)||/nowy\s+wariant/i.test(text))role="variant";
+      if(role)button.dataset.fenixAction=role;
+    });
   }
 
   normalizeStudioActions();
-  setTimeout(normalizeStudioActions,0);
-  setTimeout(normalizeStudioActions,250);
+  classifyActionButtons();
+  setTimeout(()=>{normalizeStudioActions();classifyActionButtons()},0);
+  setTimeout(()=>{normalizeStudioActions();classifyActionButtons()},250);
+  const observer=new MutationObserver(()=>classifyActionButtons());
+  observer.observe(body,{childList:true,subtree:true});
 })();
