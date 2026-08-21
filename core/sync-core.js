@@ -1,6 +1,6 @@
 "use strict";
 window.FenixSync=(()=>{
-  const CONFIG_KEY="fenix-sync-config-v1",TOKEN_KEY="fenix-sync-token-v1",FORMAT="FENIX_SYNC_BUNDLE",VERSION=2,DEFAULTS=Object.freeze({provider:"github",owner:"opalkop",repo:"fenix",branch:"fenix-sync-data",path:"fenix-sync/projects.json",autoSync:true});
+  const CONFIG_KEY="fenix-sync-config-v1",TOKEN_KEY="fenix-sync-token-v1",FORMAT="FENIX_SYNC_BUNDLE",VERSION=3,DEFAULTS=Object.freeze({provider:"github",owner:"opalkop",repo:"fenix",branch:"fenix-sync-data",path:"fenix-sync/projects.json",autoSync:true});
   let pushInFlight=null;
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const safeParse=(v,fallback)=>{try{return JSON.parse(v)||fallback}catch{return fallback}},readConfig=()=>safeParse(localStorage.getItem(CONFIG_KEY),{});
@@ -10,32 +10,32 @@ window.FenixSync=(()=>{
   function snapshot(){const projects=FenixCore.getProjects();if(!Array.isArray(projects)||!projects.length)throw new Error("Fenix Sync: brak lokalnych projektów do wysłania.");return{type:FORMAT,version:VERSION,schemaVersion:window.FenixPageSchema?.VERSION||3,updatedAt:new Date().toISOString(),activeId:FenixCore.getActiveProjectId(),projects}}
   const newer=(a,b)=>String(a?.updatedAt||a?.createdAt||"").localeCompare(String(b?.updatedAt||b?.createdAt||""))>0;
   function mergeBundle(bundle,{prefer="newer"}={}){if(!bundle||bundle.type!==FORMAT||!Array.isArray(bundle.projects))throw new Error("Nieprawidłowy pakiet synchronizacji FENIX.");const byId=new Map(FenixCore.getProjects().map(p=>[p.id,p])),stats={created:0,updated:0,kept:0};for(const remote of bundle.projects){const here=byId.get(remote.id);if(!here){FenixCore.createProject(remote);stats.created++;byId.set(remote.id,remote);continue}const take=prefer==="remote"||prefer==="newer"&&newer(remote,here);if(take){FenixCore.updateProject(here.id,remote);stats.updated++}else stats.kept++}if(bundle.activeId&&FenixCore.getProjects().some(p=>p.id===bundle.activeId))FenixCore.setActiveProject(bundle.activeId);return stats}
-  function b64utf8(text){const bytes=new TextEncoder().encode(text);let bin="";bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin)}
   function unb64utf8(text){const clean=String(text||"").replace(/\s/g,"");if(!clean)return"";const bin=atob(clean),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}
   function requireConfig(){const c=getConfig();if(!c.token)throw new Error("Fenix Sync wymaga jednorazowego tokenu GitHub na tym urządzeniu.");return c}
   async function githubRequest(url,options={}){const c=requireConfig(),headers={Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",Authorization:`Bearer ${c.token}`,...options.headers},response=await fetch(url,{...options,headers});if(!response.ok&&response.status!==404){const body=await response.text().catch(()=>"");const error=new Error(`GitHub Sync ${response.status}: ${body.slice(0,220)}`);error.status=response.status;throw error}return response}
-  const contentsUrl=c=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(c.branch)}`;
-  const writeUrl=c=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}`;
+  const apiBase=c=>`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}`;
+  const contentsUrl=c=>`${apiBase(c)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(c.branch)}`;
   async function readRemoteMeta(){const c=requireConfig(),res=await githubRequest(contentsUrl(c));if(res.status===404)return null;return res.json()}
   async function readRemoteText(meta=null){const c=requireConfig();if(meta?.git_url){const res=await githubRequest(meta.git_url);const blob=await res.json();const text=unb64utf8(blob?.content);if(text)return text}const res=await githubRequest(contentsUrl(c),{headers:{Accept:"application/vnd.github.raw+json"}});if(res.status===404)return null;const text=await res.text();if(!text.trim())throw new Error("Plik synchronizacji w GitHubie jest pusty lub niedostępny.");return text}
-  async function pull({merge=true,prefer="newer"}={}){const meta=await readRemoteMeta();if(!meta)return{found:false,bundle:null,stats:null};let text=meta.content?unb64utf8(meta.content):await readRemoteText(meta);let bundle;try{bundle=JSON.parse(text)}catch{throw new Error("Nie można odczytać danych synchronizacji z GitHuba. Plik może być uszkodzony albo niekompletny.")}const stats=merge?mergeBundle(bundle,{prefer}):null;localStorage.setItem("fenix-sync-last-pull",new Date().toISOString());return{found:true,bundle,stats,sha:meta.sha||null}}
-  async function putSnapshot(json,sha){const c=requireConfig();const body={message:`Fenix Sync ${new Date().toISOString()}`,content:b64utf8(json),branch:c.branch,sha};const res=await githubRequest(writeUrl(c),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return res.json()}
-  async function doPush(){
-    const bundle=snapshot(),json=JSON.stringify(bundle);if(!json||json.length<20)throw new Error("Fenix Sync przerwał wysyłanie: lokalny pakiet projektu jest pusty.");
+  async function pull({merge=true,prefer="newer"}={}){const meta=await readRemoteMeta();if(!meta)return{found:false,bundle:null,stats:null};const text=meta.content?unb64utf8(meta.content):await readRemoteText(meta);let bundle;try{bundle=JSON.parse(text)}catch{throw new Error("Nie można odczytać danych synchronizacji z GitHuba. Plik może być uszkodzony albo niekompletny.")}const stats=merge?mergeBundle(bundle,{prefer}):null;localStorage.setItem("fenix-sync-last-pull",new Date().toISOString());return{found:true,bundle,stats,sha:meta.sha||null}}
+  async function jsonRequest(url,method,body){const res=await githubRequest(url,{method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});return res.json()}
+  async function writeViaGitData(json){
+    const c=requireConfig(),base=apiBase(c),refUrl=`${base}/git/ref/heads/${encodeURIComponent(c.branch)}`,refUpdateUrl=`${base}/git/refs/heads/${encodeURIComponent(c.branch)}`;
     for(let attempt=0;attempt<5;attempt++){
-      const meta=await readRemoteMeta();
-      if(!meta?.sha)throw new Error("Fenix Sync nie mógł odczytać SHA istniejącego pliku z GitHuba.");
+      const ref=await (await githubRequest(refUrl)).json(),head=ref?.object?.sha;if(!head)throw new Error("Fenix Sync nie może odczytać aktualnego commita brancha synchronizacji.");
+      const commit=await (await githubRequest(`${base}/git/commits/${head}`)).json(),baseTree=commit?.tree?.sha;if(!baseTree)throw new Error("Fenix Sync nie może odczytać drzewa brancha synchronizacji.");
+      const blob=await jsonRequest(`${base}/git/blobs`,"POST",{content:json,encoding:"utf-8"});
+      const tree=await jsonRequest(`${base}/git/trees`,"POST",{base_tree:baseTree,tree:[{path:String(c.path||"").replace(/^\/+/,""),mode:"100644",type:"blob",sha:blob.sha}]});
+      const next=await jsonRequest(`${base}/git/commits`,"POST",{message:`Fenix Sync ${new Date().toISOString()}`,tree:tree.sha,parents:[head]});
       try{
-        const data=await putSnapshot(json,meta.sha);localStorage.setItem("fenix-sync-last-push",new Date().toISOString());return{bundle,commit:data.commit?.sha||null,size:json.length};
-      }catch(error){
-        if(error?.status!==409&&error?.status!==422)throw error;
-        if(attempt===4)throw error;
-        await sleep(300*(attempt+1));
-      }
+        await jsonRequest(refUpdateUrl,"PATCH",{sha:next.sha,force:false});
+        return next.sha;
+      }catch(error){if(error?.status!==409&&error?.status!==422)throw error;if(attempt===4)throw new Error("Fenix Sync wykrył równoległą zmianę w chmurze. Zamknij Fenix na innych urządzeniach i spróbuj ponownie.");await sleep(300*(attempt+1))}
     }
   }
+  async function doPush(){const bundle=snapshot(),json=JSON.stringify(bundle);if(!json||json.length<20)throw new Error("Fenix Sync przerwał wysyłanie: lokalny pakiet projektu jest pusty.");const commit=await writeViaGitData(json);localStorage.setItem("fenix-sync-last-push",new Date().toISOString());return{bundle,commit,size:json.length}}
   async function push(){if(pushInFlight)return pushInFlight;pushInFlight=doPush();try{return await pushInFlight}finally{pushInFlight=null}}
   async function sync(){let remote=null;try{remote=await pull({merge:true,prefer:"newer"})}catch(error){if(!/pusty|uszkodzony|niekompletny/i.test(String(error.message||error)))throw error}const pushed=await push();window.dispatchEvent(new CustomEvent("fenix-sync-complete",{detail:{remote,pushed}}));return{remote,pushed}}
-  async function auto(){const c=getConfig();if(!c.autoSync||!c.token)return{skipped:true};try{return await sync()}catch(error){console.warn("Fenix auto sync",error);return{error:String(error.message||error)}}}
+  async function auto(){const c=getConfig();if(!c.autoSync||!c.token)return{skipped:true};try{return await pull({merge:true,prefer:"newer"})}catch(error){console.warn("Fenix auto sync",error);return{error:String(error.message||error)}}}
   return Object.freeze({FORMAT,VERSION,DEFAULTS,getConfig,setConfig,clearToken,snapshot,mergeBundle,pull,push,sync,auto});
 })();
