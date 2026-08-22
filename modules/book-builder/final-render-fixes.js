@@ -33,12 +33,11 @@
       render(pageValue,options={}){
         const module=String(pageValue?.module||pageValue?.recipe?.module||"");
         if(module!=="qr-studio")return ending.render(pageValue,options);
-        const page=structuredClone?structuredClone(pageValue):JSON.parse(JSON.stringify(pageValue));
+        const page=typeof structuredClone==="function"?structuredClone(pageValue):JSON.parse(JSON.stringify(pageValue));
         page.recipe=page.recipe||{};
         page.recipe.settings={...(page.recipe.settings||{})};
         // Legacy/empty QR settings are normalized for the final PDF.
-        if(!String(page.recipe.settings.qrLabel||"").trim())page.recipe.settings.qrLabel="DISCOVER MORE BOOKS";
-        if(String(page.recipe.settings.qrLabel||"").trim().toUpperCase()==="SCAN ME")page.recipe.settings.qrLabel="DISCOVER MORE BOOKS";
+        if(!String(page.recipe.settings.qrLabel||"").trim()||String(page.recipe.settings.qrLabel||"").trim().toUpperCase()==="SCAN ME")page.recipe.settings.qrLabel="DISCOVER MORE BOOKS";
         if(!String(page.recipe.settings.footer||"").trim())page.recipe.settings.footer="Ask a grown-up for help before opening the link.";
         return ending.render(page,options);
       }
