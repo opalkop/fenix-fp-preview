@@ -39,11 +39,7 @@
   async function tracingCanvas(page,quality){
     const p=normalize(page),settings={...(p.recipe?.settings||{})},assetRef=p.recipe?.content?.assetRef||settings.assetRef;
     const asset=assetRef?FenixCore.getAsset(assetRef):null;
-    if(!asset?.dataUrl){
-      // Nie rekonstruuj strony z defaultów. Jeśli asset zniknął, zachowaj wierny zapis podglądu zamiast generować inną aktywność.
-      const fallback=await storedImageCanvas(p.preview?.imageData,quality);if(fallback)return fallback;
-      throw new Error(`Brak zapisanego assetu dla strony Tracing „${p.title||"Trace the Picture!"}”.`);
-    }
+    if(!asset?.dataUrl){const fallback=await storedImageCanvas(p.preview?.imageData,quality);if(fallback)return fallback;throw new Error(`Brak zapisanego assetu dla strony Tracing „${p.title||"Trace the Picture!"}”.`)}
     if(!window.FenixTracingCore?.render)throw new Error("Nie załadowano renderera Tracing Studio.");
     const raw=await FenixTracingCore.render(asset,settings);
     if(quality==="preview"){const c=document.createElement("canvas");c.width=850;c.height=1100;const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,850,1100);ctx.drawImage(raw,0,0,850,1100);return c}
@@ -59,7 +55,6 @@
     if(isMaze(p)){const assetImages=await FenixMaze.prepareAssets(p);if(quality==="preview")return FenixMaze.render(p,{solution,...renderOptions,width:850,height:1100,assetImages}).canvas;const raw=FenixMaze.render(p,{solution,...renderOptions,width:2550,height:3300,assetImages}).canvas,project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
     if(isWordSearch(p)){const assetImages=await FenixWordSearch.prepareAssets(p),raw=FenixWordSearch.render(p,{solution,...renderOptions,width:quality==="print"?2550:850,height:quality==="print"?3300:1100,assetImages}).canvas;if(quality==="preview")return raw;const project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
     if(isColoring(p)){const prepared=await FenixColoring.prepareAsset(p),raw=FenixColoring.render(p,{width:quality==="print"?2550:850,height:quality==="print"?3300:1100,assetImage:prepared.image});if(quality==="preview")return raw;const project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
-    // Tracing ma własny renderer i MUSI korzystać z zapisanego assetRef + pełnych ustawień strony.
     if(isTracing(p))return tracingCanvas(p,quality);
     if(isStandard(p)){const rendered=FenixStandardRenderers.render(module,standardOptions(p),p.recipe.seed,Number(p.recipe.settings?.pageIndex)||0,quality==="print"?3:1),raw=solution?rendered.solutionCanvas:rendered.pageCanvas;if(!raw)return null;if(quality==="preview")return raw;const project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
     if(isComplete(p))return completeCanvas(p,solution,quality);
@@ -77,7 +72,7 @@
 
   async function solutionSheet(items,per,{showSectionTitle=true,quality="print"}={}){
     const profile=quality==="print"?targetProfile():{width:850,height:1100},canvas=document.createElement("canvas");canvas.width=profile.width;canvas.height=profile.height;
-    const ctx=canvas.getContext("2d"),pad=Math.round(profile.width*.045),titleHeight=Math.round(profile.height*(showSectionTitle?.075:.035)),gap=Math.round(profile.width*.025),cols=per===4?2:1,rows=per===1?1:2,cellWidth=(profile.width-pad*2-gap*(cols-1))/cols,cellHeight=(profile.height-pad*2-titleHeight-gap*(rows-1))/rows;
+    const ctx=canvas.getContext("2d"),pad=Math.round(profile.width*.045),titleHeight=Math.round(profile.height*(showSectionTitle ? .075 : .035)),gap=Math.round(profile.width*.025),cols=per===4?2:1,rows=per===1?1:2,cellWidth=(profile.width-pad*2-gap*(cols-1))/cols,cellHeight=(profile.height-pad*2-titleHeight-gap*(rows-1))/rows;
     ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#111";ctx.textAlign="center";ctx.textBaseline="middle";if(showSectionTitle){ctx.font=`700 ${Math.max(quality==="print"?44:18,Math.round(profile.width*.026))}px Arial, sans-serif`;ctx.fillText("Solutions",canvas.width/2,pad+titleHeight*.34)}
     for(let offset=0;offset<items.length;offset++){const item=items[offset],source=await renderCanvas(item.page,true,quality,{solutionKey:true});if(!source)continue;const col=offset%cols,row=Math.floor(offset/cols),x=pad+col*(cellWidth+gap),y=pad+titleHeight+row*(cellHeight+gap),heading=Math.max(quality==="print"?38:16,Math.round(cellHeight*.075));ctx.fillStyle="#222";ctx.font=`700 ${Math.max(quality==="print"?28:12,Math.round(profile.width*.016))}px Arial, sans-serif`;ctx.fillText(item.label,x+cellWidth/2,y+heading*.45);fitInto(ctx,source,x,y+heading,cellWidth,cellHeight-heading,true)}return canvas;
   }
@@ -113,15 +108,10 @@
     $("#pageCount").textContent=`${finalCount} stron finalnych`;
     $("#cartSummary").textContent=`W projekcie: ${pages.length} stron · rozwiązania: ${solutions} · finalnie: ${finalCount} stron.`;
     renderContentSummary();
-
-    let lastSection="";
-    const closingIds=new Set(sequence.closing.map(p=>p._builderId||p.id));
+    let lastSection="";const closingIds=new Set(sequence.closing.map(p=>p._builderId||p.id));
     pages.forEach((page,index)=>{if(closingIds.has(page._builderId||page.id))return;const section=window.FenixBookOrder?FenixBookOrder.section(page):"Strony książki";if(section!==lastSection){addSectionHeading(section);lastSection=section}sourceCard(page,index,token)});
-
     if(sequence.solutionPageCount){addSectionHeading("ROZWIĄZANIA");for(let i=0,sheet=1;i<sequence.solved.length;i+=sequence.per,sheet++)solutionCard(sequence.solved.slice(i,i+sequence.per),sheet,sequence.per,token,sequence.hasSolutionsDivider)}
-
     if(sequence.closing.length){addSectionHeading("ZAKOŃCZENIE");for(const page of sequence.closing){const index=pages.indexOf(page);sourceCard(page,index,token)}}
-
     document.querySelectorAll("[data-remove]").forEach(button=>button.onclick=()=>{pages.splice(Number(button.dataset.remove),1);render()});document.querySelectorAll("[data-up]").forEach(button=>button.onclick=()=>move(Number(button.dataset.up),-1));document.querySelectorAll("[data-down]").forEach(button=>button.onclick=()=>move(Number(button.dataset.down),1));validateProject();
   }
 
