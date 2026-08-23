@@ -22,37 +22,4 @@
   $("count")?.addEventListener("change",()=>{const n=Math.max(1,Math.min(20,Number($("count").value)||1));$("count").value=n});
   window.addEventListener("fenix-state-change",rebalanceTask);
   setTimeout(rebalanceTask,120);
-
-  // Logic v6 snapshot bridge.
-  // The Logic generator keeps its page canvases private inside app.js. Book Builder must not
-  // recreate them from the recipe, because asset order and Sudoku balancing can differ.
-  // On save we therefore walk through the generated pages, capture exactly what the Studio
-  // displays for TASK and SOLUTION, and inject those immutable snapshots into FenixCore.
-  const cart=$("cart"), originalSave=cart?.onclick;
-  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-  const png=()=>canvas.toDataURL("image/png");
-  function pagePosition(){const m=String($("pageCounter")?.textContent||"1 / 1").match(/(\d+)\s*\/\s*(\d+)/);return{index:Math.max(0,(Number(m?.[1])||1)-1),total:Math.max(1,Number(m?.[2])||1)}}
-  async function goFirst(){while(!$("prev")?.disabled){$("prev").click();await wait(isSudoku()?35:5)}}
-  async function captureSnapshots(){const original=pagePosition(), originalView=$("solutionTab")?.classList.contains("primary")?"solution":"task", shots=[];await goFirst();for(let i=0;i<original.total;i++){$("taskTab").click();await wait(isSudoku()?45:8);const task=png();$("solutionTab").click();await wait(8);const solution=png();shots.push({task,solution});if(i<original.total-1){$("next").click();await wait(isSudoku()?35:5)}}await goFirst();for(let i=0;i<original.index;i++){$("next").click();await wait(isSudoku()?35:5)}$(originalView==="solution"?"solutionTab":"taskTab")?.click();await wait(isSudoku()?35:5);return shots}
-  function withSnapshot(data,shot){if(!data||!shot)return data;const module=String(data.module||data.recipe?.module||"");if(module!=="logic-studio")return data;return{...data,preview:{...(data.preview||{}),imageData:shot.task},solution:{...(data.solution||{}),available:true,imageData:shot.solution},source:{...(data.source||{}),snapshot:"logic-studio-v6"}}}
-  if(cart&&typeof originalSave==="function"){
-    cart.onclick=null;
-    cart.addEventListener("click",async event=>{
-      event.preventDefault();
-      if(cart.dataset.snapshotSaving==="1")return;
-      cart.dataset.snapshotSaving="1";
-      const previousText=cart.textContent;
-      cart.disabled=true;
-      cart.textContent="Zapisuję dokładny podgląd…";
-      try{
-        const shots=await captureSnapshots();
-        let addIndex=0;
-        const add=FenixCore.addPage, update=FenixCore.updatePage;
-        FenixCore.addPage=function(data){const shot=shots[Math.min(addIndex++,shots.length-1)];return add.call(FenixCore,withSnapshot(data,shot))};
-        FenixCore.updatePage=function(id,data){return update.call(FenixCore,id,withSnapshot(data,shots[0]))};
-        try{originalSave.call(cart,event)}finally{FenixCore.addPage=add;FenixCore.updatePage=update}
-      }catch(error){console.error("Logic snapshot save",error);const status=$("status");if(status)status.textContent=`Błąd zapisu snapshotu Logic: ${error?.message||error}`;cart.textContent=previousText}
-      finally{cart.disabled=false;delete cart.dataset.snapshotSaving}
-    });
-  }
 })();
