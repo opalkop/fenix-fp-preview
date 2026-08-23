@@ -23,3 +23,29 @@
   window.addEventListener("fenix-state-change",rebalanceTask);
   setTimeout(rebalanceTask,120);
 })();
+
+(()=>{
+  const $=id=>document.getElementById(id),cart=$("cart"),canvas=$("page"),taskTab=$("taskTab"),solutionTab=$("solutionTab"),status=$("status");
+  const editId=new URLSearchParams(location.search).get("id")||null;
+  if(!editId||!cart||!canvas||!taskTab||!solutionTab||!window.FenixCore)return;
+  let saving=false,bypass=false;
+  const original=cart.onclick;
+  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  const shot=()=>canvas.toDataURL("image/png");
+  cart.addEventListener("click",async event=>{
+    if(bypass||saving)return;
+    event.preventDefault();event.stopImmediatePropagation();saving=true;
+    try{
+      if(status)status.textContent="Zapisuję dokładny podgląd Logic…";
+      taskTab.click();await wait(80);const taskImage=shot();
+      solutionTab.click();await wait(50);const solutionImage=shot();
+      taskTab.click();await wait(30);
+      bypass=true;if(typeof original==="function")original.call(cart,new Event("click"));bypass=false;
+      const updated=FenixCore.updatePage(editId,{preview:{imageData:taskImage},solution:{available:true,imageData:solutionImage}});
+      if(!updated)throw new Error("Nie udało się dopisać snapshotu do strony Logic.");
+      cart.textContent="✓ Zapisano — edytuj dalej";
+      if(status)status.textContent="✓ Zapisano Logic 1:1: zadanie + Solution.";
+    }catch(error){console.error(error);if(status)status.textContent=`Błąd zapisu Logic: ${error.message}`}
+    finally{bypass=false;saving=false}
+  },true);
+})();
