@@ -25,13 +25,19 @@
 })();
 
 (()=>{
-  const $=id=>document.getElementById(id),cart=$("cart"),canvas=$("page"),taskTab=$("taskTab"),solutionTab=$("solutionTab"),status=$("status");
+  const $=id=>document.getElementById(id),cart=$("cart"),canvas=$("page"),taskTab=$("taskTab"),solutionTab=$("solutionTab"),status=$("status"),editBadge=$("editBadge");
   const editId=new URLSearchParams(location.search).get("id")||null;
   if(!editId||!cart||!canvas||!taskTab||!solutionTab||!window.FenixCore)return;
   let saving=false,bypass=false;
   const original=cart.onclick;
   const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const shot=()=>canvas.toDataURL("image/png");
+  const confirmSaved=()=>{
+    cart.textContent="✓ Zapisano 1:1 — edytuj dalej";
+    cart.title="Snapshot zadania i Solution zapisany w stronie projektu.";
+    if(editBadge){editBadge.classList.add("on");editBadge.textContent="TRYB EDYCJI · ✓ SNAPSHOT 1:1 ZAPISANY"}
+    if(status)status.textContent="✓ Zapisano Logic 1:1: zadanie + Solution.";
+  };
   cart.addEventListener("click",async event=>{
     if(bypass||saving)return;
     event.preventDefault();event.stopImmediatePropagation();saving=true;
@@ -43,8 +49,9 @@
       bypass=true;if(typeof original==="function")original.call(cart,new Event("click"));bypass=false;
       const updated=FenixCore.updatePage(editId,{preview:{imageData:taskImage},solution:{available:true,imageData:solutionImage}});
       if(!updated)throw new Error("Nie udało się dopisać snapshotu do strony Logic.");
-      cart.textContent="✓ Zapisano — edytuj dalej";
-      if(status)status.textContent="✓ Zapisano Logic 1:1: zadanie + Solution.";
+      confirmSaved();
+      setTimeout(confirmSaved,250);
+      setTimeout(confirmSaved,700);
     }catch(error){console.error(error);if(status)status.textContent=`Błąd zapisu Logic: ${error.message}`}
     finally{bypass=false;saving=false}
   },true);
