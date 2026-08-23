@@ -18,10 +18,11 @@
     const frame=document.createElement("iframe");
     frame.setAttribute("aria-hidden","true");
     frame.style.cssText="position:fixed;left:-10000px;top:-10000px;width:900px;height:1200px;opacity:0;pointer-events:none";
-    frame.src=`../logic-studio/index.html?id=${encodeURIComponent(page.id)}&bookBuilderSnapshot=1&v=0.29.0`;
+    const loaded=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Logic Studio nie odpowiedziało w czasie.")),12000);frame.onload=()=>{clearTimeout(timer);resolve()};frame.onerror=()=>{clearTimeout(timer);reject(new Error("Nie udało się otworzyć Logic Studio."))}});
+    frame.src=`../logic-studio/index.html?id=${encodeURIComponent(page.id)}&bookBuilderSnapshot=1&v=0.29.1`;
     document.body.appendChild(frame);
     try{
-      await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error("Logic Studio nie odpowiedziało w czasie.")),12000);frame.onload=()=>{clearTimeout(timer);resolve()};frame.onerror=()=>{clearTimeout(timer);reject(new Error("Nie udało się otworzyć Logic Studio."))}});
+      await loaded;
       const doc=frame.contentDocument,win=frame.contentWindow;
       if(!doc||!win)throw new Error("Brak dostępu do Logic Studio.");
       const canvas=doc.getElementById("page"),task=doc.getElementById("taskTab"),solution=doc.getElementById("solutionTab"),status=doc.getElementById("status");
@@ -32,8 +33,8 @@
         await wait(75);
       }
       if(!rendered)await wait(500);
-      task.click();await wait(160);const taskImage=canvas.toDataURL("image/png");
-      solution.click();await wait(160);const solutionImage=canvas.toDataURL("image/png");
+      task.click();await wait(180);const taskImage=canvas.toDataURL("image/png");
+      solution.click();await wait(180);const solutionImage=canvas.toDataURL("image/png");
       if(!taskImage.startsWith("data:image/")||!solutionImage.startsWith("data:image/"))throw new Error("Nie udało się wykonać snapshotu Logic.");
       return{taskImage,solutionImage};
     }finally{frame.remove()}
@@ -57,7 +58,7 @@
     if(done){
       document.getElementById("reloadCart")?.click();
       if(summary)summary.textContent=`Logic: zapisano ${done} stron 1:1 ze Studia.`;
-    }
+    }else if(summary){summary.textContent="Logic: nie udało się odtworzyć snapshotów — sprawdź konsolę."}
   }
 
   if(document.readyState==="loading")window.addEventListener("DOMContentLoaded",()=>setTimeout(migrateLogic,100),{once:true});
