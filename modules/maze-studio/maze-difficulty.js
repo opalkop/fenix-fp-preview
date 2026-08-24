@@ -1,0 +1,34 @@
+"use strict";
+(()=>{
+ const $=id=>document.getElementById(id),core=typeof FenixCore!=="undefined"?FenixCore:null;if(!core)return;
+ const PRESETS={easy:{pathTarget:32,wallOpenings:28,deadEnds:24,twistiness:32},medium:{pathTarget:52,wallOpenings:18,deadEnds:48,twistiness:52},hard:{pathTarget:76,wallOpenings:8,deadEnds:72,twistiness:72},custom:{pathTarget:50,wallOpenings:15,deadEnds:50,twistiness:50}};
+ const clamp=(v,a,b,f)=>{v=Number(v);return Math.max(a,Math.min(b,Number.isFinite(v)?v:f))};
+ function ensureUi(){if($("pathTarget"))return;const seed=$("seed");if(!seed)return;const grid=seed.closest(".form-grid");if(!grid)return;
+  const controls=[
+   ["pathTarget","Długość ścieżki do celu (%)",10,100,32,"10% = krótka droga · 100% = najdłuższy wariant z puli"],
+   ["wallOpenings","Otwarcia ścian (%)",0,100,28,"Więcej = więcej alternatywnych przejść i pętli"],
+   ["deadEnds","Ślepe uliczki (%)",0,100,24,"Mniej = prostszy układ · więcej = więcej fałszywych dróg"],
+   ["twistiness","Krętość trasy (%)",0,100,32,"Mniej = spokojniejsza trasa · więcej = częstsze zakręty"]
+  ];
+  controls.forEach(([id,label,min,max,value,note])=>{const host=document.createElement("label");host.innerHTML=`${label}<input id="${id}" type="range" min="${min}" max="${max}" value="${value}"><span class="note" id="${id}Value">${value}% · ${note}</span>`;grid.appendChild(host)});
+ }
+ function currentPage(){const id=$("pageSelect")?.value;return id?(core.getCart()||[]).find(p=>p.id===id&&p.module==="maze-studio")||null:null}
+ function preset(){return PRESETS[$("difficulty")?.value||"easy"]||PRESETS.easy}
+ function values(){const p=preset();return{pathTarget:clamp($("pathTarget")?.value,10,100,p.pathTarget),wallOpenings:clamp($("wallOpenings")?.value,0,100,p.wallOpenings),deadEnds:clamp($("deadEnds")?.value,0,100,p.deadEnds),twistiness:clamp($("twistiness")?.value,0,100,p.twistiness)}}
+ function refreshLabels(){const v=values();[["pathTarget",v.pathTarget],["wallOpenings",v.wallOpenings],["deadEnds",v.deadEnds],["twistiness",v.twistiness]].forEach(([id,val])=>{const n=$(id+"Value");if(n)n.firstChild.textContent=val+"% · "})}
+ function apply(source=null){const s=source||currentPage()?.recipe?.settings||currentPage()?.settings||null,p=preset();for(const k of Object.keys(p)){const e=$(k);if(e)e.value=String(s?.[k]??p[k])}refreshLabels()}
+ function redraw(){const trigger=$("startAssetScale");if(trigger)trigger.dispatchEvent(new Event("input",{bubbles:true}))}
+ function patchDraft(){const page=currentPage();if(!page)return;const v=values(),copy=typeof structuredClone==="function"?structuredClone(page):JSON.parse(JSON.stringify(page));copy.settings={...(copy.settings||{}),...v};copy.recipe=copy.recipe||{};copy.recipe.settings={...(copy.recipe.settings||copy.settings||{}),...v};core.updatePage(page.id,copy)}
+ ensureUi();apply();
+ ["pathTarget","wallOpenings","deadEnds","twistiness"].forEach(id=>$(id)?.addEventListener("input",()=>{refreshLabels();redraw()}));
+ // Difficulty changes load useful defaults, but visual tuning such as wall thickness does not force Custom.
+ $("difficulty")?.addEventListener("change",()=>{apply();setTimeout(redraw,0)});
+ let rememberedDifficulty=$("difficulty")?.value||"easy";
+ $("difficulty")?.addEventListener("change",()=>rememberedDifficulty=$("difficulty")?.value||"easy");
+ ["lineWidth","mazeScale"].forEach(id=>$(id)?.addEventListener("input",()=>{if(rememberedDifficulty!=="custom"&&$("difficulty")?.value==="custom"){$("difficulty").value=rememberedDifficulty;setTimeout(()=>{refreshLabels();redraw()},0)}}));
+ $("pageSelect")?.addEventListener("change",()=>setTimeout(()=>apply(),0));
+ $("saveCart")?.addEventListener("click",()=>setTimeout(patchDraft,0));
+ $("saveCopy")?.addEventListener("click",()=>setTimeout(patchDraft,0));
+ window.addEventListener("fenix-state-change",e=>{if(e.detail?.cart||e.detail?.activeProject)setTimeout(()=>apply(),0)});
+ window.FenixMazeDifficulty=Object.freeze({values,PRESETS});
+})();
