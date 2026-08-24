@@ -3,6 +3,7 @@
   const core=typeof FenixCore!=="undefined"?FenixCore:null;
   const maze=window.FenixMaze;
   if(!core||!maze)return;
+
   const $=id=>document.getElementById(id);
   const clone=v=>v==null?v:typeof structuredClone==="function"?structuredClone(v):JSON.parse(JSON.stringify(v));
   const clamp=(v,min,max,fb)=>{const n=Number(v);return Math.max(min,Math.min(max,Number.isFinite(n)?n:fb))};
@@ -17,7 +18,8 @@
     hazardCount:clamp($('hazardCount')?.value,0,8,0),
     hazardScale:clamp($('hazardScale')?.value,40,160,78)
   }}
-  function saved(page){const s=page?.recipe?.settings||page?.settings||{};const u=ui();return{
+
+  function pageSettings(page){const s=page?.recipe?.settings||page?.settings||{},u=ui();return{
     checkpointAssetRef:s.checkpointAssetRef??u.checkpointAssetRef,
     checkpointCount:clamp(s.checkpointCount,0,5,u.checkpointCount),
     checkpointScale:clamp(s.checkpointScale,40,160,u.checkpointScale),
@@ -25,19 +27,61 @@
     hazardCount:clamp(s.hazardCount,0,8,u.hazardCount),
     hazardScale:clamp(s.hazardScale,40,160,u.hazardScale)
   }}
-  function gameplay(){return core.findAssets?.({tag:"gameplay"})||[]}
-  function fillSelect(el,selected){if(!el)return;const items=gameplay();el.innerHTML='<option value="">Bez assetu</option>'+items.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');el.value=items.some(a=>a.id===selected)?selected:''}
-  function selectedPage(){const id=$('pageSelect')?.value;return id?(core.getCart?.()||[]).find(p=>p.id===id&&p.module==="maze-studio")||null:null}
-  function syncControls(){const page=selectedPage(),s=page?saved(page):{checkpointAssetRef:null,checkpointCount:0,checkpointScale:80,hazardAssetRef:null,hazardCount:0,hazardScale:78};fillSelect($('checkpointAsset'),s.checkpointAssetRef);fillSelect($('hazardAsset'),s.hazardAssetRef);if($('checkpointCount'))$('checkpointCount').value=s.checkpointCount;if($('checkpointScale'))$('checkpointScale').value=s.checkpointScale;if($('hazardCount'))$('hazardCount').value=s.hazardCount;if($('hazardScale'))$('hazardScale').value=s.hazardScale}
-  function inject(page){if(!page||page.module!=="maze-studio")return page;const n=clone(page);n.settings={...(n.settings||{}),...ui()};n.recipe=n.recipe||{};n.recipe.settings={...(n.recipe.settings||n.settings||{}),...ui()};return n}
 
-  const originalAdd=core.addPage?.bind(core);if(originalAdd)core.addPage=page=>originalAdd(inject(page));
-  const originalUpdate=core.updatePage?.bind(core);if(originalUpdate)core.updatePage=(id,page)=>originalUpdate(id,inject(page));
+  function gameplay(){return core.findAssets({tag:"gameplay"})||[]}
+  function fillSelect(el,selected){
+    if(!el)return;
+    const items=gameplay();
+    el.innerHTML='<option value="">Bez assetu</option>'+items.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+    el.value=items.some(a=>a.id===selected)?selected:"";
+  }
+  function refreshOptionsPreserve(){
+    fillSelect($('checkpointAsset'),$('checkpointAsset')?.value||"");
+    fillSelect($('hazardAsset'),$('hazardAsset')?.value||"");
+  }
+  function selectedPage(){
+    const id=$('pageSelect')?.value;
+    return id?(core.getCart()||[]).find(p=>p.id===id&&p.module==="maze-studio")||null:null;
+  }
+  function syncControls(){
+    const page=selectedPage();
+    const s=page?pageSettings(page):{checkpointAssetRef:null,checkpointCount:0,checkpointScale:80,hazardAssetRef:null,hazardCount:0,hazardScale:78};
+    fillSelect($('checkpointAsset'),s.checkpointAssetRef);
+    fillSelect($('hazardAsset'),s.hazardAssetRef);
+    if($('checkpointCount'))$('checkpointCount').value=s.checkpointCount;
+    if($('checkpointScale'))$('checkpointScale').value=s.checkpointScale;
+    if($('hazardCount'))$('hazardCount').value=s.hazardCount;
+    if($('hazardScale'))$('hazardScale').value=s.hazardScale;
+  }
 
-  function redraw(){const trigger=$('startAssetScale');if(trigger)trigger.dispatchEvent(new Event('input',{bubbles:true}))}
-  ['checkpointAsset','checkpointCount','checkpointScale','hazardAsset','hazardCount','hazardScale'].forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('input',redraw);el.addEventListener('change',redraw)});
+  function persistCurrentMission(){
+    const id=$('pageSelect')?.value;
+    if(!id)return;
+    const page=(core.getCart()||[]).find(p=>p.id===id&&p.module==="maze-studio");
+    if(!page)return;
+    const patch=clone(page),mission=ui();
+    patch.settings={...(patch.settings||{}),...mission};
+    patch.recipe=patch.recipe||{};
+    patch.recipe.settings={...(patch.recipe.settings||patch.settings||{}),...mission};
+    core.updatePage(id,patch);
+  }
+
+  function redraw(){
+    const trigger=$('startAssetScale');
+    if(trigger)trigger.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+
+  ['checkpointAsset','checkpointCount','checkpointScale','hazardAsset','hazardCount','hazardScale'].forEach(id=>{
+    const el=$(id);if(!el)return;
+    el.addEventListener('input',redraw);
+    el.addEventListener('change',redraw);
+  });
   $('pageSelect')?.addEventListener('change',()=>setTimeout(syncControls,0));
-  window.addEventListener('fenix-state-change',e=>{if(e.detail?.assets)syncControls();if(e.detail?.cart||e.detail?.activeProject)setTimeout(syncControls,0)});
+  ['saveCart','saveCopy'].forEach(id=>$(id)?.addEventListener('click',()=>setTimeout(persistCurrentMission,0)));
+  window.addEventListener('fenix-state-change',e=>{
+    if(e.detail?.assets)refreshOptionsPreserve();
+    if(e.detail?.activeProject)setTimeout(syncControls,0);
+  });
 
   function sidePoint(side,cols,rows,i=.5){if(side==='left')return{x:0,y:Math.round((rows-1)*i),wall:3,side};if(side==='right')return{x:cols-1,y:Math.round((rows-1)*i),wall:1,side};if(side==='top')return{x:Math.round((cols-1)*i),y:0,wall:0,side};return{x:Math.round((cols-1)*i),y:rows-1,wall:2,side:'bottom'}}
   function boundaryPoints(cols,rows){const p=[];for(let x=0;x<cols;x++)p.push({x,y:0,wall:0,side:'top'},{x,y:rows-1,wall:2,side:'bottom'});for(let y=0;y<rows;y++)p.push({x:0,y,wall:3,side:'left'},{x:cols-1,y,wall:1,side:'right'});return p}
@@ -50,9 +94,25 @@
   function fallback(ctx,x,y,cell,type){ctx.save();ctx.fillStyle='#fff';ctx.strokeStyle='#111827';ctx.lineWidth=Math.max(2,cell*.05);ctx.beginPath();if(type==='checkpoint')ctx.arc(x,y,cell*.28,0,Math.PI*2);else{ctx.moveTo(x,y-cell*.31);ctx.lineTo(x+cell*.3,y+cell*.25);ctx.lineTo(x-cell*.3,y+cell*.25);ctx.closePath()}ctx.fill();ctx.stroke();ctx.fillStyle='#111827';ctx.font=`700 ${Math.round(cell*.34)}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(type==='checkpoint'?'C':'!',x,y);ctx.restore()}
 
   const originalPrepare=maze.prepareAssets.bind(maze);
-  maze.prepareAssets=async page=>{const images=await originalPrepare(page),s=saved(page);for(const id of [s.checkpointAssetRef,s.hazardAssetRef].filter(Boolean)){if(images[id])continue;const asset=core.getAsset?.(id);if(!asset?.dataUrl)continue;images[id]=await new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>resolve(null);im.src=asset.dataUrl})}return images};
+  maze.prepareAssets=async page=>{
+    const images=await originalPrepare(page),s=pageSettings(page);
+    for(const id of [s.checkpointAssetRef,s.hazardAssetRef].filter(Boolean)){
+      if(images[id])continue;
+      const asset=core.getAsset(id);if(!asset?.dataUrl)continue;
+      images[id]=await new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>resolve(null);im.src=asset.dataUrl});
+    }
+    return images;
+  };
+
   const originalRender=maze.render.bind(maze);
-  maze.render=(page,opts={})=>{const result=originalRender(page,opts),s=saved(page);if(!opts.canvas||(!s.checkpointCount&&!s.hazardCount))return result;const canvas=opts.canvas,ctx=canvas.getContext('2d'),width=canvas.width,height=canvas.height,raw=page?.recipe?.settings||page?.settings||{},cols=Math.max(6,Number(raw.cols)||18),rows=Math.max(8,Number(raw.rows)||24),seed=Number(page?.recipe?.seed??page?.seed??1)||1,ep=result?.endpoints?.start&&result?.endpoints?.end?result.endpoints:(raw.endpoints?.start&&raw.endpoints?.end?raw.endpoints:endpoints(raw.endpointMode||'random',cols,rows,seed)),m=build(cols,rows,seed,ep),path=solve(m),spots=missionCells(m,path,seed,s),scale=width/900,side=(opts.solutionKey?45:Number(raw.sideMargin)||80)*scale,top=(opts.solutionKey?45:Number(raw.topMargin)||170)*scale,bottom=(opts.solutionKey?45:Number(raw.bottomMargin)||90)*scale,areaW=width-side*2,areaH=height-top-bottom,cell=Math.min(areaW/cols,areaH/rows)*(Number(raw.mazeScale||100)/100),mw=cell*cols,mh=cell*rows,sx=(width-mw)/2,sy=top+(areaH-mh)/2,imgs=opts.assetImages||{};for(const[x,y]of spots.checkpoints){const px=sx+(x+.5)*cell,py=sy+(y+.5)*cell;if(!drawImage(ctx,imgs[s.checkpointAssetRef],px,py,cell*.82,s.checkpointScale))fallback(ctx,px,py,cell,'checkpoint')}for(const[x,y]of spots.hazards){const px=sx+(x+.5)*cell,py=sy+(y+.5)*cell;if(!drawImage(ctx,imgs[s.hazardAssetRef],px,py,cell*.82,s.hazardScale))fallback(ctx,px,py,cell,'hazard')}return{...result,checkpoints:spots.checkpoints,hazards:spots.hazards}};
+  maze.render=(page,opts={})=>{
+    const result=originalRender(page,opts),s=pageSettings(page);
+    if(!opts.canvas||(!s.checkpointCount&&!s.hazardCount))return result;
+    const canvas=opts.canvas,ctx=canvas.getContext('2d'),width=canvas.width,height=canvas.height,raw=page?.recipe?.settings||page?.settings||{},cols=Math.max(6,Number(raw.cols)||18),rows=Math.max(8,Number(raw.rows)||24),seed=Number(page?.recipe?.seed??page?.seed??1)||1,ep=result?.endpoints?.start&&result?.endpoints?.end?result.endpoints:(raw.endpoints?.start&&raw.endpoints?.end?raw.endpoints:endpoints(raw.endpointMode||'random',cols,rows,seed)),m=build(cols,rows,seed,ep),path=solve(m),spots=missionCells(m,path,seed,s),scale=width/900,side=(opts.solutionKey?45:Number(raw.sideMargin)||80)*scale,top=(opts.solutionKey?45:Number(raw.topMargin)||170)*scale,bottom=(opts.solutionKey?45:Number(raw.bottomMargin)||90)*scale,areaW=width-side*2,areaH=height-top-bottom,cell=Math.min(areaW/cols,areaH/rows)*(Number(raw.mazeScale||100)/100),mw=cell*cols,mh=cell*rows,sx=(width-mw)/2,sy=top+(areaH-mh)/2,imgs=opts.assetImages||{};
+    for(const[x,y]of spots.checkpoints){const px=sx+(x+.5)*cell,py=sy+(y+.5)*cell;if(!drawImage(ctx,imgs[s.checkpointAssetRef],px,py,cell*.82,s.checkpointScale))fallback(ctx,px,py,cell,'checkpoint')}
+    for(const[x,y]of spots.hazards){const px=sx+(x+.5)*cell,py=sy+(y+.5)*cell;if(!drawImage(ctx,imgs[s.hazardAssetRef],px,py,cell*.82,s.hazardScale))fallback(ctx,px,py,cell,'hazard')}
+    return{...result,checkpoints:spots.checkpoints,hazards:spots.hazards};
+  };
 
   syncControls();
 })();
