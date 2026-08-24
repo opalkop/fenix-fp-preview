@@ -1,6 +1,6 @@
 "use strict";
 (()=>{
-  const core=window.FenixCore, maze=window.FenixMaze;
+  const core=(typeof FenixCore!=="undefined"?FenixCore:null), maze=window.FenixMaze;
   if(!core||!maze)return;
   const $=id=>document.getElementById(id);
   const clone=v=>v==null?v:typeof structuredClone==="function"?structuredClone(v):JSON.parse(JSON.stringify(v));
