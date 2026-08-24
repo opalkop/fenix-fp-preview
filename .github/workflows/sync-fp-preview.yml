@@ -1,5 +1,5 @@
 name: Sync FP Preview
-# Manual dispatch marker: 2026-08-24T12:31+02:00
+# Manual dispatch marker: 2026-08-24T12:38+02:00
 
 on:
   schedule:
@@ -65,7 +65,7 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          git commit -m "Sync FP preview from source [skip ci]"
+          git commit -m "Sync FP preview from source"
           git push
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
