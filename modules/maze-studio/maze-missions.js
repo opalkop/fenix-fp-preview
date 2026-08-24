@@ -6,22 +6,31 @@
   const esc=value=>String(value??"").replace(/[&<>'\"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"}[char]));
   const clamp=(value,min,max,fallback)=>{const n=Number(value);return Math.max(min,Math.min(max,Number.isFinite(n)?n:fallback))};
 
-  function gameplayAssets(){
-    try{return core.findAssets({tag:"gameplay"})||[]}catch(error){console.error("Maze missions: gameplay assets lookup failed",error);return[]}
+  function mazeAssets(){
+    try{
+      const gameplay=core.findAssets({tag:"gameplay"})||[];
+      if(gameplay.length)return gameplay;
+      return core.listAssets?.()||[];
+    }catch(error){
+      console.error("Maze missions: asset lookup failed",error);
+      try{return core.listAssets?.()||[]}catch{return[]}
+    }
   }
-  function fillSelect(id,selected=""){
+  function fillSelect(id,selected="",placeholder="Bez assetu"){
     const select=$(id);if(!select)return;
-    const assets=gameplayAssets();
-    select.innerHTML='<option value="">Bez assetu</option>'+assets.map(asset=>`<option value="${esc(asset.id)}">${esc(asset.name)}</option>`).join('');
+    const assets=mazeAssets();
+    select.innerHTML=`<option value="">${esc(placeholder)}</option>`+assets.map(asset=>`<option value="${esc(asset.id)}">${esc(asset.name)}</option>`).join("");
     select.value=assets.some(asset=>asset.id===selected)?selected:"";
   }
   function currentPage(){
     const id=$("pageSelect")?.value;
     return id?(core.getCart()||[]).find(page=>page.id===id&&page.module==="maze-studio")||null:null;
   }
-  function storedMission(page){
+  function stored(page){
     const s=page?.recipe?.settings||page?.settings||{};
     return{
+      startAssetRef:s.startAssetRef||null,
+      goalAssetRef:s.goalAssetRef||null,
       checkpointAssetRef:s.checkpointAssetRef||null,
       checkpointCount:clamp(s.checkpointCount,0,5,0),
       checkpointScale:clamp(s.checkpointScale,40,160,80),
@@ -31,17 +40,20 @@
     };
   }
   function refresh(preserve=true){
-    const page=currentPage(),saved=page?storedMission(page):null;
-    const checkpointSelected=saved?.checkpointAssetRef||(preserve?$("checkpointAsset")?.value:"")||"";
-    const hazardSelected=saved?.hazardAssetRef||(preserve?$("hazardAsset")?.value:"")||"";
-    fillSelect("checkpointAsset",checkpointSelected);
-    fillSelect("hazardAsset",hazardSelected);
+    const page=currentPage(),saved=page?stored(page):null;
+    const selected=(id,key)=>saved?.[key]||(preserve?$(id)?.value:"")||"";
+    fillSelect("startAsset",selected("startAsset","startAssetRef"),"Bez assetu — znacznik S");
+    fillSelect("goalAsset",selected("goalAsset","goalAssetRef"),"Bez assetu — znacznik M");
+    fillSelect("checkpointAsset",selected("checkpointAsset","checkpointAssetRef"),"Bez assetu");
+    fillSelect("hazardAsset",selected("hazardAsset","hazardAssetRef"),"Bez assetu");
     if(saved){
       if($("checkpointCount"))$("checkpointCount").value=saved.checkpointCount;
       if($("checkpointScale"))$("checkpointScale").value=saved.checkpointScale;
       if($("hazardCount"))$("hazardCount").value=saved.hazardCount;
       if($("hazardScale"))$("hazardScale").value=saved.hazardScale;
     }
+    const info=$("assetInfo"),assets=mazeAssets();
+    if(info&&!core.findAssets({tag:"gameplay"}).length&&assets.length)info.textContent=`Biblioteka projektu: ${assets.length} assetów. Brak tagu Gameplay — Maze używa wszystkich assetów projektu jako listy awaryjnej.`;
   }
   function missionUi(){return{
     checkpointAssetRef:$("checkpointAsset")?.value||null,
@@ -67,8 +79,8 @@
 
   ["checkpointAsset","checkpointCount","checkpointScale","hazardAsset","hazardCount","hazardScale"].forEach(id=>{
     const el=$(id);if(!el)return;
-    el.addEventListener("change",()=>{redraw()});
-    el.addEventListener("input",()=>{redraw()});
+    el.addEventListener("change",redraw);
+    el.addEventListener("input",redraw);
   });
   $("pageSelect")?.addEventListener("change",()=>setTimeout(()=>refresh(false),0));
   $("saveCart")?.addEventListener("click",()=>setTimeout(persistExistingPage,0));
