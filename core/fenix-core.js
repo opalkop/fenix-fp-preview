@@ -1,481 +1,68 @@
 "use strict";
 
 (()=>{
-  let selected="light";
-  try{selected=localStorage.getItem("fenix-ui-theme")||"light"}catch{}
+  let selected="light";try{selected=localStorage.getItem("fenix-ui-theme")||"light"}catch{}
   document.documentElement.dataset.theme=selected;
-  const coreScript=[...document.scripts].find(script=>/\/core\/fenix-core\.js(?:\?|$)/.test(script.src));
-  if(!coreScript)return;
-  const addStyle=(name,file)=>{
-    if(document.querySelector(`link[data-fenix-theme="${name}"]`))return;
-    const link=document.createElement("link");
-    link.rel="stylesheet";
-    link.href=new URL(`../assets/${file}`,coreScript.src).href;
-    link.dataset.fenixTheme=name;
-    document.head.appendChild(link);
-  };
-  const addScript=(name,file)=>{
-    if(document.querySelector(`script[data-fenix-helper="${name}"]`))return;
-    const script=document.createElement("script");
-    script.src=new URL(`../assets/${file}`,coreScript.src).href;
-    script.dataset.fenixHelper=name;
-    document.body.appendChild(script);
-  };
-  addStyle("v2","fenix-v2.css?v=0.18.0");
-  addStyle("variants","fenix-theme-overrides.css?v=0.18.0");
-  addStyle("studio-shell","studio-shell.css?v=0.24.0");
-  addStyle("fenix-mode","fenix-mode.css?v=0.23.0");
-  const fenixModeStyle=document.querySelector('link[data-fenix-theme="fenix-mode"]');
-  if(fenixModeStyle)document.head.appendChild(fenixModeStyle);
-  document.documentElement.dataset.fenixTheme="v2";
-  const loadStudioShell=()=>{
-    const isModule=/\/modules\//.test(location.pathname)||document.body?.dataset?.module||document.body?.dataset?.screen;
-    if(isModule)addScript("studio-shell","studio-shell.js?v=0.24.0");
-  };
-  if(document.readyState==="loading")window.addEventListener("DOMContentLoaded",loadStudioShell,{once:true});
-  else loadStudioShell();
+  const coreScript=[...document.scripts].find(script=>/\/core\/fenix-core\.js(?:\?|$)/.test(script.src));if(!coreScript)return;
+  const addStyle=(name,file)=>{if(document.querySelector(`link[data-fenix-theme="${name}"]`))return;const link=document.createElement("link");link.rel="stylesheet";link.href=new URL(`../assets/${file}`,coreScript.src).href;link.dataset.fenixTheme=name;document.head.appendChild(link)};
+  const addScript=(name,file)=>{if(document.querySelector(`script[data-fenix-helper="${name}"]`))return;const script=document.createElement("script");script.src=new URL(`../assets/${file}`,coreScript.src).href;script.dataset.fenixHelper=name;document.body.appendChild(script)};
+  addStyle("v2","fenix-v2.css?v=0.18.0");addStyle("variants","fenix-theme-overrides.css?v=0.18.0");addStyle("studio-shell","studio-shell.css?v=0.24.0");addStyle("fenix-mode","fenix-mode.css?v=0.23.0");
+  const fenixModeStyle=document.querySelector('link[data-fenix-theme="fenix-mode"]');if(fenixModeStyle)document.head.appendChild(fenixModeStyle);document.documentElement.dataset.fenixTheme="v2";
+  const loadStudioShell=()=>{const isModule=/\/modules\//.test(location.pathname)||document.body?.dataset?.module||document.body?.dataset?.screen;if(isModule)addScript("studio-shell","studio-shell.js?v=0.24.0")};
+  if(document.readyState==="loading")window.addEventListener("DOMContentLoaded",loadStudioShell,{once:true});else loadStudioShell();
 })();
 
 const FenixCore=(()=>{
-  const LEGACY_CART_KEY="fenix-cart-v1";
-  const PROJECTS_KEY="fenix-projects-v1";
-  const ACTIVE_PROJECT_KEY="fenix-active-project-v1";
-  const ASSET_DB_NAME="fenix-assets-v1";
-  const ASSET_DB_VERSION=1;
-  const ASSET_STORE="assets";
-
-  const uid=()=>crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const now=()=>new Date().toISOString();
+  const LEGACY_CART_KEY="fenix-cart-v1",PROJECTS_KEY="fenix-projects-v1",ACTIVE_PROJECT_KEY="fenix-active-project-v1",LIBRARY_KEY="fenix-asset-library-v1";
+  const ASSET_DB_NAME="fenix-assets-v1",ASSET_DB_VERSION=1,ASSET_STORE="assets",LIBRARY_SCOPE="__fenix_library__";
+  const uid=()=>crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(16).slice(2)}`,now=()=>new Date().toISOString();
   const clone=value=>value==null?value:typeof structuredClone==="function"?structuredClone(value):JSON.parse(JSON.stringify(value));
   const read=(key,fallback)=>{try{const value=JSON.parse(localStorage.getItem(key));return value??fallback}catch{return fallback}};
   const writeRaw=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));return true}catch(error){console.error("FENIX storage error",error);throw new Error("Nie udało się zapisać projektu. Pamięć przeglądarki może być pełna.")}};
   const normalizeFormat=value=>String(value||"8.5x11").toLowerCase()==="a4"?"a4":value||"8.5x11";
   const normalizePage=page=>window.FenixPageSchema?.normalize?window.FenixPageSchema.normalize(page):{id:page?.id||uid(),createdAt:page?.createdAt||now(),...clone(page||{})};
   const normalizeTags=value=>[...new Set((Array.isArray(value)?value:[]).map(tag=>String(tag||"").trim().toLowerCase()).filter(Boolean))];
-
-  function normalizeAsset(asset={},fallbackId=""){
-    const meta=asset.meta&&typeof asset.meta==="object"&&!Array.isArray(asset.meta)?clone(asset.meta):{};
-    const width=Number(asset.width??meta.width)||0;
-    const height=Number(asset.height??meta.height)||0;
-    const sizeBytes=Number(asset.sizeBytes??meta.sizeBytes)||0;
-    const validation=asset.validation&&typeof asset.validation==="object"
-      ? clone(asset.validation)
-      : meta.validation&&typeof meta.validation==="object"
-        ? clone(meta.validation)
-        : {status:"warning",messages:["Asset nie był jeszcze walidowany."],metrics:{}};
-    const createdAt=asset.createdAt||meta.addedAt||now();
-    return {
-      id:asset.id||fallbackId||uid(),
-      name:String(asset.name||asset.filename||meta.filename||"Asset"),
-      filename:String(asset.filename||meta.filename||asset.name||"Asset"),
-      mime:String(asset.mime||asset.mimeType||meta.mimeType||"image/webp"),
-      dataUrl:String(asset.dataUrl||asset.data||""),
-      source:String(asset.source||meta.source||"imported"),
-      width,
-      height,
-      sizeBytes,
-      aspectRatio:asset.aspectRatio??meta.aspectRatio??(width&&height?Number((width/height).toFixed(4)):null),
-      tags:normalizeTags(asset.tags||meta.tags),
-      validation,
-      meta,
-      createdAt,
-      updatedAt:asset.updatedAt||createdAt
-    };
-  }
-
-  function normalizeAssets(value){
-    const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-    return Object.fromEntries(Object.entries(source).map(([id,asset])=>{
-      const normalized=normalizeAsset(asset,id);
-      return [normalized.id,normalized];
-    }));
-  }
-
-  function normalizeProject(project={}){
-    const createdAt=project.createdAt||now();
-    const assets=normalizeAssets(project.assets);
-    return {
-      id:project.id||uid(),
-      name:String(project.name||"Nowy projekt").trim()||"Nowy projekt",
-      format:normalizeFormat(project.format),
-      bleed:project.bleed||"no-bleed",
-      ageGroup:project.ageGroup||"",
-      topic:project.topic||"",
-      createdAt,
-      updatedAt:project.updatedAt||createdAt,
-      pages:Array.isArray(project.pages)?project.pages:[],
-      assets
-    };
-  }
-
-  let state=null;
-  let schemaMigrated=false;
-  let dbPromise=null;
-  let storageQueue=Promise.resolve();
-  let storageReady=false;
-  let storageMode=typeof indexedDB!=="undefined"?"indexeddb":"localstorage";
-
-  const assetKey=(projectId,assetId)=>`${projectId}::${assetId}`;
-
-  function openAssetDb(){
-    if(storageMode!=="indexeddb")return Promise.resolve(null);
-    if(dbPromise)return dbPromise;
-    dbPromise=new Promise((resolve,reject)=>{
-      try{
-        const request=indexedDB.open(ASSET_DB_NAME,ASSET_DB_VERSION);
-        request.onupgradeneeded=()=>{
-          const db=request.result;
-          if(!db.objectStoreNames.contains(ASSET_STORE)){
-            const store=db.createObjectStore(ASSET_STORE,{keyPath:"key"});
-            store.createIndex("projectId","projectId",{unique:false});
-          }
-        };
-        request.onsuccess=()=>resolve(request.result);
-        request.onerror=()=>reject(request.error||new Error("IndexedDB unavailable"));
-        request.onblocked=()=>console.warn("FENIX IndexedDB upgrade blocked");
-      }catch(error){reject(error)}
-    }).catch(error=>{
-      console.warn("FENIX IndexedDB unavailable; using localStorage fallback.",error);
-      storageMode="localstorage";
-      dbPromise=null;
-      return null;
-    });
-    return dbPromise;
-  }
-
-  const requestResult=request=>new Promise((resolve,reject)=>{
-    request.onsuccess=()=>resolve(request.result);
-    request.onerror=()=>reject(request.error||new Error("IndexedDB request failed"));
-  });
-
-  async function idbGetAll(){
-    const db=await openAssetDb();
-    if(!db)return [];
-    const tx=db.transaction(ASSET_STORE,"readonly");
-    return requestResult(tx.objectStore(ASSET_STORE).getAll());
-  }
-
-  async function idbPut(projectId,asset){
-    if(storageMode!=="indexeddb"||!asset?.id||!asset?.dataUrl)return;
-    const db=await openAssetDb();
-    if(!db)return;
-    const tx=db.transaction(ASSET_STORE,"readwrite");
-    tx.objectStore(ASSET_STORE).put({
-      key:assetKey(projectId,asset.id),
-      projectId,
-      assetId:asset.id,
-      dataUrl:asset.dataUrl,
-      mime:asset.mime||"",
-      updatedAt:asset.updatedAt||now()
-    });
-    await new Promise((resolve,reject)=>{
-      tx.oncomplete=resolve;
-      tx.onerror=()=>reject(tx.error||new Error("Nie udało się zapisać assetu w IndexedDB."));
-      tx.onabort=()=>reject(tx.error||new Error("Zapis assetu w IndexedDB został przerwany."));
-    });
-  }
-
-  async function idbDelete(projectId,assetId){
-    const db=await openAssetDb();
-    if(!db)return;
-    const tx=db.transaction(ASSET_STORE,"readwrite");
-    tx.objectStore(ASSET_STORE).delete(assetKey(projectId,assetId));
-    await new Promise((resolve,reject)=>{
-      tx.oncomplete=resolve;
-      tx.onerror=()=>reject(tx.error||new Error("Nie udało się usunąć assetu z IndexedDB."));
-      tx.onabort=()=>reject(tx.error||new Error("Usuwanie assetu z IndexedDB zostało przerwane."));
-    });
-  }
-
-  async function idbDeleteProject(projectId){
-    const db=await openAssetDb();
-    if(!db)return;
-    const tx=db.transaction(ASSET_STORE,"readwrite");
-    const store=tx.objectStore(ASSET_STORE);
-    const index=store.index("projectId");
-    const request=index.openCursor(IDBKeyRange.only(projectId));
-    request.onsuccess=()=>{
-      const cursor=request.result;
-      if(!cursor)return;
-      cursor.delete();
-      cursor.continue();
-    };
-    await new Promise((resolve,reject)=>{
-      tx.oncomplete=resolve;
-      tx.onerror=()=>reject(tx.error||new Error("Nie udało się usunąć assetów projektu z IndexedDB."));
-      tx.onabort=()=>reject(tx.error||new Error("Usuwanie assetów projektu zostało przerwane."));
-    });
-  }
-
-  function enqueueStorage(task){
-    const operation=storageQueue.then(task);
-    storageQueue=operation.catch(error=>{
-      console.error("FENIX IndexedDB storage error",error);
-      window.dispatchEvent(new CustomEvent("fenix-storage-error",{detail:{message:String(error?.message||error)}}));
-    });
-    return operation;
-  }
-
-  function stripAssetPayloads(projects){
-    return projects.map(project=>({
-      ...project,
-      assets:Object.fromEntries(Object.entries(project.assets||{}).map(([id,asset])=>[
-        id,
-        {...asset,dataUrl:""}
-      ]))
-    }));
-  }
-
-  function persist(){
-    if(storageMode==="indexeddb")writeRaw(PROJECTS_KEY,stripAssetPayloads(state.projects));
-    else writeRaw(PROJECTS_KEY,state.projects);
-    localStorage.setItem(ACTIVE_PROJECT_KEY,state.activeId);
-  }
-
-  function loadState(){
-    if(state)return state;
-    let projects=read(PROJECTS_KEY,[]);
-    if(!Array.isArray(projects)||!projects.length){
-      const legacy=read(LEGACY_CART_KEY,[]);
-      projects=[normalizeProject({
-        name:Array.isArray(legacy)&&legacy.length?"Odzyskany projekt":"Mój pierwszy projekt",
-        pages:Array.isArray(legacy)?legacy:[]
-      })];
-    }else projects=projects.map(normalizeProject);
-    let activeId=localStorage.getItem(ACTIVE_PROJECT_KEY);
-    if(!projects.some(project=>project.id===activeId))activeId=projects[0].id;
-    state={projects,activeId};
-    return state;
-  }
-
-  async function initializeStorage(){
-    loadState();
-    if(storageMode!=="indexeddb"){
-      persist();
-      storageReady=true;
-      return {mode:storageMode,migrated:false};
-    }
-    const db=await openAssetDb();
-    if(!db){
-      persist();
-      storageReady=true;
-      return {mode:storageMode,migrated:false};
-    }
-    try{
-      const records=await idbGetAll();
-      const byKey=new Map(records.map(record=>[record.key,record]));
-      const migrate=[];
-      for(const project of state.projects){
-        for(const asset of Object.values(project.assets||{})){
-          if(asset.dataUrl)migrate.push([project.id,asset]);
-          else{
-            const record=byKey.get(assetKey(project.id,asset.id));
-            if(record?.dataUrl)asset.dataUrl=record.dataUrl;
-          }
-        }
-      }
-      for(const [projectId,asset] of migrate)await idbPut(projectId,asset);
-      persist();
-      try{if(navigator.storage?.persist)await navigator.storage.persist()}catch{}
-      storageReady=true;
-      queueMicrotask(()=>{
-        window.dispatchEvent(new CustomEvent("fenix-storage-ready",{detail:{mode:"indexeddb",migrated:migrate.length}}));
-        window.dispatchEvent(new CustomEvent("fenix-state-change",{detail:{projects:true,assets:true,storage:true}}));
-      });
-      return {mode:"indexeddb",migrated:migrate.length};
-    }catch(error){
-      console.error("FENIX IndexedDB initialization failed",error);
-      storageMode="localstorage";
-      persist();
-      storageReady=true;
-      window.dispatchEvent(new CustomEvent("fenix-storage-error",{detail:{message:String(error?.message||error)}}));
-      return {mode:"localstorage",migrated:false,error:String(error?.message||error)};
-    }
-  }
-
-  function ensureSchema(){
-    const current=loadState();
-    if(schemaMigrated||!window.FenixPageSchema?.normalize)return current;
-    current.projects=current.projects.map(project=>({
-      ...project,
-      pages:project.pages.map(normalizePage),
-      assets:normalizeAssets(project.assets)
-    }));
-    schemaMigrated=true;
-    persist();
-    return current;
-  }
-
-  function emit(changes={}){
-    window.dispatchEvent(new CustomEvent("fenix-state-change",{detail:changes}));
-    if(changes.projects||changes.activeProject)window.dispatchEvent(new Event("fenix-project-change"));
-    if(changes.cart||changes.activeProject)window.dispatchEvent(new Event("fenix-cart-change"));
-    if(changes.assets||changes.activeProject)window.dispatchEvent(new Event("fenix-assets-change"));
-  }
-
+  const libraryRefOf=asset=>String(asset?.libraryRef||asset?.meta?.libraryRef||"").trim();
+  function normalizeAsset(asset={},fallbackId=""){const meta=asset.meta&&typeof asset.meta==="object"&&!Array.isArray(asset.meta)?clone(asset.meta):{},width=Number(asset.width??meta.width)||0,height=Number(asset.height??meta.height)||0,sizeBytes=Number(asset.sizeBytes??meta.sizeBytes)||0,validation=asset.validation&&typeof asset.validation==="object"?clone(asset.validation):meta.validation&&typeof meta.validation==="object"?clone(meta.validation):{status:"warning",messages:["Asset nie był jeszcze walidowany."],metrics:{}},createdAt=asset.createdAt||meta.addedAt||now(),libraryRef=String(asset.libraryRef||meta.libraryRef||"").trim(),pack=String(asset.pack||meta.pack||"").trim();return{id:asset.id||fallbackId||uid(),name:String(asset.name||asset.filename||meta.filename||"Asset"),filename:String(asset.filename||meta.filename||asset.name||"Asset"),mime:String(asset.mime||asset.mimeType||meta.mimeType||"image/webp"),dataUrl:String(asset.dataUrl||asset.data||""),source:String(asset.source||meta.source||(libraryRef?"fenix-library":"imported")),width,height,sizeBytes,aspectRatio:asset.aspectRatio??meta.aspectRatio??(width&&height?Number((width/height).toFixed(4)):null),tags:normalizeTags(asset.tags||meta.tags),validation,libraryRef,pack,meta:{...meta,...(libraryRef?{libraryRef}:{}),...(pack?{pack}:{})},createdAt,updatedAt:asset.updatedAt||createdAt}}
+  function normalizeAssets(value){const source=value&&typeof value==="object"&&!Array.isArray(value)?value:{};return Object.fromEntries(Object.entries(source).map(([id,asset])=>{const normalized=normalizeAsset(asset,id);return[normalized.id,normalized]}))}
+  function normalizeProject(project={}){const createdAt=project.createdAt||now(),assets=normalizeAssets(project.assets);return{id:project.id||uid(),name:String(project.name||"Nowy projekt").trim()||"Nowy projekt",format:normalizeFormat(project.format),bleed:project.bleed||"no-bleed",ageGroup:project.ageGroup||"",topic:project.topic||"",createdAt,updatedAt:project.updatedAt||createdAt,pages:Array.isArray(project.pages)?project.pages:[],assets}}
+  let state=null,libraryState=null,schemaMigrated=false,dbPromise=null,storageQueue=Promise.resolve(),storageReady=false,storageMode=typeof indexedDB!=="undefined"?"indexeddb":"localstorage";
+  const assetKey=(scope,assetId)=>`${scope}::${assetId}`;
+  function openAssetDb(){if(storageMode!=="indexeddb")return Promise.resolve(null);if(dbPromise)return dbPromise;dbPromise=new Promise((resolve,reject)=>{try{const request=indexedDB.open(ASSET_DB_NAME,ASSET_DB_VERSION);request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(ASSET_STORE)){const store=db.createObjectStore(ASSET_STORE,{keyPath:"key"});store.createIndex("projectId","projectId",{unique:false})}};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error("IndexedDB unavailable"));request.onblocked=()=>console.warn("FENIX IndexedDB upgrade blocked")}catch(error){reject(error)}}).catch(error=>{console.warn("FENIX IndexedDB unavailable; using localStorage fallback.",error);storageMode="localstorage";dbPromise=null;return null});return dbPromise}
+  const requestResult=request=>new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error("IndexedDB request failed"))});
+  async function idbGetAll(){const db=await openAssetDb();if(!db)return[];const tx=db.transaction(ASSET_STORE,"readonly");return requestResult(tx.objectStore(ASSET_STORE).getAll())}
+  async function idbPut(scope,asset){if(storageMode!=="indexeddb"||!asset?.id||!asset?.dataUrl)return;const db=await openAssetDb();if(!db)return;const tx=db.transaction(ASSET_STORE,"readwrite");tx.objectStore(ASSET_STORE).put({key:assetKey(scope,asset.id),projectId:scope,assetId:asset.id,dataUrl:asset.dataUrl,mime:asset.mime||"",updatedAt:asset.updatedAt||now()});await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error("Nie udało się zapisać assetu w IndexedDB."));tx.onabort=()=>reject(tx.error||new Error("Zapis assetu w IndexedDB został przerwany."))})}
+  async function idbDelete(scope,assetId){const db=await openAssetDb();if(!db)return;const tx=db.transaction(ASSET_STORE,"readwrite");tx.objectStore(ASSET_STORE).delete(assetKey(scope,assetId));await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error("Nie udało się usunąć assetu z IndexedDB."));tx.onabort=()=>reject(tx.error||new Error("Usuwanie assetu z IndexedDB zostało przerwane."))})}
+  async function idbDeleteProject(projectId){const db=await openAssetDb();if(!db)return;const tx=db.transaction(ASSET_STORE,"readwrite"),store=tx.objectStore(ASSET_STORE),index=store.index("projectId"),request=index.openCursor(IDBKeyRange.only(projectId));request.onsuccess=()=>{const cursor=request.result;if(!cursor)return;cursor.delete();cursor.continue()};await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error("Nie udało się usunąć assetów projektu z IndexedDB."));tx.onabort=()=>reject(tx.error||new Error("Usuwanie assetów projektu zostało przerwane."))})}
+  function enqueueStorage(task){const operation=storageQueue.then(task);storageQueue=operation.catch(error=>{console.error("FENIX IndexedDB storage error",error);window.dispatchEvent(new CustomEvent("fenix-storage-error",{detail:{message:String(error?.message||error)}}))});return operation}
+  const stripAssets=value=>Object.fromEntries(Object.entries(value||{}).map(([id,asset])=>[id,{...asset,dataUrl:""}])),stripAssetPayloads=projects=>projects.map(project=>({...project,assets:stripAssets(project.assets)}));
+  function persist(){if(storageMode==="indexeddb"){writeRaw(PROJECTS_KEY,stripAssetPayloads(state.projects));writeRaw(LIBRARY_KEY,stripAssets(libraryState))}else{writeRaw(PROJECTS_KEY,state.projects);writeRaw(LIBRARY_KEY,libraryState)}localStorage.setItem(ACTIVE_PROJECT_KEY,state.activeId)}
+  function loadState(){if(state)return state;let projects=read(PROJECTS_KEY,[]);if(!Array.isArray(projects)||!projects.length){const legacy=read(LEGACY_CART_KEY,[]);projects=[normalizeProject({name:Array.isArray(legacy)&&legacy.length?"Odzyskany projekt":"Mój pierwszy projekt",pages:Array.isArray(legacy)?legacy:[]})]}else projects=projects.map(normalizeProject);libraryState=normalizeAssets(read(LIBRARY_KEY,{}));let activeId=localStorage.getItem(ACTIVE_PROJECT_KEY);if(!projects.some(project=>project.id===activeId))activeId=projects[0].id;state={projects,activeId};return state}
+  function hydrateLibraryLinks(project){for(const asset of Object.values(project?.assets||{})){const ref=libraryRefOf(asset);if(!ref)continue;const source=libraryState?.[ref];if(source){asset.dataUrl=source.dataUrl;asset.mime=source.mime;asset.width=source.width;asset.height=source.height;asset.sizeBytes=source.sizeBytes;asset.aspectRatio=source.aspectRatio;asset.pack=source.pack||asset.pack;asset.source="fenix-library"}}return project}
+  function hydrateAllLibraryLinks(){for(const project of state.projects)hydrateLibraryLinks(project)}
+  async function initializeStorage(){loadState();if(storageMode!=="indexeddb"){hydrateAllLibraryLinks();persist();storageReady=true;return{mode:storageMode,migrated:false}}const db=await openAssetDb();if(!db){hydrateAllLibraryLinks();persist();storageReady=true;return{mode:storageMode,migrated:false}}try{const records=await idbGetAll(),byKey=new Map(records.map(record=>[record.key,record])),migrate=[];for(const asset of Object.values(libraryState)){if(asset.dataUrl)migrate.push([LIBRARY_SCOPE,asset]);else{const record=byKey.get(assetKey(LIBRARY_SCOPE,asset.id));if(record?.dataUrl)asset.dataUrl=record.dataUrl}}for(const project of state.projects){for(const asset of Object.values(project.assets||{})){const ref=libraryRefOf(asset);if(ref)continue;if(asset.dataUrl)migrate.push([project.id,asset]);else{const record=byKey.get(assetKey(project.id,asset.id));if(record?.dataUrl)asset.dataUrl=record.dataUrl}}}for(const [scope,asset] of migrate)await idbPut(scope,asset);hydrateAllLibraryLinks();persist();try{if(navigator.storage?.persist)await navigator.storage.persist()}catch{}storageReady=true;queueMicrotask(()=>{window.dispatchEvent(new CustomEvent("fenix-storage-ready",{detail:{mode:"indexeddb",migrated:migrate.length}}));window.dispatchEvent(new CustomEvent("fenix-state-change",{detail:{projects:true,assets:true,library:true,storage:true}}))});return{mode:"indexeddb",migrated:migrate.length}}catch(error){console.error("FENIX IndexedDB initialization failed",error);storageMode="localstorage";hydrateAllLibraryLinks();persist();storageReady=true;window.dispatchEvent(new CustomEvent("fenix-storage-error",{detail:{message:String(error?.message||error)}}));return{mode:"localstorage",migrated:false,error:String(error?.message||error)}}}
+  function ensureSchema(){const current=loadState();if(schemaMigrated||!window.FenixPageSchema?.normalize)return current;current.projects=current.projects.map(project=>hydrateLibraryLinks({...project,pages:project.pages.map(normalizePage),assets:normalizeAssets(project.assets)}));libraryState=normalizeAssets(libraryState);schemaMigrated=true;persist();return current}
+  function emit(changes={}){window.dispatchEvent(new CustomEvent("fenix-state-change",{detail:changes}));if(changes.projects||changes.activeProject)window.dispatchEvent(new Event("fenix-project-change"));if(changes.cart||changes.activeProject)window.dispatchEvent(new Event("fenix-cart-change"));if(changes.assets||changes.activeProject||changes.library)window.dispatchEvent(new Event("fenix-assets-change"));if(changes.library)window.dispatchEvent(new Event("fenix-library-change"))}
   function commit(changes){persist();emit(changes)}
-
-  function queueProjectAssets(project){
-    if(storageMode!=="indexeddb"||!project)return;
-    for(const asset of Object.values(project.assets||{}))if(asset?.dataUrl)enqueueStorage(()=>idbPut(project.id,asset));
-  }
-
-  const getProjects=()=>clone(ensureSchema().projects);
-  const getActiveProjectId=()=>ensureSchema().activeId;
-  const getActiveProject=()=>{
-    const current=ensureSchema();
-    return clone(current.projects.find(project=>project.id===current.activeId)||current.projects[0]);
-  };
-
-  function createProject(data={}){
-    const current=ensureSchema(),project=normalizeProject(data);
-    project.pages=project.pages.map(normalizePage);
-    current.projects.unshift(project);
-    current.activeId=project.id;
-    queueProjectAssets(project);
-    commit({projects:true,activeProject:true,cart:true,assets:true});
-    return clone(project);
-  }
-
-  function updateProject(id,patch={}){
-    const current=ensureSchema(),index=current.projects.findIndex(project=>project.id===id);
-    if(index<0)return false;
-    const existing=current.projects[index],pages=Array.isArray(patch.pages)?patch.pages.map(normalizePage):existing.pages;
-    current.projects[index]=normalizeProject({...existing,...patch,id:existing.id,createdAt:existing.createdAt,updatedAt:now(),pages});
-    if(patch.assets)queueProjectAssets(current.projects[index]);
-    commit({projects:true,cart:Array.isArray(patch.pages),assets:Boolean(patch.assets)});
-    return clone(current.projects[index]);
-  }
-
-  function setActiveProject(id){
-    const current=ensureSchema();
-    if(!current.projects.some(project=>project.id===id))return false;
-    current.activeId=id;
-    commit({activeProject:true,cart:true,assets:true});
-    return getActiveProject();
-  }
-
-  function deleteProject(id){
-    const current=ensureSchema();
-    if(current.projects.length===1||!current.projects.some(project=>project.id===id))return false;
-    current.projects=current.projects.filter(project=>project.id!==id);
-    if(current.activeId===id)current.activeId=current.projects[0].id;
-    if(storageMode==="indexeddb")enqueueStorage(()=>idbDeleteProject(id));
-    commit({projects:true,activeProject:true,cart:true,assets:true});
-    return true;
-  }
-
-  const getCart=()=>getActiveProject().pages;
-  function setCart(items){const pages=Array.isArray(items)?items.map(normalizePage):[];updateProject(getActiveProjectId(),{pages});return clone(pages)}
-  function addPage(page){const cart=getCart();cart.push(normalizePage(page));setCart(cart);return cart.length}
-  function updatePage(id,patch){
-    const cart=getCart(),index=cart.findIndex(item=>item.id===id);
-    if(index<0)return false;
-    cart[index]=normalizePage({...cart[index],...patch,id:cart[index].id,createdAt:cart[index].createdAt,updatedAt:now()});
-    setCart(cart);
-    return clone(cart[index]);
-  }
-  const removePage=id=>setCart(getCart().filter(item=>item.id!==id)),clear=()=>setCart([]);
-
-  function putAsset({id=null,name="Asset",filename="",mime="image/webp",mimeType="",dataUrl="",source="imported",width=0,height=0,sizeBytes=0,aspectRatio=null,tags=[],validation=null,meta={}}={}){
-    if(!dataUrl)throw new Error("Brak danych assetu.");
-    const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId);
-    if(!project)return false;
-    const assetId=id||uid(),existing=project.assets[assetId]||{};
-    project.assets[assetId]=normalizeAsset({...existing,id:assetId,name,filename:filename||existing.filename||name,mime:mimeType||mime||existing.mime,dataUrl,source,width:width||existing.width,height:height||existing.height,sizeBytes:sizeBytes||existing.sizeBytes,aspectRatio:aspectRatio??existing.aspectRatio,tags:Array.isArray(tags)&&tags.length?tags:existing.tags||[],validation:validation||existing.validation,meta:{...(existing.meta||{}),...(meta||{})},createdAt:existing.createdAt||now(),updatedAt:now()},assetId);
-    project.updatedAt=now();
-    if(storageMode==="indexeddb")enqueueStorage(()=>idbPut(project.id,project.assets[assetId]));
-    commit({projects:true,assets:true});
-    return clone(project.assets[assetId]);
-  }
-
-  function getAsset(id,projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);return clone(project?.assets?.[id]||null)}
-  function listAssets(projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);return Object.values(project?.assets||{}).map(normalizeAsset).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)))}
-  function findAssets(filters={},projectId=getActiveProjectId()){
-    const query=String(filters.query||"").trim().toLowerCase(),tag=String(filters.tag||"").trim().toLowerCase(),status=String(filters.status||"").trim().toLowerCase(),source=String(filters.source||"").trim().toLowerCase(),tags=normalizeTags(filters.tags);
-    return listAssets(projectId).filter(asset=>{
-      if(query&&!`${asset.name} ${asset.filename} ${(asset.tags||[]).join(" ")}`.toLowerCase().includes(query))return false;
-      if(tag&&!(asset.tags||[]).includes(tag))return false;
-      if(tags.length&&!tags.every(item=>(asset.tags||[]).includes(item)))return false;
-      if(status&&String(asset.validation?.status||"").toLowerCase()!==status)return false;
-      if(source&&String(asset.source||"").toLowerCase()!==source)return false;
-      return true;
-    });
-  }
-
-  function updateAsset(id,patch={}){
-    const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId),existing=project?.assets?.[id];
-    if(!existing)return false;
-    project.assets[id]=normalizeAsset({...existing,...clone(patch),id:existing.id,createdAt:existing.createdAt,updatedAt:now()},id);
-    project.updatedAt=now();
-    if(storageMode==="indexeddb"&&project.assets[id].dataUrl)enqueueStorage(()=>idbPut(project.id,project.assets[id]));
-    commit({projects:true,assets:true});
-    return clone(project.assets[id]);
-  }
-
-  function valueContainsAssetRef(value,id,seen=new Set()){
-    if(value==null)return false;
-    if(typeof value==="string")return value===id;
-    if(typeof value!=="object")return false;
-    if(seen.has(value))return false;
-    seen.add(value);
-    if(Array.isArray(value))return value.some(item=>valueContainsAssetRef(item,id,seen));
-    if(value.assetRef===id||value.assetId===id)return true;
-    return Object.values(value).some(item=>valueContainsAssetRef(item,id,seen));
-  }
-
-  function assetUsage(id,projectId=getActiveProjectId()){
-    const project=ensureSchema().projects.find(item=>item.id===projectId);
-    if(!project)return[];
-    return project.pages.map(normalizePage).filter(page=>valueContainsAssetRef(page,id)).map(page=>({id:page.id,title:page.title||"Strona",module:page.module||page.recipe?.module||"unknown"}));
-  }
-
-  function makeAssetRef(id){return getAsset(id)?{type:"project-asset",id}:null}
-  function resolveAssetRef(ref,projectId=getActiveProjectId()){
-    const id=typeof ref==="string"?ref:ref&&typeof ref==="object"?(ref.id||ref.assetId||ref.assetRef):null;
-    return id?getAsset(id,projectId):null;
-  }
-
-  function removeAsset(id,{force=false}={}){
-    const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId);
-    if(!project?.assets?.[id])return false;
-    const usage=assetUsage(id,project.id);
-    if(usage.length&&!force)return{removed:false,reason:"in-use",usage};
-    delete project.assets[id];
-    project.updatedAt=now();
-    if(storageMode==="indexeddb")enqueueStorage(()=>idbDelete(project.id,id));
-    commit({projects:true,assets:true});
-    return{removed:true,usage};
-  }
-
-  function importProjectPayload(payload){
-    if(!payload||typeof payload!=="object")throw new Error("Nieprawidłowy plik projektu.");
-    let source;
-    if(payload.type==="FENIX_PROJECT"&&payload.project)source=payload.project;
-    else if(payload.type==="FENIX_PACK"&&payload.project)source={...payload.project,pages:Array.isArray(payload.pages)?payload.pages:[],assets:payload.assets||payload.project.assets||{}};
-    else if(payload.project&&Array.isArray(payload.project.pages))source=payload.project;
-    else throw new Error("Plik nie jest projektem FENIX.");
-    const project=normalizeProject({...source,id:uid(),name:`${source.name||"Importowany projekt"} — import`,createdAt:now(),updatedAt:now()});
-    project.pages=project.pages.map(normalizePage);
-    const current=ensureSchema();
-    current.projects.unshift(project);
-    current.activeId=project.id;
-    queueProjectAssets(project);
-    commit({projects:true,activeProject:true,cart:true,assets:true});
-    return clone(project);
-  }
-
-  const download=(name,text,type="application/json")=>{const anchor=document.createElement("a");anchor.href=URL.createObjectURL(new Blob([text],{type}));anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(anchor.href),1000)};
-  const safeName=name=>String(name||"projekt").toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi,"-").replace(/^-|-$/g,"")||"projekt";
-  function exportPack(){const project=getActiveProject();download(`${safeName(project.name)}-${new Date().toISOString().slice(0,10)}.fenixpack`,JSON.stringify({type:"FENIX_PACK",version:5,schemaVersion:window.FenixPageSchema?.VERSION||3,project:{...project,pages:undefined},pages:project.pages,assets:project.assets},null,2))}
-  function exportProject(){const project=getActiveProject();download(`${safeName(project.name)}.fenixproject`,JSON.stringify({type:"FENIX_PROJECT",version:4,schemaVersion:window.FenixPageSchema?.VERSION||3,project},null,2))}
-  const downloadCanvas=(canvas,name)=>canvas.toBlob(blob=>{if(!blob)return;const anchor=document.createElement("a");anchor.href=URL.createObjectURL(blob);anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(anchor.href),1000)},"image/png");
-
-  async function flushStorage(){await ready;await storageQueue;return true}
-  function getStorageInfo(){return{mode:storageMode,ready:storageReady,heavyAssetsInIndexedDB:storageMode==="indexeddb"}}
-
-  loadState();
-  const ready=initializeStorage();
-
-  return Object.freeze({ready,flushStorage,getStorageInfo,getProjects,getActiveProjectId,getActiveProject,createProject,updateProject,setActiveProject,deleteProject,getCart,setCart,addPage,updatePage,removePage,clear,putAsset,getAsset,listAssets,findAssets,updateAsset,assetUsage,makeAssetRef,resolveAssetRef,removeAsset,importProjectPayload,exportPack,exportProject,download,downloadCanvas});
+  function queueProjectAssets(project){if(storageMode!=="indexeddb"||!project)return;for(const asset of Object.values(project.assets||{}))if(asset?.dataUrl&&!libraryRefOf(asset))enqueueStorage(()=>idbPut(project.id,asset))}
+  function queueLibraryAsset(asset){if(storageMode==="indexeddb"&&asset?.dataUrl)enqueueStorage(()=>idbPut(LIBRARY_SCOPE,asset))}
+  const getProjects=()=>clone(ensureSchema().projects),getActiveProjectId=()=>ensureSchema().activeId,getActiveProject=()=>{const current=ensureSchema();return clone(current.projects.find(project=>project.id===current.activeId)||current.projects[0])};
+  function createProject(data={}){const current=ensureSchema(),project=hydrateLibraryLinks(normalizeProject(data));project.pages=project.pages.map(normalizePage);current.projects.unshift(project);current.activeId=project.id;queueProjectAssets(project);commit({projects:true,activeProject:true,cart:true,assets:true});return clone(project)}
+  function updateProject(id,patch={}){const current=ensureSchema(),index=current.projects.findIndex(project=>project.id===id);if(index<0)return false;const existing=current.projects[index],pages=Array.isArray(patch.pages)?patch.pages.map(normalizePage):existing.pages;current.projects[index]=hydrateLibraryLinks(normalizeProject({...existing,...patch,id:existing.id,createdAt:existing.createdAt,updatedAt:now(),pages}));if(patch.assets)queueProjectAssets(current.projects[index]);commit({projects:true,cart:Array.isArray(patch.pages),assets:Boolean(patch.assets)});return clone(current.projects[index])}
+  function setActiveProject(id){const current=ensureSchema();if(!current.projects.some(project=>project.id===id))return false;current.activeId=id;commit({activeProject:true,cart:true,assets:true});return getActiveProject()}
+  function deleteProject(id){const current=ensureSchema();if(current.projects.length===1||!current.projects.some(project=>project.id===id))return false;current.projects=current.projects.filter(project=>project.id!==id);if(current.activeId===id)current.activeId=current.projects[0].id;if(storageMode==="indexeddb")enqueueStorage(()=>idbDeleteProject(id));commit({projects:true,activeProject:true,cart:true,assets:true});return true}
+  const getCart=()=>getActiveProject().pages;function setCart(items){const pages=Array.isArray(items)?items.map(normalizePage):[];updateProject(getActiveProjectId(),{pages});return clone(pages)}function addPage(page){const cart=getCart();cart.push(normalizePage(page));setCart(cart);return cart.length}function updatePage(id,patch){const cart=getCart(),index=cart.findIndex(item=>item.id===id);if(index<0)return false;cart[index]=normalizePage({...cart[index],...patch,id:cart[index].id,createdAt:cart[index].createdAt,updatedAt:now()});setCart(cart);return clone(cart[index])}const removePage=id=>setCart(getCart().filter(item=>item.id!==id)),clear=()=>setCart([]);
+  function putAsset({id=null,name="Asset",filename="",mime="image/webp",mimeType="",dataUrl="",source="imported",width=0,height=0,sizeBytes=0,aspectRatio=null,tags=[],validation=null,meta={},libraryRef="",pack=""}={}){if(!dataUrl)throw new Error("Brak danych assetu.");const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId);if(!project)return false;const assetId=id||uid(),existing=project.assets[assetId]||{};project.assets[assetId]=normalizeAsset({...existing,id:assetId,name,filename:filename||existing.filename||name,mime:mimeType||mime||existing.mime,dataUrl,source,width:width||existing.width,height:height||existing.height,sizeBytes:sizeBytes||existing.sizeBytes,aspectRatio:aspectRatio??existing.aspectRatio,tags:Array.isArray(tags)&&tags.length?tags:existing.tags||[],validation:validation||existing.validation,meta:{...(existing.meta||{}),...(meta||{})},libraryRef:libraryRef||existing.libraryRef||"",pack:pack||existing.pack||"",createdAt:existing.createdAt||now(),updatedAt:now()},assetId);project.updatedAt=now();if(storageMode==="indexeddb"&&!libraryRefOf(project.assets[assetId]))enqueueStorage(()=>idbPut(project.id,project.assets[assetId]));commit({projects:true,assets:true});return clone(project.assets[assetId])}
+  function getAsset(id,projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);return clone(project?.assets?.[id]||null)}function listAssets(projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);return Object.values(project?.assets||{}).map(normalizeAsset).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)))}function findAssets(filters={},projectId=getActiveProjectId()){const query=String(filters.query||"").trim().toLowerCase(),tag=String(filters.tag||"").trim().toLowerCase(),status=String(filters.status||"").trim().toLowerCase(),source=String(filters.source||"").trim().toLowerCase(),tags=normalizeTags(filters.tags);return listAssets(projectId).filter(asset=>{if(query&&!`${asset.name} ${asset.filename} ${(asset.tags||[]).join(" ")} ${asset.pack||""}`.toLowerCase().includes(query))return false;if(tag&&!(asset.tags||[]).includes(tag))return false;if(tags.length&&!tags.every(item=>(asset.tags||[]).includes(item)))return false;if(status&&String(asset.validation?.status||"").toLowerCase()!==status)return false;if(source&&String(asset.source||"").toLowerCase()!==source)return false;return true})}
+  function updateAsset(id,patch={}){const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId),existing=project?.assets?.[id];if(!existing)return false;const ref=libraryRefOf(existing);project.assets[id]=normalizeAsset({...existing,...clone(patch),id:existing.id,createdAt:existing.createdAt,updatedAt:now(),libraryRef:ref||patch.libraryRef||""},id);project.updatedAt=now();if(storageMode==="indexeddb"&&project.assets[id].dataUrl&&!libraryRefOf(project.assets[id]))enqueueStorage(()=>idbPut(project.id,project.assets[id]));commit({projects:true,assets:true});return clone(project.assets[id])}
+  function valueContainsAssetRef(value,id,seen=new Set()){if(value==null)return false;if(typeof value==="string")return value===id;if(typeof value!=="object")return false;if(seen.has(value))return false;seen.add(value);if(Array.isArray(value))return value.some(item=>valueContainsAssetRef(item,id,seen));if(value.assetRef===id||value.assetId===id)return true;return Object.values(value).some(item=>valueContainsAssetRef(item,id,seen))}function assetUsage(id,projectId=getActiveProjectId()){const project=ensureSchema().projects.find(item=>item.id===projectId);if(!project)return[];return project.pages.map(normalizePage).filter(page=>valueContainsAssetRef(page,id)).map(page=>({id:page.id,title:page.title||"Strona",module:page.module||page.recipe?.module||"unknown"}))}function makeAssetRef(id){return getAsset(id)?{type:"project-asset",id}:null}function resolveAssetRef(ref,projectId=getActiveProjectId()){const id=typeof ref==="string"?ref:ref&&typeof ref==="object"?(ref.id||ref.assetId||ref.assetRef):null;return id?getAsset(id,projectId):null}function removeAsset(id,{force=false}={}){const current=ensureSchema(),project=current.projects.find(item=>item.id===current.activeId);if(!project?.assets?.[id])return false;const usage=assetUsage(id,project.id);if(usage.length&&!force)return{removed:false,reason:"in-use",usage};const linked=Boolean(libraryRefOf(project.assets[id]));delete project.assets[id];project.updatedAt=now();if(storageMode==="indexeddb"&&!linked)enqueueStorage(()=>idbDelete(project.id,id));commit({projects:true,assets:true});return{removed:true,usage}}
+  function getAssetLibrary(){loadState();return clone(libraryState)}function listLibraryAssets({query="",pack=""}={}){loadState();const q=String(query||"").trim().toLowerCase(),p=String(pack||"").trim().toLowerCase();return Object.values(libraryState||{}).map(normalizeAsset).filter(asset=>(!q||`${asset.name} ${asset.filename} ${asset.pack||""} ${(asset.tags||[]).join(" ")}`.toLowerCase().includes(q))&&(!p||String(asset.pack||"").toLowerCase()===p)).sort((a,b)=>String(a.pack||"").localeCompare(String(b.pack||""))||String(a.name||"").localeCompare(String(b.name||""),"pl"))}function listLibraryPacks(){return[...new Set(listLibraryAssets().map(asset=>String(asset.pack||"Bez pakietu").trim()||"Bez pakietu"))].sort((a,b)=>a.localeCompare(b,"pl"))}
+  function putLibraryAsset(data={}){loadState();if(!data.dataUrl)throw new Error("Brak danych assetu biblioteki.");const assetId=data.id||uid(),existing=libraryState[assetId]||{},asset=normalizeAsset({...existing,...clone(data),id:assetId,source:"fenix-library",pack:String(data.pack||existing.pack||"Bez pakietu").trim()||"Bez pakietu",createdAt:existing.createdAt||now(),updatedAt:now()},assetId);asset.libraryRef="";if(asset.meta)delete asset.meta.libraryRef;libraryState[assetId]=asset;queueLibraryAsset(asset);hydrateAllLibraryLinks();commit({library:true,assets:true});return clone(asset)}
+  function updateLibraryAsset(id,patch={}){loadState();const existing=libraryState[id];if(!existing)return false;libraryState[id]=normalizeAsset({...existing,...clone(patch),id,source:"fenix-library",createdAt:existing.createdAt,updatedAt:now()},id);libraryState[id].libraryRef="";if(libraryState[id].meta)delete libraryState[id].meta.libraryRef;queueLibraryAsset(libraryState[id]);for(const project of state.projects)for(const asset of Object.values(project.assets||{}))if(libraryRefOf(asset)===id){const localId=asset.id;project.assets[localId]=normalizeAsset({...asset,...libraryState[id],id:localId,libraryRef:id,source:"fenix-library",meta:{...(asset.meta||{}),libraryRef:id,pack:libraryState[id].pack}},localId)}commit({library:true,projects:true,assets:true});return clone(libraryState[id])}
+  function libraryUsage(id){const current=ensureSchema(),usage=[];for(const project of current.projects)for(const asset of Object.values(project.assets||{}))if(libraryRefOf(asset)===id)usage.push({projectId:project.id,projectName:project.name,assetId:asset.id});return usage}function removeLibraryAsset(id,{force=false}={}){loadState();if(!libraryState[id])return false;const usage=libraryUsage(id);if(usage.length&&!force)return{removed:false,reason:"in-use",usage};if(force)for(const project of state.projects)for(const [assetId,asset] of Object.entries(project.assets||{}))if(libraryRefOf(asset)===id)delete project.assets[assetId];delete libraryState[id];if(storageMode==="indexeddb")enqueueStorage(()=>idbDelete(LIBRARY_SCOPE,id));commit({library:true,projects:force,assets:true});return{removed:true,usage}}
+  function linkLibraryAsset(libraryId,projectId=getActiveProjectId()){const current=ensureSchema(),project=current.projects.find(item=>item.id===projectId),source=libraryState?.[libraryId];if(!project||!source)return false;const existing=Object.values(project.assets||{}).find(asset=>libraryRefOf(asset)===libraryId);if(existing)return clone(existing);let localId=`library-${libraryId}`;if(project.assets[localId]&&libraryRefOf(project.assets[localId])!==libraryId)localId=`library-${libraryId}-${uid()}`;project.assets[localId]=normalizeAsset({...source,id:localId,libraryRef:libraryId,source:"fenix-library",meta:{...(source.meta||{}),libraryRef:libraryId,pack:source.pack},createdAt:now(),updatedAt:now()},localId);project.updatedAt=now();commit({projects:true,assets:true,library:true});return clone(project.assets[localId])}function unlinkLibraryAsset(libraryId,projectId=getActiveProjectId()){const current=ensureSchema(),project=current.projects.find(item=>item.id===projectId);if(!project)return false;const pair=Object.entries(project.assets||{}).find(([,asset])=>libraryRefOf(asset)===libraryId);if(!pair)return false;const [assetId]=pair,usage=assetUsage(assetId,projectId);if(usage.length)return{removed:false,reason:"in-use",usage};delete project.assets[assetId];project.updatedAt=now();commit({projects:true,assets:true,library:true});return{removed:true}}
+  function mergeAssetLibrary(value,{prefer="newer"}={}){loadState();const incoming=normalizeAssets(value),stats={created:0,updated:0,kept:0};for(const [id,remote] of Object.entries(incoming)){const here=libraryState[id];if(!here){libraryState[id]=remote;queueLibraryAsset(remote);stats.created++;continue}const take=prefer==="remote"||prefer==="newer"&&String(remote.updatedAt||remote.createdAt||"").localeCompare(String(here.updatedAt||here.createdAt||""))>0;if(take){libraryState[id]=remote;queueLibraryAsset(remote);stats.updated++}else stats.kept++}hydrateAllLibraryLinks();commit({library:true,projects:true,assets:true});return stats}
+  function importProjectPayload(payload){if(!payload||typeof payload!=="object")throw new Error("Nieprawidłowy plik projektu.");let source;if(payload.type==="FENIX_PROJECT"&&payload.project)source=payload.project;else if(payload.type==="FENIX_PACK"&&payload.project)source={...payload.project,pages:Array.isArray(payload.pages)?payload.pages:[],assets:payload.assets||payload.project.assets||{}};else if(payload.project&&Array.isArray(payload.project.pages))source=payload.project;else throw new Error("Plik nie jest projektem FENIX.");const project=hydrateLibraryLinks(normalizeProject({...source,id:uid(),name:`${source.name||"Importowany projekt"} — import`,createdAt:now(),updatedAt:now()}));project.pages=project.pages.map(normalizePage);const current=ensureSchema();current.projects.unshift(project);current.activeId=project.id;queueProjectAssets(project);commit({projects:true,activeProject:true,cart:true,assets:true});return clone(project)}
+  const download=(name,text,type="application/json")=>{const anchor=document.createElement("a");anchor.href=URL.createObjectURL(new Blob([text],{type}));anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(anchor.href),1000)},safeName=name=>String(name||"projekt").toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi,"-").replace(/^-|-$/g,"")||"projekt";function exportPack(){const project=getActiveProject();download(`${safeName(project.name)}-${new Date().toISOString().slice(0,10)}.fenixpack`,JSON.stringify({type:"FENIX_PACK",version:6,schemaVersion:window.FenixPageSchema?.VERSION||3,project:{...project,pages:undefined},pages:project.pages,assets:project.assets},null,2))}function exportProject(){const project=getActiveProject();download(`${safeName(project.name)}.fenixproject`,JSON.stringify({type:"FENIX_PROJECT",version:5,schemaVersion:window.FenixPageSchema?.VERSION||3,project},null,2))}const downloadCanvas=(canvas,name)=>canvas.toBlob(blob=>{if(!blob)return;const anchor=document.createElement("a");anchor.href=URL.createObjectURL(blob);anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(anchor.href),1000)},"image/png");async function flushStorage(){await ready;await storageQueue;return true}function getStorageInfo(){return{mode:storageMode,ready:storageReady,heavyAssetsInIndexedDB:storageMode==="indexeddb",globalLibrary:true,libraryAssets:Object.keys(libraryState||{}).length}}
+  loadState();const ready=initializeStorage();return Object.freeze({ready,flushStorage,getStorageInfo,getProjects,getActiveProjectId,getActiveProject,createProject,updateProject,setActiveProject,deleteProject,getCart,setCart,addPage,updatePage,removePage,clear,putAsset,getAsset,listAssets,findAssets,updateAsset,assetUsage,makeAssetRef,resolveAssetRef,removeAsset,getAssetLibrary,listLibraryAssets,listLibraryPacks,putLibraryAsset,updateLibraryAsset,removeLibraryAsset,libraryUsage,linkLibraryAsset,unlinkLibraryAsset,mergeAssetLibrary,importProjectPayload,exportPack,exportProject,download,downloadCanvas});
 })();
