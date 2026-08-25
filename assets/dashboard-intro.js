@@ -49,6 +49,39 @@
 })();
 
 (()=>{
+  const STORAGE_KEY="fenix-project-assets-collapsed-v1";
+  const boot=()=>{
+    const panel=document.getElementById("projectAssets");if(!panel)return;
+    const head=panel.querySelector(":scope > .panel-head");if(!head||head.querySelector(".project-assets-collapse-toggle"))return;
+    const toggle=document.createElement("button");toggle.type="button";toggle.className="project-assets-collapse-toggle";toggle.setAttribute("aria-controls","projectAssets");
+    const apply=collapsed=>{
+      panel.classList.toggle("is-collapsed",collapsed);
+      panel.dataset.collapsed=collapsed?"true":"false";
+      toggle.setAttribute("aria-expanded",collapsed?"false":"true");
+      toggle.innerHTML=collapsed?`<span aria-hidden="true">▾</span> Rozwiń assety`:`<span aria-hidden="true">▴</span> Zwiń assety`;
+      try{localStorage.setItem(STORAGE_KEY,collapsed?"1":"0")}catch{}
+    };
+    const right=document.createElement("div");right.className="project-assets-head-actions";
+    const existing=[...head.children].find(el=>el.id==="projectAssetsCount"||el.querySelector?.("#projectAssetsCount"));
+    if(existing){head.removeChild(existing);right.appendChild(existing)}
+    right.appendChild(toggle);head.appendChild(right);
+    toggle.addEventListener("click",()=>apply(!panel.classList.contains("is-collapsed")));
+    let collapsed=true;try{const saved=localStorage.getItem(STORAGE_KEY);if(saved!==null)collapsed=saved==="1"}catch{}
+    apply(collapsed);
+    const style=document.createElement("style");style.textContent=`
+      .dashboard-v2 .project-assets-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+      .dashboard-v2 .project-assets-collapse-toggle{min-height:34px;padding:7px 11px;border:1px solid color-mix(in srgb,var(--dv2-orange) 45%,var(--dv2-line));border-radius:9px;background:var(--dv2-orange-soft);color:var(--dv2-orange);font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}
+      .dashboard-v2 .project-assets-collapse-toggle:hover{border-color:var(--dv2-orange)}
+      .dashboard-v2 .project-assets-panel.is-collapsed{padding-bottom:14px!important}
+      .dashboard-v2 .project-assets-panel.is-collapsed>:not(.panel-head){display:none!important}
+      .dashboard-v2 .project-assets-panel.is-collapsed .panel-head{margin-bottom:0!important}
+      @media(max-width:760px){.dashboard-v2 .project-assets-head-actions{width:100%;justify-content:space-between}.dashboard-v2 .project-assets-collapse-toggle{flex:1}}
+    `;document.head.appendChild(style);
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
+
+(()=>{
   const load=(src,done)=>{if(document.querySelector(`script[data-fenix-sync-src="${src}"]`))return done?.();const s=document.createElement("script");s.src=src;s.dataset.fenixSyncSrc=src;s.onload=()=>done?.();document.body.appendChild(s)};
   const boot=()=>load("core/sync-core.js?v=7",()=>load("core/sync-ui.js?v=7"));
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
