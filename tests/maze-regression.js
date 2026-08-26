@@ -12,7 +12,7 @@
  const assets={start:fake(260,180),goal:fake(180,180),checkpoint:fake(220,160),hazard:fake(260,150)};
  const a=FenixMaze.render(normalized,{solution:true,width:850,height:1100,assetImages:assets});
  const b=FenixMaze.render(normalized,{solution:true,width:2550,height:3300,assetImages:assets});
- check("Canonical renderer version",a.rendererVersion==="0.31.1"&&b.rendererVersion==="0.31.1",`${a.rendererVersion}/${b.rendererVersion}`);
+ check("Canonical renderer version",a.rendererVersion==="0.31.2"&&b.rendererVersion==="0.31.2",`${a.rendererVersion}/${b.rendererVersion}`);
  const sig=r=>JSON.stringify({start:r.maze.start,end:r.maze.end,checkpoints:r.checkpoints,hazards:r.hazards,solution:r.solutionPath});
  check("Preview and print geometry identical",sig(a)===sig(b));
  const roles=a.clearanceRects.map(x=>x.role);
@@ -20,6 +20,10 @@
  check("META clearance exists",roles.includes("goal"));
  check("Checkpoint clearance exists",roles.includes("checkpoint"));
  check("Hazard clearance exists",roles.filter(x=>x==="hazard").length===2,`hazards=${roles.filter(x=>x==="hazard").length}`);
+ const inside=(box,bounds)=>box.left>=bounds.left-.01&&box.top>=bounds.top-.01&&box.right<=bounds.right+.01&&box.bottom<=bounds.bottom+.01;
+ const startZone=a.clearanceRects.find(x=>x.role==="start"),goalZone=a.clearanceRects.find(x=>x.role==="goal");
+ check("START bbox stays inside maze",!!startZone&&inside(startZone.box,a.mazeBounds));
+ check("META bbox stays inside maze",!!goalZone&&inside(goalZone.box,a.mazeBounds));
  const pkey=([x,y])=>`${x},${y}`,solution=new Set((a.solutionPath||[]).map(pkey)),hazards=new Set((a.hazards||[]).map(pkey));
  check("Solution exists",(a.solutionPath||[]).length>1,`cells=${a.solutionPath?.length||0}`);
  check("Solution visits checkpoint",(a.checkpoints||[]).every(p=>solution.has(pkey(p))));
