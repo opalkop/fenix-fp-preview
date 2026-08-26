@@ -1,0 +1,1 @@
+Maze 0.33.0 regression target: asset rooms are reserved before final maze generation; renderer must not erase walls post-generation.
