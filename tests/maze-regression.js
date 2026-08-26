@@ -12,7 +12,7 @@
  const assets={start:fake(260,180),goal:fake(180,180),checkpoint:fake(220,160),hazard:fake(260,150)};
  const a=FenixMaze.render(normalized,{solution:true,width:850,height:1100,assetImages:assets});
  const b=FenixMaze.render(normalized,{solution:true,width:2550,height:3300,assetImages:assets});
- check("Canonical renderer version",a.rendererVersion==="0.31.0"&&b.rendererVersion==="0.31.0",`${a.rendererVersion}/${b.rendererVersion}`);
+ check("Canonical renderer version",a.rendererVersion==="0.31.1"&&b.rendererVersion==="0.31.1",`${a.rendererVersion}/${b.rendererVersion}`);
  const sig=r=>JSON.stringify({start:r.maze.start,end:r.maze.end,checkpoints:r.checkpoints,hazards:r.hazards,solution:r.solutionPath});
  check("Preview and print geometry identical",sig(a)===sig(b));
  const roles=a.clearanceRects.map(x=>x.role);

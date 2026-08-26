@@ -1,0 +1,19 @@
+<!doctype html><html><body>
+<select id="pageSelect"><option value="">Nowa strona</option></select>
+<input id="title" value="Help the Turtle Find the Shell!"><input id="subtitle" value="Ocean Mission 1"><input id="instruction" value="Guide the turtle through the maze to the shell.">
+<input id="titleSize" value="96"><input id="titleY" value="230"><input id="subtitleSize" value="52"><input id="instructionSize" value="52">
+<select id="ageProfile"><option value="4-6" selected>4-6</option></select><select id="difficulty"><option value="easy" selected>easy</option><option value="custom">custom</option></select>
+<input id="cols" value="12"><input id="rows" value="16"><input id="lineWidth" value="2"><select id="endpointMode"><option value="random" selected>random</option></select><select id="wallStyle"><option value="clean" selected>clean</option></select><input id="seed" value="1">
+<select id="startAsset"><option value="turtle" selected>turtle</option></select><select id="goalAsset"><option value="shell" selected>shell</option></select><select id="checkpointAsset"><option value="">none</option></select><select id="hazardAsset"><option value="">none</option></select>
+<input id="startAssetScale" value="180"><input id="goalAssetScale" value="140"><input id="checkpointCount" value="0"><input id="checkpointScale" value="80"><input id="hazardCount" value="0"><input id="hazardScale" value="78"><div id="decoAssetChoices"></div><input id="decoCount" value="0"><input id="decoScale" value="80">
+<input id="sideMargin" value="80"><input id="topMargin" value="170"><input id="bottomMargin" value="90"><input id="mazeScale" value="92"><select id="solution"><option value="no" selected>no</option></select>
+<button id="saveCart">save</button><button id="saveCopy">copy</button><div id="status"></div><pre id="out"></pre>
+<script src="../core/page-schema.js"></script>
+<script>
+(()=>{let cart=[];window.FenixCore={getCart:()=>cart,addPage:data=>{cart=[...cart,{...data,id:'maze-1'}];window.dispatchEvent(new CustomEvent('fenix-state-change',{detail:{cart:true}}))},updatePage:(id,data)=>{cart=cart.map(p=>p.id===id?{...data,id}:p);window.dispatchEvent(new CustomEvent('fenix-state-change',{detail:{cart:true}}))}};
+window.addEventListener('fenix-state-change',()=>{document.getElementById('cols').value='18';document.getElementById('rows').value='24';document.getElementById('difficulty').value='custom';document.getElementById('startAsset').value='';document.getElementById('goalAsset').value='';});})();
+</script>
+<script src="../modules/maze-studio/maze-save-stabilizer.js"></script>
+<script>
+setTimeout(()=>{document.getElementById('saveCart').click();setTimeout(()=>{const saved=FenixCore.getCart()[0],s=saved?.recipe?.settings||{},checks=[['form cols unchanged',document.getElementById('cols').value==='12'],['form rows unchanged',document.getElementById('rows').value==='16'],['form difficulty unchanged',document.getElementById('difficulty').value==='easy'],['form start asset unchanged',document.getElementById('startAsset').value==='turtle'],['form goal asset unchanged',document.getElementById('goalAsset').value==='shell'],['saved 12x16',s.cols===12&&s.rows===16],['saved lineWidth 2',s.lineWidth===2],['saved asset refs',s.startAssetRef==='turtle'&&s.goalAssetRef==='shell'],['saved scales',s.startAssetScale===180&&s.goalAssetScale===140]];const failed=checks.filter(([,ok])=>!ok);document.getElementById('out').textContent=(failed.length?'Maze save regression FAIL':'Maze save regression PASS')+'\n'+checks.map(([n,ok])=>(ok?'✓ ':'✗ ')+n).join('\n');document.documentElement.dataset.mazeSaveRegression=failed.length?'fail':'pass'},0)},0);
+</script></body></html>
