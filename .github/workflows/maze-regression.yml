@@ -1,0 +1,53 @@
+name: Maze regression
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'modules/maze-studio/**'
+      - 'modules/book-builder/**'
+      - 'core/page-schema.js'
+      - 'tests/maze-regression.*'
+      - '.github/workflows/maze-regression.yml'
+  workflow_dispatch:
+
+jobs:
+  maze-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Syntax check
+        run: |
+          node --check modules/maze-studio/maze.js
+          node --check modules/maze-studio/maze-engine.js
+          node --check modules/maze-studio/maze-render-fix.js
+          node --check modules/maze-studio/maze-difficulty.js
+          node --check tests/maze-regression.js
+      - name: Install browser runner
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8000 >/tmp/fenix-http.log 2>&1 &
+          echo $! >/tmp/fenix-http.pid
+      - name: Run Maze browser regression
+        run: |
+          node - <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage();
+            await page.goto('http://127.0.0.1:8000/tests/maze-regression.html', {waitUntil:'networkidle'});
+            await page.waitForFunction(() => !document.querySelector('#out').textContent.startsWith('Uruchamiam'), null, {timeout:10000});
+            const text = await page.locator('#out').textContent();
+            console.log(text);
+            await browser.close();
+            if (!text.startsWith('Maze regression PASS')) process.exit(1);
+          })().catch(error=>{console.error(error);process.exit(1)});
+          NODE
