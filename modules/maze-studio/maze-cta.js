@@ -15,6 +15,18 @@
    else if(state.classList.contains("ready"))set("ready");
    else set("idle");
  };
+ const nextPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ const originalClick=btn.onclick;
+ if(typeof originalClick==="function"){
+   btn.onclick=async event=>{
+     set("generating");
+     await nextPaint();
+     return originalClick.call(btn,event);
+   };
+ }
+ btn.addEventListener("pointerdown",()=>{
+   if(!btn.disabled)set("generating");
+ });
  const observer=new MutationObserver(sync);
  observer.observe(state,{attributes:true,childList:true,subtree:true,characterData:true});
  const btnObserver=new MutationObserver(sync);
