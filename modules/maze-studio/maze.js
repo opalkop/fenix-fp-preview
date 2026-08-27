@@ -6,7 +6,7 @@
   const fields=Object.fromEntries(ids.map(id=>[id,$(id)]));
   const PRESETS={"4-6":{easy:{cols:12,rows:16,lineWidth:7,mazeScale:92},medium:{cols:16,rows:20,lineWidth:6,mazeScale:96},hard:{cols:20,rows:26,lineWidth:5,mazeScale:100}},"5-7":{easy:{cols:14,rows:18,lineWidth:7,mazeScale:94},medium:{cols:18,rows:24,lineWidth:6,mazeScale:98},hard:{cols:24,rows:30,lineWidth:5,mazeScale:100}},"6-8":{easy:{cols:16,rows:22,lineWidth:6,mazeScale:95},medium:{cols:22,rows:28,lineWidth:5,mazeScale:99},hard:{cols:28,rows:36,lineWidth:4,mazeScale:100}}};
   const LABELS={easy:"Łatwy",medium:"Średni",hard:"Trudny",custom:"Własny"};
-  let currentId=null,generationSnapshot=null,generationResult=null,dirty=true,applyingPreset=false,saving=false,generating=false;
+  let currentId=null,generationSnapshot=null,generationResult=null,dirty=true,applyingPreset=false,saving=false,generating=false,readyLocked=false;
 
   const clone=v=>v==null?v:typeof structuredClone==="function"?structuredClone(v):JSON.parse(JSON.stringify(v));
   const num=(id,f)=>{const v=Number(fields[id]?.value);return Number.isFinite(v)?v:f};
@@ -40,10 +40,12 @@
 
   function makePage(){
     const s=settings(),seed=Number(fields.seed.value)||1,title=fields.title.value.trim()||"Find the Way!";
-    return{module:"maze-studio",title,seed,settings:s,recipe:{module:"maze-studio",seed,title,settings:s,meta:{createdWith:"FENIX PC",desktopEditedAt:new Date().toISOString(),generationMode:"explicit-0.33.6"}},solution:{available:true,imageData:null},source:{app:"fenix-desktop",version:"0.33.6",format:"native"}};
+    return{module:"maze-studio",title,seed,settings:s,recipe:{module:"maze-studio",seed,title,settings:s,meta:{createdWith:"FENIX PC",desktopEditedAt:new Date().toISOString(),generationMode:"explicit-0.33.10"}},solution:{available:true,imageData:null},source:{app:"fenix-desktop",version:"0.33.10",format:"native"}};
   }
 
-  function setDirty(){
+  function setDirty(userInitiated=true){
+    if(!userInitiated&&readyLocked)return;
+    if(userInitiated)readyLocked=false;
     dirty=true;saveButton.disabled=true;saveCopy.disabled=true;setCta("idle");
     generationState.textContent=generationSnapshot?"Ustawienia zostały zmienione. Podgląd pokazuje poprzednią generację — kliknij „Generuj labirynt”, aby utworzyć nową.":"Brak wygenerowanego labiryntu. Ustaw dane i kliknij „Generuj labirynt”.";
     generationState.className="note generation-state dirty";
@@ -67,14 +69,14 @@
     setSelectOptions(fields.hazardAsset,gameplay,saved.hazardAssetRef??fields.hazardAsset.value);
     const chosen=new Set(saved.decoAssetRefs??selectedDecoRefs());
     decoChoices.innerHTML=deco.length?deco.map(a=>`<label class="deco-choice"><input type="checkbox" value="${esc(a.id)}" ${chosen.has(a.id)?"checked":""}><span><strong>${esc(a.name)}</strong><small>${a.validation?.status==="ok"?"✓ B&W OK":"! sprawdź B&W"}</small></span></label>`).join(""):'<div class="asset-empty">Brak assetów Deco.</div>';
-    decoChoices.querySelectorAll('input').forEach(i=>i.addEventListener("change",()=>{updateDecoSummary();setDirty()}));
+    decoChoices.querySelectorAll('input').forEach(i=>i.addEventListener("change",()=>{updateDecoSummary();setDirty(true)}));
     updateDecoSummary();
     assetInfo.textContent=`Biblioteka projektu: Maze ${gameplay.length} · Deco ${deco.length}. Generator uwzględni assety i ich skale dopiero po kliknięciu „Generuj labirynt”.`;
   }
 
   async function generate(){
     if(!window.FenixMaze||generating)return;
-    generating=true;generateButton.disabled=true;setCta("generating");status.textContent="Generuję z aktualnych danych…";
+    readyLocked=false;generating=true;setCta("generating");status.textContent="Generuję z aktualnych danych…";
     await nextPaint();
     try{
       const page=makePage();page.recipe.settings.endpoints=null;
@@ -82,16 +84,16 @@
       const result=FenixMaze.render(page,{solution:page.recipe.settings.showSolution,width:2550,height:3300,canvas,assetImages});
       page.recipe.settings.endpoints=clone(result.endpoints);
       page.recipe.meta.renderState={showSolution:page.recipe.settings.showSolution,endpoints:clone(result.endpoints)};
-      generationSnapshot=FenixPageSchema.normalize(page);generationResult=clone(result);dirty=false;
+      generationSnapshot=FenixPageSchema.normalize(page);generationResult=clone(result);dirty=false;readyLocked=true;
       saveButton.disabled=false;saveCopy.disabled=false;
       generationState.textContent=`Wygenerowano i zamrożono: ${page.recipe.settings.cols}×${page.recipe.settings.rows} · seed ${page.recipe.seed} · START/META i strefy assetów uwzględnione.`;
       generationState.className="note generation-state ready";
       status.textContent=`Gotowy · ${LABELS[page.recipe.settings.difficulty]||page.recipe.settings.difficulty} · ${page.recipe.settings.cols}×${page.recipe.settings.rows} · checkpointy ${result.checkpoints?.length||0} · zagrożenia ${result.hazards?.length||0}`;
       setCta("ready");
     }catch(err){
-      console.error(err);status.textContent="Błąd generowania labiryntu.";setCta("idle");
+      readyLocked=false;console.error(err);status.textContent="Błąd generowania labiryntu.";setCta("idle");
     }finally{
-      generating=false;generateButton.disabled=false;
+      generating=false;
     }
   }
 
@@ -99,21 +101,21 @@
   function refill(){const pages=mazePages();select.innerHTML=`<option value="">Nowa strona</option>`+pages.map(p=>`<option value="${p.id}">${esc(p.title||"Labirynt")}</option>`).join("");select.value=currentId||""}
 
   async function load(id){
-    currentId=id||null;generationSnapshot=null;generationResult=null;
+    readyLocked=false;currentId=id||null;generationSnapshot=null;generationResult=null;
     const raw=currentId?FenixCore.getCart().find(p=>p.id===currentId):null;
-    if(!raw){fields.ageProfile.value="4-6";fields.difficulty.value="easy";refreshAssets({startAssetRef:null,goalAssetRef:null,checkpointAssetRef:null,hazardAssetRef:null,decoAssetRefs:[]});applyPreset(false);setDirty();status.textContent="Czeka na generowanie";return}
+    if(!raw){fields.ageProfile.value="4-6";fields.difficulty.value="easy";refreshAssets({startAssetRef:null,goalAssetRef:null,checkpointAssetRef:null,hazardAssetRef:null,decoAssetRefs:[]});applyPreset(false);setDirty(false);status.textContent="Czeka na generowanie";return}
     const p=FenixPageSchema.normalize(raw),s=p.recipe.settings||{};fields.title.value=p.title||"Find the Way!";
     for(const key of ids){if(!fields[key])continue;if(key==="seed")fields.seed.value=p.recipe.seed??1;else if(key==="solution")fields.solution.value=s.showSolution?"yes":"no";else if(key in s&&!["startAsset","goalAsset","checkpointAsset","hazardAsset"].includes(key))fields[key].value=s[key]}
     refreshAssets(s);generationSnapshot=clone(p);
     const assetImages=await FenixMaze.prepareAssets(p);generationResult=FenixMaze.render(p,{solution:s.showSolution,width:2550,height:3300,canvas,assetImages});
-    dirty=false;saveButton.disabled=false;saveCopy.disabled=false;
+    dirty=false;readyLocked=true;saveButton.disabled=false;saveCopy.disabled=false;
     generationState.textContent="Wczytano zamrożony labirynt ze Stron projektu. Zmiana ustawień wymaga ponownego generowania.";generationState.className="note generation-state ready";status.textContent="Wczytano zapisany labirynt";updateDifficultyInfo();setCta("ready");
   }
 
   function applyPreset(mark=true){
     const p=PRESETS[fields.ageProfile.value]?.[fields.difficulty.value];
-    if(!p){updateDifficultyInfo();if(mark)setDirty();return}
-    applyingPreset=true;fields.cols.value=p.cols;fields.rows.value=p.rows;fields.lineWidth.value=p.lineWidth;fields.mazeScale.value=p.mazeScale;applyingPreset=false;updateDifficultyInfo();if(mark)setDirty();
+    if(!p){updateDifficultyInfo();if(mark)setDirty(true);return}
+    applyingPreset=true;fields.cols.value=p.cols;fields.rows.value=p.rows;fields.lineWidth.value=p.lineWidth;fields.mazeScale.value=p.mazeScale;applyingPreset=false;updateDifficultyInfo();if(mark)setDirty(true);
   }
 
   function save(copy=false){
@@ -123,26 +125,29 @@
 
   ids.forEach(id=>{
     if(["ageProfile","difficulty"].includes(id))return;
-    fields[id]?.addEventListener("input",()=>{if(["cols","rows","lineWidth","mazeScale"].includes(id)&&!applyingPreset&&fields.difficulty.value!=="custom"){fields.difficulty.value="custom";updateDifficultyInfo()}setDirty()});
-    fields[id]?.addEventListener("change",()=>setDirty());
+    fields[id]?.addEventListener("input",()=>{if(["cols","rows","lineWidth","mazeScale"].includes(id)&&!applyingPreset&&fields.difficulty.value!=="custom"){fields.difficulty.value="custom";updateDifficultyInfo()}setDirty(true)});
+    fields[id]?.addEventListener("change",()=>setDirty(true));
   });
   fields.ageProfile.addEventListener("change",()=>applyPreset());fields.difficulty.addEventListener("change",()=>applyPreset());
   select.addEventListener("change",()=>load(select.value||null));
-  generateButton.onclick=generate;saveButton.onclick=()=>save(false);saveCopy.onclick=()=>save(true);
-  $("newVariant").onclick=()=>{fields.seed.value=String((Number(fields.seed.value)||1)+1);currentId=null;refill();setDirty()};
+  generateButton.onclick=generate;
+  generateButton.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&!generating){e.preventDefault();generate()}});
+  saveButton.onclick=()=>save(false);saveCopy.onclick=()=>save(true);
+  $("newVariant").onclick=()=>{fields.seed.value=String((Number(fields.seed.value)||1)+1);currentId=null;refill();setDirty(true)};
   $("downloadPng").onclick=()=>{if(!generationSnapshot||dirty){status.textContent="Najpierw wygeneruj aktualny labirynt.";return}FenixCore.downloadCanvas(canvas,`maze-${generationSnapshot.recipe.seed}.png`)};
 
   window.addEventListener("fenix-state-change",e=>{
     if(saving||generating)return;
     if(e.detail?.assets){
+      if(readyLocked)return;
       const before=gameplaySelection();
       refreshAssets();
       const after=gameplaySelection();
-      if(before!==after)setDirty();
+      if(before!==after)setDirty(false);
       return;
     }
-    if(e.detail?.activeProject){currentId=null;refill();refreshAssets();setDirty()}
+    if(e.detail?.activeProject){readyLocked=false;currentId=null;refill();refreshAssets();setDirty(false)}
   });
 
-  refill();refreshAssets();applyPreset(false);setDirty();
+  refill();refreshAssets();applyPreset(false);setDirty(false);
 })();
