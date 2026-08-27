@@ -1,22 +1,148 @@
 "use strict";
 (()=>{
- const $=id=>document.getElementById(id),canvas=$("page"),status=$("status"),select=$("pageSelect"),difficultyInfo=$("difficultyInfo"),assetInfo=$("assetInfo"),decoChoices=$("decoAssetChoices"),saveButton=$("saveCart"),saveCopy=$("saveCopy"),generateButton=$("generateMaze"),generationState=$("generationState"),decoSummary=$("decoSummary");
- const ids=["title","subtitle","instruction","titleSize","titleY","subtitleSize","instructionSize","ageProfile","difficulty","cols","rows","lineWidth","endpointMode","wallStyle","startAsset","goalAsset","checkpointAsset","hazardAsset","startAssetScale","goalAssetScale","checkpointCount","checkpointScale","hazardCount","hazardScale","decoCount","decoScale","sideMargin","topMargin","bottomMargin","mazeScale","seed","solution"],fields=Object.fromEntries(ids.map(id=>[id,$(id)]));
- const PRESETS={"4-6":{easy:{cols:12,rows:16,lineWidth:7,mazeScale:92},medium:{cols:16,rows:20,lineWidth:6,mazeScale:96},hard:{cols:20,rows:26,lineWidth:5,mazeScale:100}},"5-7":{easy:{cols:14,rows:18,lineWidth:7,mazeScale:94},medium:{cols:18,rows:24,lineWidth:6,mazeScale:98},hard:{cols:24,rows:30,lineWidth:5,mazeScale:100}},"6-8":{easy:{cols:16,rows:22,lineWidth:6,mazeScale:95},medium:{cols:22,rows:28,lineWidth:5,mazeScale:99},hard:{cols:28,rows:36,lineWidth:4,mazeScale:100}}};
- const LABELS={easy:"Łatwy",medium:"Średni",hard:"Trudny",custom:"Własny"};let currentId=null,generationSnapshot=null,generationResult=null,dirty=true,applyingPreset=false,saving=false;
- const clone=v=>v==null?v:typeof structuredClone==="function"?structuredClone(v):JSON.parse(JSON.stringify(v));const num=(id,f)=>{const v=Number(fields[id]?.value);return Number.isFinite(v)?v:f};const esc=v=>String(v??"").replace(/[&<>'\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"}[c]));
- function selectedDecoRefs(){return [...decoChoices.querySelectorAll('input[type="checkbox"]:checked')].map(i=>i.value)}function availableMazeAssets(){const a=FenixCore.findAssets({tag:"gameplay"});return a.length?a:FenixCore.listAssets()}
- function settings(){return{ageProfile:fields.ageProfile.value||"4-6",difficulty:fields.difficulty.value||"custom",cols:Math.max(6,Math.min(45,num("cols",18))),rows:Math.max(8,Math.min(58,num("rows",24))),lineWidth:Math.max(2,Math.min(12,num("lineWidth",5))),...(window.FenixMazeDifficulty?.values?.()||{}),typographyVersion:2,titleSize:Math.max(72,Math.min(160,num("titleSize",112))),titleY:Math.max(140,Math.min(420,num("titleY",230))),subtitle:fields.subtitle.value||"",instruction:fields.instruction.value||"",subtitleSize:Math.max(30,Math.min(90,num("subtitleSize",52))),instructionSize:Math.max(30,Math.min(90,num("instructionSize",44))),sideMargin:Math.max(35,Math.min(150,num("sideMargin",80))),topMargin:Math.max(120,Math.min(300,num("topMargin",170))),bottomMargin:Math.max(55,Math.min(180,num("bottomMargin",90))),mazeScale:Math.max(55,Math.min(100,num("mazeScale",100))),endpointMode:fields.endpointMode.value||"random",wallStyle:fields.wallStyle.value||"clean",showSolution:fields.solution.value==="yes",startAssetRef:fields.startAsset.value||null,goalAssetRef:fields.goalAsset.value||null,checkpointAssetRef:fields.checkpointAsset.value||null,hazardAssetRef:fields.hazardAsset.value||null,startAssetScale:Math.max(40,Math.min(180,num("startAssetScale",100))),goalAssetScale:Math.max(40,Math.min(180,num("goalAssetScale",100))),checkpointCount:Math.max(0,Math.min(5,num("checkpointCount",0))),checkpointScale:Math.max(40,Math.min(160,num("checkpointScale",80))),hazardCount:Math.max(0,Math.min(8,num("hazardCount",0))),hazardScale:Math.max(40,Math.min(160,num("hazardScale",78))),decoAssetRefs:selectedDecoRefs(),decoCount:Math.max(0,Math.min(10,num("decoCount",0))),decoScale:Math.max(30,Math.min(160,num("decoScale",80))),showPageNumber:false,pageNumber:1}}
- function makePage(){const s=settings(),seed=Number(fields.seed.value)||1,title=fields.title.value.trim()||"Find the Way!";return{module:"maze-studio",title,seed,settings:s,recipe:{module:"maze-studio",seed,title,settings:s,meta:{createdWith:"FENIX PC",desktopEditedAt:new Date().toISOString(),generationMode:"explicit-0.32.0"}},solution:{available:true,imageData:null},source:{app:"fenix-desktop",version:"0.32.0",format:"native"}}}
- function setDirty(){dirty=true;saveButton.disabled=true;saveCopy.disabled=true;generationState.textContent=generationSnapshot?"Ustawienia zostały zmienione. Podgląd pokazuje poprzednią generację — kliknij „Generuj labirynt”, aby utworzyć nową.":"Brak wygenerowanego labiryntu. Ustaw dane i kliknij „Generuj labirynt”.";generationState.className="note generation-state dirty"}
- function updateDifficultyInfo(){const age=fields.ageProfile.value,d=fields.difficulty.value,p=PRESETS[age]?.[d];difficultyInfo.textContent=d==="custom"?`Profil ${age} lat · Własny: ręczne parametry są aktywne.`:p?`Profil ${age} lat · ${LABELS[d]} · ${p.cols}×${p.rows} · ściany ${p.lineWidth}px · skala ${p.mazeScale}%.`:""}
- function assetLabel(a){return `${a.validation?.status==="ok"?"✓":a.validation?.status==="error"?"×":"!"} ${a.name}`}function emptyLabel(el){return el===fields.startAsset?"Bez assetu — znacznik S":el===fields.goalAsset?"Bez assetu — znacznik M":"Bez assetu"}function setSelectOptions(el,assets,selected){const exists=assets.some(a=>a.id===selected);el.innerHTML=`<option value="">${emptyLabel(el)}</option>`+assets.map(a=>`<option value="${esc(a.id)}">${esc(assetLabel(a))}</option>`).join("");el.value=exists?selected:""}
- function updateDecoSummary(){decoSummary.textContent=`${selectedDecoRefs().length} assetów`}
- function refreshAssets(saved={}){const gameplay=availableMazeAssets(),deco=FenixCore.findAssets({tag:"deco"});setSelectOptions(fields.startAsset,gameplay,saved.startAssetRef??fields.startAsset.value);setSelectOptions(fields.goalAsset,gameplay,saved.goalAssetRef??fields.goalAsset.value);setSelectOptions(fields.checkpointAsset,gameplay,saved.checkpointAssetRef??fields.checkpointAsset.value);setSelectOptions(fields.hazardAsset,gameplay,saved.hazardAssetRef??fields.hazardAsset.value);const chosen=new Set(saved.decoAssetRefs??selectedDecoRefs());decoChoices.innerHTML=deco.length?deco.map(a=>`<label class="deco-choice"><input type="checkbox" value="${esc(a.id)}" ${chosen.has(a.id)?"checked":""}><span><strong>${esc(a.name)}</strong><small>${a.validation?.status==="ok"?"✓ B&W OK":"! sprawdź B&W"}</small></span></label>`).join(""):'<div class="asset-empty">Brak assetów Deco.</div>';decoChoices.querySelectorAll('input').forEach(i=>i.addEventListener("change",()=>{updateDecoSummary();setDirty()}));updateDecoSummary();assetInfo.textContent=`Biblioteka projektu: Maze ${gameplay.length} · Deco ${deco.length}. Generator uwzględni assety i ich skale dopiero po kliknięciu „Generuj labirynt”.`}
- async function generate(){if(!window.FenixMaze)return;generateButton.disabled=true;status.textContent="Generuję z aktualnych danych…";try{const page=makePage();page.recipe.settings.endpoints=null;const assetImages=await FenixMaze.prepareAssets(page);const result=FenixMaze.render(page,{solution:page.recipe.settings.showSolution,width:2550,height:3300,canvas,assetImages});page.recipe.settings.endpoints=clone(result.endpoints);page.recipe.meta.renderState={showSolution:page.recipe.settings.showSolution,endpoints:clone(result.endpoints)};generationSnapshot=FenixPageSchema.normalize(page);generationResult=clone(result);dirty=false;saveButton.disabled=false;saveCopy.disabled=false;generationState.textContent=`Wygenerowano i zamrożono: ${page.recipe.settings.cols}×${page.recipe.settings.rows} · seed ${page.recipe.seed} · START/META i strefy assetów uwzględnione.`;generationState.className="note generation-state ready";status.textContent=`Gotowy · ${LABELS[page.recipe.settings.difficulty]||page.recipe.settings.difficulty} · ${page.recipe.settings.cols}×${page.recipe.settings.rows} · checkpointy ${result.checkpoints?.length||0} · zagrożenia ${result.hazards?.length||0}`}finally{generateButton.disabled=false}}
- function mazePages(){return FenixCore.getCart().map(p=>FenixPageSchema.normalize(p)).filter(p=>p.module==="maze-studio")}function refill(){const pages=mazePages();select.innerHTML=`<option value="">Nowa strona</option>`+pages.map(p=>`<option value="${p.id}">${esc(p.title||"Labirynt")}</option>`).join("");select.value=currentId||""}
- async function load(id){currentId=id||null;generationSnapshot=null;generationResult=null;const raw=currentId?FenixCore.getCart().find(p=>p.id===currentId):null;if(!raw){fields.ageProfile.value="4-6";fields.difficulty.value="easy";refreshAssets({startAssetRef:null,goalAssetRef:null,checkpointAssetRef:null,hazardAssetRef:null,decoAssetRefs:[]});applyPreset(false);setDirty();status.textContent="Czeka na generowanie";return}const p=FenixPageSchema.normalize(raw),s=p.recipe.settings||{};fields.title.value=p.title||"Find the Way!";for(const key of ids){if(!fields[key])continue;if(key==="seed")fields.seed.value=p.recipe.seed??1;else if(key==="solution")fields.solution.value=s.showSolution?"yes":"no";else if(key in s&&!["startAsset","goalAsset","checkpointAsset","hazardAsset"].includes(key))fields[key].value=s[key]}refreshAssets(s);generationSnapshot=clone(p);const assetImages=await FenixMaze.prepareAssets(p);generationResult=FenixMaze.render(p,{solution:s.showSolution,width:2550,height:3300,canvas,assetImages});dirty=false;saveButton.disabled=false;saveCopy.disabled=false;generationState.textContent="Wczytano zamrożony labirynt ze Stron projektu. Zmiana ustawień wymaga ponownego generowania.";generationState.className="note generation-state ready";status.textContent="Wczytano zapisany labirynt";updateDifficultyInfo()}
- function applyPreset(mark=true){const p=PRESETS[fields.ageProfile.value]?.[fields.difficulty.value];if(!p){updateDifficultyInfo();if(mark)setDirty();return}applyingPreset=true;fields.cols.value=p.cols;fields.rows.value=p.rows;fields.lineWidth.value=p.lineWidth;fields.mazeScale.value=p.mazeScale;applyingPreset=false;updateDifficultyInfo();if(mark)setDirty()}
- function save(copy=false){if(!generationSnapshot||dirty||saving)return;saving=true;try{const data=clone(generationSnapshot);if(!copy&&currentId)FenixCore.updatePage(currentId,data);else{FenixCore.addPage(data);currentId=FenixCore.getCart().at(-1)?.id||currentId}refill();status.textContent="Zapisano dokładnie ostatnią wygenerowaną wersję."}finally{saving=false}}
- ids.forEach(id=>{if(["ageProfile","difficulty"].includes(id))return;fields[id]?.addEventListener("input",()=>{if(["cols","rows","lineWidth","mazeScale"].includes(id)&&!applyingPreset&&fields.difficulty.value!=="custom"){fields.difficulty.value="custom";updateDifficultyInfo()}setDirty()});fields[id]?.addEventListener("change",()=>setDirty())});fields.ageProfile.addEventListener("change",()=>applyPreset());fields.difficulty.addEventListener("change",()=>applyPreset());select.addEventListener("change",()=>load(select.value||null));generateButton.onclick=generate;saveButton.onclick=()=>save(false);saveCopy.onclick=()=>save(true);$("newVariant").onclick=()=>{fields.seed.value=String((Number(fields.seed.value)||1)+1);currentId=null;refill();setDirty()};$("downloadPng").onclick=()=>{if(!generationSnapshot||dirty){status.textContent="Najpierw wygeneruj aktualny labirynt.";return}FenixCore.downloadCanvas(canvas,`maze-${generationSnapshot.recipe.seed}.png`)};window.addEventListener("fenix-state-change",e=>{if(saving)return;if(e.detail?.assets){refreshAssets();setDirty()}else if(e.detail?.activeProject){currentId=null;refill();refreshAssets();setDirty()}});refill();refreshAssets();applyPreset(false);setDirty();
+  const $=id=>document.getElementById(id);
+  const canvas=$("page"),status=$("status"),select=$("pageSelect"),difficultyInfo=$("difficultyInfo"),assetInfo=$("assetInfo"),decoChoices=$("decoAssetChoices"),saveButton=$("saveCart"),saveCopy=$("saveCopy"),generateButton=$("generateMaze"),generationState=$("generationState"),decoSummary=$("decoSummary");
+  const ids=["title","subtitle","instruction","titleSize","titleY","subtitleSize","instructionSize","ageProfile","difficulty","cols","rows","lineWidth","endpointMode","wallStyle","startAsset","goalAsset","checkpointAsset","hazardAsset","startAssetScale","goalAssetScale","checkpointCount","checkpointScale","hazardCount","hazardScale","decoCount","decoScale","sideMargin","topMargin","bottomMargin","mazeScale","seed","solution"];
+  const fields=Object.fromEntries(ids.map(id=>[id,$(id)]));
+  const PRESETS={"4-6":{easy:{cols:12,rows:16,lineWidth:7,mazeScale:92},medium:{cols:16,rows:20,lineWidth:6,mazeScale:96},hard:{cols:20,rows:26,lineWidth:5,mazeScale:100}},"5-7":{easy:{cols:14,rows:18,lineWidth:7,mazeScale:94},medium:{cols:18,rows:24,lineWidth:6,mazeScale:98},hard:{cols:24,rows:30,lineWidth:5,mazeScale:100}},"6-8":{easy:{cols:16,rows:22,lineWidth:6,mazeScale:95},medium:{cols:22,rows:28,lineWidth:5,mazeScale:99},hard:{cols:28,rows:36,lineWidth:4,mazeScale:100}}};
+  const LABELS={easy:"Łatwy",medium:"Średni",hard:"Trudny",custom:"Własny"};
+  let currentId=null,generationSnapshot=null,generationResult=null,dirty=true,applyingPreset=false,saving=false,generating=false;
+
+  const clone=v=>v==null?v:typeof structuredClone==="function"?structuredClone(v):JSON.parse(JSON.stringify(v));
+  const num=(id,f)=>{const v=Number(fields[id]?.value);return Number.isFinite(v)?v:f};
+  const esc=v=>String(v??"").replace(/[&<>'\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"}[c]));
+  const nextPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+
+  function setCta(mode){
+    generateButton.classList.add("maze-generate-cta");
+    generateButton.classList.toggle("is-generating",mode==="generating");
+    generateButton.classList.toggle("is-ready",mode==="ready");
+    if(mode==="ready") generateButton.innerHTML='<span class="cta-icon">✓</span><span>Labirynt wygenerowany</span>';
+    else if(mode==="generating") generateButton.innerHTML='<span class="cta-icon">…</span><span>Generuję labirynt</span>';
+    else generateButton.innerHTML='<span class="cta-icon">▶</span><span>Generuj labirynt</span>';
+  }
+
+  function selectedDecoRefs(){return [...decoChoices.querySelectorAll('input[type="checkbox"]:checked')].map(i=>i.value)}
+  function availableMazeAssets(){const a=FenixCore.findAssets({tag:"gameplay"});return a.length?a:FenixCore.listAssets()}
+  function gameplaySelection(){return JSON.stringify({start:fields.startAsset.value||"",goal:fields.goalAsset.value||"",checkpoint:fields.checkpointAsset.value||"",hazard:fields.hazardAsset.value||"",deco:selectedDecoRefs().slice().sort()})}
+
+  function settings(){return{
+    ageProfile:fields.ageProfile.value||"4-6",difficulty:fields.difficulty.value||"custom",
+    cols:Math.max(6,Math.min(45,num("cols",18))),rows:Math.max(8,Math.min(58,num("rows",24))),lineWidth:Math.max(2,Math.min(12,num("lineWidth",5))),
+    ...(window.FenixMazeDifficulty?.values?.()||{}),typographyVersion:2,
+    titleSize:Math.max(72,Math.min(160,num("titleSize",112))),titleY:Math.max(140,Math.min(420,num("titleY",230))),subtitle:fields.subtitle.value||"",instruction:fields.instruction.value||"",subtitleSize:Math.max(30,Math.min(90,num("subtitleSize",52))),instructionSize:Math.max(30,Math.min(90,num("instructionSize",44))),
+    sideMargin:Math.max(35,Math.min(150,num("sideMargin",80))),topMargin:Math.max(120,Math.min(300,num("topMargin",170))),bottomMargin:Math.max(55,Math.min(180,num("bottomMargin",90))),mazeScale:Math.max(55,Math.min(100,num("mazeScale",100))),
+    endpointMode:fields.endpointMode.value||"random",wallStyle:fields.wallStyle.value||"clean",showSolution:fields.solution.value==="yes",
+    startAssetRef:fields.startAsset.value||null,goalAssetRef:fields.goalAsset.value||null,checkpointAssetRef:fields.checkpointAsset.value||null,hazardAssetRef:fields.hazardAsset.value||null,
+    startAssetScale:Math.max(40,Math.min(180,num("startAssetScale",100))),goalAssetScale:Math.max(40,Math.min(180,num("goalAssetScale",100))),checkpointCount:Math.max(0,Math.min(5,num("checkpointCount",0))),checkpointScale:Math.max(40,Math.min(160,num("checkpointScale",80))),hazardCount:Math.max(0,Math.min(8,num("hazardCount",0))),hazardScale:Math.max(40,Math.min(160,num("hazardScale",78))),
+    decoAssetRefs:selectedDecoRefs(),decoCount:Math.max(0,Math.min(10,num("decoCount",0))),decoScale:Math.max(30,Math.min(160,num("decoScale",80))),showPageNumber:false,pageNumber:1
+  }}
+
+  function makePage(){
+    const s=settings(),seed=Number(fields.seed.value)||1,title=fields.title.value.trim()||"Find the Way!";
+    return{module:"maze-studio",title,seed,settings:s,recipe:{module:"maze-studio",seed,title,settings:s,meta:{createdWith:"FENIX PC",desktopEditedAt:new Date().toISOString(),generationMode:"explicit-0.33.6"}},solution:{available:true,imageData:null},source:{app:"fenix-desktop",version:"0.33.6",format:"native"}};
+  }
+
+  function setDirty(){
+    dirty=true;saveButton.disabled=true;saveCopy.disabled=true;setCta("idle");
+    generationState.textContent=generationSnapshot?"Ustawienia zostały zmienione. Podgląd pokazuje poprzednią generację — kliknij „Generuj labirynt”, aby utworzyć nową.":"Brak wygenerowanego labiryntu. Ustaw dane i kliknij „Generuj labirynt”.";
+    generationState.className="note generation-state dirty";
+  }
+
+  function updateDifficultyInfo(){
+    const age=fields.ageProfile.value,d=fields.difficulty.value,p=PRESETS[age]?.[d];
+    difficultyInfo.textContent=d==="custom"?`Profil ${age} lat · Własny: ręczne parametry są aktywne.`:p?`Profil ${age} lat · ${LABELS[d]} · ${p.cols}×${p.rows} · ściany ${p.lineWidth}px · skala ${p.mazeScale}%.`:"";
+  }
+
+  function assetLabel(a){return `${a.validation?.status==="ok"?"✓":a.validation?.status==="error"?"×":"!"} ${a.name}`}
+  function emptyLabel(el){return el===fields.startAsset?"Bez assetu — znacznik S":el===fields.goalAsset?"Bez assetu — znacznik M":"Bez assetu"}
+  function setSelectOptions(el,assets,selected){const exists=assets.some(a=>a.id===selected);el.innerHTML=`<option value="">${emptyLabel(el)}</option>`+assets.map(a=>`<option value="${esc(a.id)}">${esc(assetLabel(a))}</option>`).join("");el.value=exists?selected:""}
+  function updateDecoSummary(){decoSummary.textContent=`${selectedDecoRefs().length} assetów`}
+
+  function refreshAssets(saved={}){
+    const gameplay=availableMazeAssets(),deco=FenixCore.findAssets({tag:"deco"});
+    setSelectOptions(fields.startAsset,gameplay,saved.startAssetRef??fields.startAsset.value);
+    setSelectOptions(fields.goalAsset,gameplay,saved.goalAssetRef??fields.goalAsset.value);
+    setSelectOptions(fields.checkpointAsset,gameplay,saved.checkpointAssetRef??fields.checkpointAsset.value);
+    setSelectOptions(fields.hazardAsset,gameplay,saved.hazardAssetRef??fields.hazardAsset.value);
+    const chosen=new Set(saved.decoAssetRefs??selectedDecoRefs());
+    decoChoices.innerHTML=deco.length?deco.map(a=>`<label class="deco-choice"><input type="checkbox" value="${esc(a.id)}" ${chosen.has(a.id)?"checked":""}><span><strong>${esc(a.name)}</strong><small>${a.validation?.status==="ok"?"✓ B&W OK":"! sprawdź B&W"}</small></span></label>`).join(""):'<div class="asset-empty">Brak assetów Deco.</div>';
+    decoChoices.querySelectorAll('input').forEach(i=>i.addEventListener("change",()=>{updateDecoSummary();setDirty()}));
+    updateDecoSummary();
+    assetInfo.textContent=`Biblioteka projektu: Maze ${gameplay.length} · Deco ${deco.length}. Generator uwzględni assety i ich skale dopiero po kliknięciu „Generuj labirynt”.`;
+  }
+
+  async function generate(){
+    if(!window.FenixMaze||generating)return;
+    generating=true;generateButton.disabled=true;setCta("generating");status.textContent="Generuję z aktualnych danych…";
+    await nextPaint();
+    try{
+      const page=makePage();page.recipe.settings.endpoints=null;
+      const assetImages=await FenixMaze.prepareAssets(page);
+      const result=FenixMaze.render(page,{solution:page.recipe.settings.showSolution,width:2550,height:3300,canvas,assetImages});
+      page.recipe.settings.endpoints=clone(result.endpoints);
+      page.recipe.meta.renderState={showSolution:page.recipe.settings.showSolution,endpoints:clone(result.endpoints)};
+      generationSnapshot=FenixPageSchema.normalize(page);generationResult=clone(result);dirty=false;
+      saveButton.disabled=false;saveCopy.disabled=false;
+      generationState.textContent=`Wygenerowano i zamrożono: ${page.recipe.settings.cols}×${page.recipe.settings.rows} · seed ${page.recipe.seed} · START/META i strefy assetów uwzględnione.`;
+      generationState.className="note generation-state ready";
+      status.textContent=`Gotowy · ${LABELS[page.recipe.settings.difficulty]||page.recipe.settings.difficulty} · ${page.recipe.settings.cols}×${page.recipe.settings.rows} · checkpointy ${result.checkpoints?.length||0} · zagrożenia ${result.hazards?.length||0}`;
+      setCta("ready");
+    }catch(err){
+      console.error(err);status.textContent="Błąd generowania labiryntu.";setCta("idle");
+    }finally{
+      generating=false;generateButton.disabled=false;
+    }
+  }
+
+  function mazePages(){return FenixCore.getCart().map(p=>FenixPageSchema.normalize(p)).filter(p=>p.module==="maze-studio")}
+  function refill(){const pages=mazePages();select.innerHTML=`<option value="">Nowa strona</option>`+pages.map(p=>`<option value="${p.id}">${esc(p.title||"Labirynt")}</option>`).join("");select.value=currentId||""}
+
+  async function load(id){
+    currentId=id||null;generationSnapshot=null;generationResult=null;
+    const raw=currentId?FenixCore.getCart().find(p=>p.id===currentId):null;
+    if(!raw){fields.ageProfile.value="4-6";fields.difficulty.value="easy";refreshAssets({startAssetRef:null,goalAssetRef:null,checkpointAssetRef:null,hazardAssetRef:null,decoAssetRefs:[]});applyPreset(false);setDirty();status.textContent="Czeka na generowanie";return}
+    const p=FenixPageSchema.normalize(raw),s=p.recipe.settings||{};fields.title.value=p.title||"Find the Way!";
+    for(const key of ids){if(!fields[key])continue;if(key==="seed")fields.seed.value=p.recipe.seed??1;else if(key==="solution")fields.solution.value=s.showSolution?"yes":"no";else if(key in s&&!["startAsset","goalAsset","checkpointAsset","hazardAsset"].includes(key))fields[key].value=s[key]}
+    refreshAssets(s);generationSnapshot=clone(p);
+    const assetImages=await FenixMaze.prepareAssets(p);generationResult=FenixMaze.render(p,{solution:s.showSolution,width:2550,height:3300,canvas,assetImages});
+    dirty=false;saveButton.disabled=false;saveCopy.disabled=false;
+    generationState.textContent="Wczytano zamrożony labirynt ze Stron projektu. Zmiana ustawień wymaga ponownego generowania.";generationState.className="note generation-state ready";status.textContent="Wczytano zapisany labirynt";updateDifficultyInfo();setCta("ready");
+  }
+
+  function applyPreset(mark=true){
+    const p=PRESETS[fields.ageProfile.value]?.[fields.difficulty.value];
+    if(!p){updateDifficultyInfo();if(mark)setDirty();return}
+    applyingPreset=true;fields.cols.value=p.cols;fields.rows.value=p.rows;fields.lineWidth.value=p.lineWidth;fields.mazeScale.value=p.mazeScale;applyingPreset=false;updateDifficultyInfo();if(mark)setDirty();
+  }
+
+  function save(copy=false){
+    if(!generationSnapshot||dirty||saving)return;saving=true;
+    try{const data=clone(generationSnapshot);if(!copy&&currentId)FenixCore.updatePage(currentId,data);else{FenixCore.addPage(data);currentId=FenixCore.getCart().at(-1)?.id||currentId}refill();status.textContent="Zapisano dokładnie ostatnią wygenerowaną wersję."}finally{saving=false}
+  }
+
+  ids.forEach(id=>{
+    if(["ageProfile","difficulty"].includes(id))return;
+    fields[id]?.addEventListener("input",()=>{if(["cols","rows","lineWidth","mazeScale"].includes(id)&&!applyingPreset&&fields.difficulty.value!=="custom"){fields.difficulty.value="custom";updateDifficultyInfo()}setDirty()});
+    fields[id]?.addEventListener("change",()=>setDirty());
+  });
+  fields.ageProfile.addEventListener("change",()=>applyPreset());fields.difficulty.addEventListener("change",()=>applyPreset());
+  select.addEventListener("change",()=>load(select.value||null));
+  generateButton.onclick=generate;saveButton.onclick=()=>save(false);saveCopy.onclick=()=>save(true);
+  $("newVariant").onclick=()=>{fields.seed.value=String((Number(fields.seed.value)||1)+1);currentId=null;refill();setDirty()};
+  $("downloadPng").onclick=()=>{if(!generationSnapshot||dirty){status.textContent="Najpierw wygeneruj aktualny labirynt.";return}FenixCore.downloadCanvas(canvas,`maze-${generationSnapshot.recipe.seed}.png`)};
+
+  window.addEventListener("fenix-state-change",e=>{
+    if(saving||generating)return;
+    if(e.detail?.assets){
+      const before=gameplaySelection();
+      refreshAssets();
+      const after=gameplaySelection();
+      if(before!==after)setDirty();
+      return;
+    }
+    if(e.detail?.activeProject){currentId=null;refill();refreshAssets();setDirty()}
+  });
+
+  refill();refreshAssets();applyPreset(false);setDirty();
 })();
