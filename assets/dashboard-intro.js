@@ -82,6 +82,21 @@
 })();
 
 (()=>{
+  const boot=()=>{
+    const logoUrl="assets/fenix-brand.svg?v=1";
+    document.querySelectorAll('link[rel~="icon"]').forEach(el=>el.remove());
+    const icon=document.createElement("link");icon.rel="icon";icon.type="image/svg+xml";icon.href=logoUrl;document.head.appendChild(icon);
+    const shortcut=document.createElement("link");shortcut.rel="shortcut icon";shortcut.href=logoUrl;document.head.appendChild(shortcut);
+    const style=document.createElement("style");style.textContent=`
+      .dashboard-v2 .brand .mark,.fenix-intro-mark{background:#20252b!important;background-image:url('${logoUrl}')!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;color:transparent!important;overflow:hidden}
+      .dashboard-v2 .brand .mark{border-radius:13px}
+    `;document.head.appendChild(style);
+    document.querySelectorAll(".dashboard-v2 .brand .mark,.fenix-intro-mark").forEach(el=>{el.textContent="";el.setAttribute("aria-label","Fenix Portable")});
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
+
+(()=>{
   const load=(src,done)=>{if(document.querySelector(`script[data-fenix-sync-src="${src}"]`))return done?.();const s=document.createElement("script");s.src=src;s.dataset.fenixSyncSrc=src;s.onload=()=>done?.();document.body.appendChild(s)};
   const boot=()=>load("core/sync-core.js?v=7",()=>load("core/sync-ui.js?v=7"));
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
