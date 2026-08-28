@@ -1,2 +1,11 @@
 /* Welcome screen disabled. Dashboard opens directly. */
 #fenixIntro,.fenix-intro{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* Fenix Portable brand mark */
+.dashboard-v2 .brand .mark{
+  background:#20252b url("fenix-brand.svg") center/cover no-repeat!important;
+  color:transparent!important;
+  font-size:0!important;
+  overflow:hidden;
+  box-shadow:0 3px 12px rgba(0,0,0,.22);
+}
