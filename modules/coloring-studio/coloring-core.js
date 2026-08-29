@@ -14,7 +14,23 @@ window.FenixColoring=(()=>{
   });
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,Number(value)||min));
   const bool=(value,fallback)=>value==null?fallback:value!==false&&value!=="false";
-  const loadImage=src=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error("Nie udało się odczytać assetu kolorowanki."));image.src=src});
+  const loadOnce=src=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error("Nie udało się odczytać assetu kolorowanki."));image.src=src});
+  async function loadImage(src){
+    const value=String(src||"").trim();
+    if(!value)throw new Error("Asset kolorowanki nie zawiera danych obrazu.");
+    if(value.startsWith("<svg")){
+      const url=URL.createObjectURL(new Blob([value],{type:"image/svg+xml"}));
+      try{return await loadOnce(url)}finally{URL.revokeObjectURL(url)}
+    }
+    try{return await loadOnce(value)}catch(firstError){
+      try{
+        const response=await fetch(value);
+        if(!response.ok)throw firstError;
+        const blob=await response.blob(),url=URL.createObjectURL(blob);
+        try{return await loadOnce(url)}finally{URL.revokeObjectURL(url)}
+      }catch{throw firstError}
+    }
+  }
 
   function optionsFromPage(page={}){
     const settings=page.recipe?.settings||page.settings||{},content=page.recipe?.content||page.content||{};
