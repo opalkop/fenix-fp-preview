@@ -22,4 +22,5 @@
   $("count")?.addEventListener("change",()=>{const n=Math.max(1,Math.min(20,Number($("count").value)||1));$("count").value=n});
   window.addEventListener("fenix-state-change",rebalanceTask);
   setTimeout(rebalanceTask,120);
+  (async()=>{try{await FenixCore.ready;if(!document.querySelector('script[data-logic-pages]')){const s=document.createElement('script');s.src='logic-pages.js?v=1.0.1';s.dataset.logicPages='1';document.body.appendChild(s)}}catch(error){console.error('Logic pages init',error)}})();
 })();
