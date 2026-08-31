@@ -16,6 +16,8 @@
  async function renderCanvas(page,solution=false,quality="preview",renderOptions={}){
    const p=normalize(page),module=p.module;
    if(page?._blank||module==="blank-page"){const profile=quality==="print"?targetProfile():{width:850,height:1100},c=document.createElement("canvas");c.width=profile.width;c.height=profile.height;const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);return c}
+   const savedSnapshot=solution?p.solution?.imageData:p.preview?.imageData;
+   if(quality==="preview"&&savedSnapshot)return storedImageCanvas(savedSnapshot,"preview");
    if(isFrozen(p)){
      const snapshot=solution?p.solution?.imageData:p.preview?.imageData;
      if(snapshot)return storedImageCanvas(snapshot,quality);
