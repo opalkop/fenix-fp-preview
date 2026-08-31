@@ -23,17 +23,16 @@
    const p=normalize(page),module=p.module;
    if(page?._blank||module==="blank-page"){const profile=quality==="print"?targetProfile():{width:850,height:1100},c=document.createElement("canvas");c.width=profile.width;c.height=profile.height;const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);return c}
    const savedSnapshot=solution?p.solution?.imageData:p.preview?.imageData;
-   if(quality==="preview"&&savedSnapshot)return storedImageCanvas(savedSnapshot,"preview");
+   if(savedSnapshot)return storedImageCanvas(savedSnapshot,quality);
    if(module==="logic-studio")return logicCanvas(p,solution,quality);
-   if(module==="tracing-studio"){if(savedSnapshot)return storedImageCanvas(savedSnapshot,quality);return tracingCanvas(p,quality)}
-   if(module==="complete-picture"){if(savedSnapshot)return storedImageCanvas(savedSnapshot,quality);return completeCanvas(p,solution,quality)}
+   if(module==="tracing-studio")return tracingCanvas(p,quality);
+   if(module==="complete-picture")return completeCanvas(p,solution,quality);
    if(module==="maze-studio")return mazeCanvas(p,solution,quality,renderOptions);
    if(module==="word-search-studio")return wordSearchCanvas(p,solution,quality,renderOptions);
    if(module==="coloring-studio")return coloringCanvas(p,quality);
    if(["matching-studio","alphabet-studio","math-studio","dot-to-dot-studio","hidden-objects-studio"].includes(module))return productionCanvas(p,solution,quality);
    if(module==="intro-studio")return introCanvas(p,quality);
    if(["congratulations-studio","qr-studio","certificate-studio"].includes(module))return endingCanvas(p,quality);
-   if(savedSnapshot)return storedImageCanvas(savedSnapshot,quality);
    if(EXACT_MODULES.has(module))throw new Error(`Moduł ${module} nie ma aktywnej dokładnej ścieżki renderowania.`);
    throw new Error(`Nieobsługiwany moduł strony: ${module}.`)
  }
