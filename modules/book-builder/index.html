@@ -17,7 +17,7 @@
     <div class="builder-control-sections">
       <details open class="gold">
         <summary><span><strong>1. Zawartość książki</strong><small>Strony i Studia użyte w aktywnym projekcie</small></span></summary>
-        <div class="builder-panel-body"><p id="cartSummary">Wczytywanie…</p><div id="contentSummary" class="content-summary"></div><div class="builder-inline-actions"><button id="autoOrder" class="secondary">Uporządkuj książkę automatycznie</button><button id="reloadCart">Odśwież strony projektu</button></div><p class="hint">Fenix układa: wprowadzenie → ćwiczenia → rozwiązania → Congratulations → QR → pusta strona → Certificate. Pusta strona przed certyfikatem chroni jego rewers przy wycinaniu.</p></div>
+        <div class="builder-panel-body"><p id="cartSummary">Wczytywanie…</p><div id="contentSummary" class="content-summary"></div><div class="builder-inline-actions"><button id="autoOrder" class="secondary">Uporządkuj książkę automatycznie</button><button id="reloadCart">Odśwież strony projektu</button></div><p class="hint">Fenix układa wyłącznie strony obecne na Liście stron projektu: wprowadzenie → ćwiczenia → rozwiązania → zakończenie. Puste strony pojawiają się tylko wtedy, gdy dodasz je sam.</p></div>
       </details>
       <details open>
         <summary><span><strong>2. Ustawienia książki</strong><small>Tytuł, format, numeracja i puste strony</small></span></summary>
@@ -25,7 +25,7 @@
       </details>
       <details open class="solution-panel">
         <summary><span><strong>3. Rozwiązania ćwiczeń</strong><small>Dodawanie i układ klucza odpowiedzi</small></span></summary>
-        <div class="builder-panel-body builder-form-grid"><label class="check"><input id="includeSolutions" type="checkbox" checked><span>Dodaj dostępne rozwiązania przed zakończeniem książki</span></label><label><span>Układ rozwiązań</span><select id="solutionLayout"><option value="1">1 duże rozwiązanie na stronie — zalecane</option><option value="2">2 rozwiązania na stronie</option><option value="4">4 rozwiązania na stronie</option></select></label><p class="hint builder-wide">Maze i Word Search są renderowane jako czysty, powiększony klucz odpowiedzi bez powtórzonego tytułu, instrukcji ani warstwy dekoracyjnej.</p></div>
+        <div class="builder-panel-body builder-form-grid"><label class="check"><input id="includeSolutions" type="checkbox" checked><span>Dodaj dostępne rozwiązania przed zakończeniem książki</span></label><label><span>Układ rozwiązań</span><select id="solutionLayout"><option value="1">1 duże rozwiązanie na stronie — zalecane</option><option value="2">2 rozwiązania na stronie</option><option value="4">4 rozwiązania na stronie</option></select></label><p class="hint builder-wide">Jeżeli Studio zapisało dokładny snapshot rozwiązania, Book Builder użyje go 1:1. Renderer proceduralny jest tylko awaryjnym fallbackiem dla starszych stron.</p></div>
       </details>
       <details open>
         <summary><span><strong>4. Kontrola projektu</strong><small>Gotowość składu i ostrzeżenia przed eksportem</small></span></summary>
@@ -33,7 +33,7 @@
       </details>
       <details open class="export-panel">
         <summary><span><strong>5. Finalizacja</strong><small>Podgląd produkcyjny i finalny PDF 300 DPI</small></span></summary>
-        <div class="builder-panel-body"><div class="builder-final-actions"><button id="previewBook">Generuj podgląd</button><button id="exportPdf" class="primary-big">Generuj i pobierz finalny PDF</button></div><p class="hint">Finalny skład renderuje proceduralne strony do 300 DPI i pobiera jeden gotowy plik PDF — bez otwierania okna drukowania.</p></div>
+        <div class="builder-panel-body"><div class="builder-final-actions"><button id="previewBook">Generuj podgląd</button><button id="exportPdf" class="primary-big">Generuj i pobierz finalny PDF</button></div><p class="hint">Finalny skład w pierwszej kolejności używa dokładnie zapisanych obrazów stron; odtwarzanie z receptury służy tylko starym stronom bez snapshotu.</p></div>
       </details>
     </div>
   </section>
@@ -43,7 +43,7 @@
 <script src="../../core/page-schema.js?v=0.31.2"></script>
 <script src="../../core/project-validator.js?v=0.22.0"></script>
 <script src="../../core/production-profile.js?v=0.22.0"></script>
-<script src="../../core/book-order.js?v=0.28.1"></script>
+<script src="../../core/book-order.js?v=0.34.0"></script>
 <script src="../../core/fenix-pdf.js?v=0.22.1"></script>
 <script src="../maze-studio/maze-core.js?v=0.32.0"></script>
 <script src="../maze-studio/maze-engine.js?v=0.33.0"></script>
@@ -60,6 +60,6 @@
 <script src="production-renderers.js?v=1.2.0"></script>
 <script src="alphabet-production.js?v=1.1.0"></script>
 <script src="hidden-production.js?v=1.0.0"></script>
-<script src="book-builder.js?v=0.33.0"></script>
+<script src="book-builder.js?v=0.34.0"></script>
 </body>
 </html>
