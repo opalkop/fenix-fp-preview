@@ -18,8 +18,21 @@ window.FenixIntroRenderer=(()=>{
     skills:{title:"Skills You’ll Practice",body:"This book helps you practice focus, observation, problem-solving, hand-eye coordination, creativity, and confidence. Each activity gives your brain a new and exciting challenge.",footer:"Every page helps your skills grow!"}
   };
   const object=value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-  const STRUCTURAL_MODULES=new Set(["intro-studio","blank-page","certificate-studio","congratulations-studio","qr-studio","solutions-studio"]);
-  function activityCount(project={}){const pages=Array.isArray(project.pages)?project.pages:[];return pages.filter(page=>!STRUCTURAL_MODULES.has(String(page?.module||page?.recipe?.module||""))).length}
+  const ACTIVITY_MODULES=new Set([
+    "maze-studio",
+    "word-search-studio",
+    "coloring-studio",
+    "dot-to-dot-studio",
+    "matching-studio",
+    "tracing-studio",
+    "hidden-objects-studio",
+    "complete-picture",
+    "logic-studio",
+    "math-studio",
+    "alphabet-studio"
+  ]);
+  function moduleOf(page){return String(page?.module||page?.recipe?.module||"")}
+  function activityCount(project={}){const pages=Array.isArray(project.pages)?project.pages:[];return pages.filter(page=>ACTIVITY_MODULES.has(moduleOf(page))).length}
   function defaults(type,project={}){
     const base={typographyVersion:2,titleSize:112,bodySize:56,footerSize:44,...(COPY[type]||COPY.welcome)},topic=String(project.topic||"").trim();
     if(type==="welcome"&&topic)return{...base,title:`Welcome to the ${topic.replace(/\b\w/g,char=>char.toUpperCase())} Adventure!`};
@@ -76,5 +89,5 @@ window.FenixIntroRenderer=(()=>{
     ctx.restore();return target;
   }
   function fromPage(page){const settings=object(page?.recipe?.settings),type=settings.pageType||"welcome";return{...defaults(type),...settings,pageType:type}}
-  return Object.freeze({PAGE_TYPES,activityCount,defaults,prepare,fromPage,render});
+  return Object.freeze({PAGE_TYPES,ACTIVITY_MODULES,activityCount,defaults,prepare,fromPage,render});
 })();
