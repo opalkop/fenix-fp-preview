@@ -27,6 +27,12 @@
    if(isMaze(p)){const assetImages=await FenixMaze.prepareAssets(p);if(quality==="preview")return FenixMaze.render(p,{solution,...renderOptions,width:850,height:1100,assetImages}).canvas;const raw=FenixMaze.render(p,{solution,...renderOptions,width:2550,height:3300,assetImages}).canvas,project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
    if(isWordSearch(p)){const assetImages=await FenixWordSearch.prepareAssets(p),raw=FenixWordSearch.render(p,{solution,...renderOptions,width:quality==="print"?2550:850,height:quality==="print"?3300:1100,assetImages}).canvas;if(quality==="preview")return raw;const project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
    if(isColoring(p)){const prepared=await FenixColoring.prepareAsset(p),raw=FenixColoring.render(p,{width:quality==="print"?2550:850,height:quality==="print"?3300:1100,assetImage:prepared.image});if(quality==="preview")return raw;const project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
+   if(window.FenixBookProductionRenderers?.supports(module)){
+     const raw=await FenixBookProductionRenderers.render(p,{solution,quality});
+     if(!raw)return null;
+     if(quality==="preview")return raw;
+     const project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas;
+   }
    if(isStandard(p)){const rendered=FenixStandardRenderers.render(module,standardOptions(p),p.recipe.seed,Number(p.recipe.settings?.pageIndex)||0,quality==="print"?3:1),raw=solution?rendered.solutionCanvas:rendered.pageCanvas;if(!raw)return null;if(quality==="preview")return raw;const project=currentProject();return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
    if(isComplete(p))return completeCanvas(p,solution,quality);
    if(isIntro(p)){const project=currentProject(),prepared=FenixIntroRenderer.prepare(p,{...project,pages});const raw=FenixIntroRenderer.render(prepared,{width:quality==="print"?2550:850,height:quality==="print"?3300:1100});if(quality==="preview")return raw;return FenixProduction.fitCanvas(raw,targetFormat(),project.bleed).canvas}
