@@ -25,12 +25,6 @@
     help.dataset.fenixHelp="true";
     document.body.appendChild(help);
   }
-  if(shellScript&&!document.querySelector('script[data-fenix-page-snapshot-guard]')){
-    const guard=document.createElement("script");
-    guard.src=new URL("page-snapshot-guard.js?v=1",shellScript.src).href;
-    guard.dataset.fenixPageSnapshotGuard="true";
-    document.body.appendChild(guard);
-  }
 
   if(shellScript&&!window.FenixSync&&!document.querySelector('script[data-fenix-studio-sync]')){
     const core=document.createElement("script");

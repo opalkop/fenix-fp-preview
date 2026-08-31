@@ -33,7 +33,7 @@ window.FenixColoring=(()=>{
   }
 
   function optionsFromPage(page={}){
-    const settings=page.recipe?.settings||page.settings||{},content=page.recipe?.content||page.content||{},meta=page.recipe?.meta||{};
+    const settings=page.recipe?.settings||page.settings||{},content=page.recipe?.content||page.content||{};
     return{
       ...DEFAULTS,
       title:String(settings.title||page.title||DEFAULTS.title),
@@ -45,40 +45,12 @@ window.FenixColoring=(()=>{
       titleY:clamp(settings.titleY??DEFAULTS.titleY,140,420),
       assetScale:clamp(settings.assetScale??DEFAULTS.assetScale,35,96),
       assetY:clamp(settings.assetY??DEFAULTS.assetY,35,72),
-      assetRef:content.assetRef||settings.assetRef||settings.lockedAssetRef||null,
-      assetLibraryRef:content.assetLibraryRef||settings.assetLibraryRef||meta.assetLibraryRef||null,
-      assetName:content.assetName||meta.assetName||null,
-      assetFilename:content.assetFilename||meta.assetFilename||null
+      assetRef:content.assetRef||settings.assetRef||null
     };
   }
 
-  function libraryRefOf(asset){return String(asset?.libraryRef||asset?.meta?.libraryRef||"").trim()}
-  function allAssets(){
-    const out=[],seen=new Set();
-    const push=asset=>{if(!asset)return;const key=asset.id||`${asset.filename||""}|${asset.name||""}|${libraryRefOf(asset)}`;if(seen.has(key))return;seen.add(key);out.push(asset)};
-    (FenixCore.listAssets?.()||[]).forEach(push);
-    for(const project of FenixCore.getProjects?.()||[])for(const asset of Object.values(project.assets||{}))push(asset);
-    const library=FenixCore.getAssetLibrary?.()||{};for(const asset of Object.values(library))push(asset);
-    return out;
-  }
-  function resolveAsset(page){
-    const o=optionsFromPage(page),assets=allAssets();
-    if(o.assetRef){
-      const exact=FenixCore.getAsset(o.assetRef)||assets.find(a=>a.id===o.assetRef);
-      if(exact?.dataUrl)return exact;
-      const byLibraryId=assets.find(a=>libraryRefOf(a)===String(o.assetRef)||a.id===`library-${o.assetRef}`);
-      if(byLibraryId?.dataUrl)return byLibraryId;
-    }
-    let libraryRef=String(o.assetLibraryRef||"").trim();
-    if(!libraryRef&&String(o.assetRef||"").startsWith("library-"))libraryRef=String(o.assetRef).slice(8);
-    if(libraryRef){const linked=assets.find(a=>libraryRefOf(a)===libraryRef||a.id===`library-${libraryRef}`);if(linked?.dataUrl)return linked}
-    if(o.assetFilename){const byFile=assets.filter(a=>String(a.filename||"")===String(o.assetFilename)&&a.dataUrl);if(byFile.length===1)return byFile[0]}
-    if(o.assetName){const byName=assets.filter(a=>String(a.name||"")===String(o.assetName)&&a.dataUrl);if(byName.length===1)return byName[0]}
-    return null;
-  }
-
   async function prepareAsset(page){
-    const asset=resolveAsset(page);
+    const options=optionsFromPage(page),asset=options.assetRef?FenixCore.getAsset(options.assetRef):null;
     if(!asset?.dataUrl)throw new Error(`Brak przypisanego assetu dla strony „${page.title||"Coloring"}”.`);
     return{asset,image:await loadImage(asset.dataUrl)};
   }
@@ -99,5 +71,5 @@ window.FenixColoring=(()=>{
     return canvas;
   }
 
-  return Object.freeze({DEFAULTS,optionsFromPage,prepareAsset,resolveAsset,render,loadImage});
+  return Object.freeze({DEFAULTS,optionsFromPage,prepareAsset,render,loadImage});
 })();

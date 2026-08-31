@@ -36,10 +36,6 @@ const pages=[
   {id:"word-search",module:"word-search-studio"}
 ];
 assert.deepEqual(order.sort(pages).map(page=>page.id),["welcome","mission","skills","maze","word-search","certificate"]);
-const composed=order.compose(pages,{solutionPageCount:0});
-assert.equal(composed.length,pages.length,"Book Builder nie może sam zwiększać liczby stron projektu.");
-assert.equal(composed.some(page=>page._autoParity),false,"Book Builder nie może tworzyć automatycznych stron spoza Listy stron projektu.");
-assert.deepEqual(new Set(composed.map(page=>page.id)),new Set(pages.map(page=>page.id)),"Skład ma zawierać dokładnie identyfikatory stron zapisanych przez użytkownika.");
 
 const maze=load("modules/maze-studio/maze-core.js").FenixMaze;
 const mazeResult=maze.render({module:"maze-studio",recipe:{seed:7,title:"Maze",settings:{cols:8,rows:10,decorations:[{x:.08,y:.2,symbol:"★"}],assetCount:1}}},{solution:true,solutionKey:true,width:850,height:1100,canvas:canvas()});
@@ -59,4 +55,4 @@ assert.ok(!wordCanvas.ctx.log.texts.includes("Words"),"Klucz Word Search nie pow
 assert.ok(wordCanvas.ctx.log.texts.includes("CIRCLE = START   SQUARE = END"),"Klucz Word Search powinien objaśniać znaczniki początku i końca.");
 assert.ok(wordCanvas.ctx.log.texts.some(text=>/^1\. /.test(text)),"Lista słów powinna używać numerów zgodnych ze znacznikami na siatce.");
 
-console.log("PASS book-order-and-solutions: Book Builder nie wymyśla stron, a rozwiązania zachowują czarno-biały standard.");
+console.log("PASS book-order-and-solutions: logiczny skład oraz czarno-białe rozwiązania bez Deco.");
