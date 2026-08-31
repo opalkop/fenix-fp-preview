@@ -33,7 +33,7 @@ window.FenixColoring=(()=>{
   }
 
   function optionsFromPage(page={}){
-    const settings=page.recipe?.settings||page.settings||{},content=page.recipe?.content||page.content||{};
+    const settings=page.recipe?.settings||page.settings||{},content=page.recipe?.content||page.content||{},meta=page.recipe?.meta||{};
     return{
       ...DEFAULTS,
       title:String(settings.title||page.title||DEFAULTS.title),
@@ -45,12 +45,27 @@ window.FenixColoring=(()=>{
       titleY:clamp(settings.titleY??DEFAULTS.titleY,140,420),
       assetScale:clamp(settings.assetScale??DEFAULTS.assetScale,35,96),
       assetY:clamp(settings.assetY??DEFAULTS.assetY,35,72),
-      assetRef:content.assetRef||settings.assetRef||null
+      assetRef:content.assetRef||settings.assetRef||settings.lockedAssetRef||null,
+      assetLibraryRef:content.assetLibraryRef||settings.assetLibraryRef||meta.assetLibraryRef||null,
+      assetName:content.assetName||meta.assetName||null,
+      assetFilename:content.assetFilename||meta.assetFilename||null
     };
   }
 
+  function libraryRefOf(asset){return String(asset?.libraryRef||asset?.meta?.libraryRef||"").trim()}
+  function resolveAsset(page){
+    const o=optionsFromPage(page),assets=FenixCore.listAssets?.()||[];
+    if(o.assetRef){const exact=FenixCore.getAsset(o.assetRef)||assets.find(a=>a.id===o.assetRef);if(exact?.dataUrl)return exact}
+    let libraryRef=String(o.assetLibraryRef||"").trim();
+    if(!libraryRef&&String(o.assetRef||"").startsWith("library-"))libraryRef=String(o.assetRef).slice(8);
+    if(libraryRef){const linked=assets.find(a=>libraryRefOf(a)===libraryRef||a.id===`library-${libraryRef}`);if(linked?.dataUrl)return linked}
+    if(o.assetFilename){const byFile=assets.filter(a=>String(a.filename||"")===String(o.assetFilename));if(byFile.length===1&&byFile[0].dataUrl)return byFile[0]}
+    if(o.assetName){const byName=assets.filter(a=>String(a.name||"")===String(o.assetName));if(byName.length===1&&byName[0].dataUrl)return byName[0]}
+    return null;
+  }
+
   async function prepareAsset(page){
-    const options=optionsFromPage(page),asset=options.assetRef?FenixCore.getAsset(options.assetRef):null;
+    const asset=resolveAsset(page);
     if(!asset?.dataUrl)throw new Error(`Brak przypisanego assetu dla strony „${page.title||"Coloring"}”.`);
     return{asset,image:await loadImage(asset.dataUrl)};
   }
@@ -71,5 +86,5 @@ window.FenixColoring=(()=>{
     return canvas;
   }
 
-  return Object.freeze({DEFAULTS,optionsFromPage,prepareAsset,render,loadImage});
+  return Object.freeze({DEFAULTS,optionsFromPage,prepareAsset,resolveAsset,render,loadImage});
 })();
