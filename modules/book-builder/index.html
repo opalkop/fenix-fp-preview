@@ -59,6 +59,13 @@
 <script src="../intro-studio/intro-renderer.js?v=0.27.6"></script>
 <script src="../shared/ending-renderers.js?v=0.27.6"></script>
 <script src="../../core/fenix-core.js?v=0.31.2"></script>
-<script src="book-builder.js?v=0.32.0"></script>
+<script src="../alphabet-studio/alphabet-book-bridge.js?v=7.0.0"></script>
+<script>
+FenixAlphabetBookBridge.ready.then(()=>{
+  const script=document.createElement('script');
+  script.src='book-builder.js?v=0.32.1';
+  document.body.appendChild(script);
+});
+</script>
 </body>
 </html>
