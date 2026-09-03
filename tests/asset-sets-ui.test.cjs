@@ -18,5 +18,7 @@ for(const removed of ["projectAssetTagFilter","projectAssetStatusFilter","projec
 
 assert.match(script,/putLibraryAsset\(\{\.\.\.base,validation\}\)/,"Import powinien zapisywać pliki we wspólnej bibliotece.");
 assert.match(script,/pack,?/i,"Import powinien wskazywać otwarty zestaw.");
+assert.match(script,/data-delete-asset/,"Każda miniatura powinna mieć przycisk usuwania.");
+assert.match(script,/removeLibraryAsset\(asset\.id\)/,"Usuwanie powinno dotyczyć pojedynczego assetu biblioteki.");
 
 console.log("PASS asset-sets-ui: prosty wybór zestawu, jednoznaczny import i zwijany podgląd.");

@@ -64,7 +64,22 @@
       assetGrid.innerHTML='<div class="asset-set-grid-empty">Ten zestaw jest pusty. Dodaj pierwsze pliki SVG lub PNG.</div>';
       return;
     }
-    assetGrid.innerHTML=assets.map(asset=>`<article class="asset-set-thumb"><div><img src="${asset.dataUrl}" alt="${escapeHtml(asset.name||"Asset")}"></div><strong title="${escapeHtml(asset.name||asset.filename||"Asset")}">${escapeHtml(asset.name||asset.filename||"Asset")}</strong></article>`).join("");
+    assetGrid.innerHTML=assets.map(asset=>`<article class="asset-set-thumb"><div><img src="${asset.dataUrl}" alt="${escapeHtml(asset.name||"Asset")}"><button type="button" data-delete-asset="${escapeHtml(asset.id)}" aria-label="Usuń asset ${escapeHtml(asset.name||"Asset")}" title="Usuń asset">×</button></div><strong title="${escapeHtml(asset.name||asset.filename||"Asset")}">${escapeHtml(asset.name||asset.filename||"Asset")}</strong></article>`).join("");
+    assetGrid.querySelectorAll("[data-delete-asset]").forEach(button=>button.addEventListener("click",()=>removeAsset(button.dataset.deleteAsset)));
+  }
+
+  function removeAsset(assetId){
+    const asset=packAssets(openPack).find(item=>item.id===assetId);
+    if(!asset)return;
+    if(!confirm(`Usunąć asset „${asset.name||asset.filename||"Asset"}” z zestawu „${openPack}”?`))return;
+    const result=FenixCore.removeLibraryAsset(asset.id);
+    if(result?.reason==="in-use"){
+      setStatus(`Nie usunięto „${asset.name}”. Asset jest używany na ${result.usage.length} ${result.usage.length===1?"stronie":"stronach"} książki.`,"warning");
+      return;
+    }
+    if(!result?.removed){setStatus("Nie udało się usunąć assetu.","error");return}
+    render();
+    setStatus(`Usunięto asset „${asset.name}” z zestawu „${openPack}”.`,"ok");
   }
 
   function render(){

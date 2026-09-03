@@ -46,6 +46,13 @@ assert.ok(core.getProjectAssetPacks().includes("Dino"),"Przełączenie zestawu n
 core.putLibraryAsset({id:"coral-gate",name:"Coral Gate",filename:"coral-gate.svg",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,gate",pack:"Ocean Fantasy"});
 assert.equal(core.listAssets().length,3,"Nowy asset powinien automatycznie trafić do projektu korzystającego z biblioteki.");
 
+core.putLibraryAsset({id:"unused-shell",name:"Unused Shell",filename:"unused-shell.svg",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,shell",pack:"Ocean Fantasy"});
+assert.equal(core.listAssets().length,4);
+const removedUnused=core.removeLibraryAsset("unused-shell");
+assert.equal(removedUnused.removed,true,"Nieużywany asset powinien dać się usunąć pojedynczo.");
+assert.equal(core.listAssets().length,3,"Usunięcie powinno również odłączyć kopię assetu z projektu.");
+assert.equal(core.listLibraryAssets({pack:"Ocean Fantasy"}).length,3);
+
 const renamed=core.renameLibraryPack("Ocean Fantasy","Fantasy Ocean");
 assert.equal(renamed.renamed,true);
 assert.deepEqual([...core.getProjectAssetPacks()],["Dino","Fantasy Ocean"]);
@@ -63,5 +70,16 @@ const legacyLibrary={"legacy-shell":{id:"legacy-shell",name:"Legacy Shell",mime:
 const legacyProject={...project,id:"legacy-project",assets:{"legacy-local":legacyAsset}};
 const{core:legacyCore}=createCore([legacyProject],legacyLibrary);
 assert.deepEqual([...legacyCore.getProjectAssetPacks()],["Ocean Fantasy"],"Starsze projekty powinny odzyskać bibliotekę z istniejących referencji.");
+
+const protectedProject={...project,id:"protected-project",pages:[],assets:{}};
+const{core:protectedCore}=createCore([protectedProject]);
+protectedCore.putLibraryAsset({id:"used-asset",name:"Used Asset",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,used",pack:"Ocean Fantasy"});
+protectedCore.selectLibraryPack("Ocean Fantasy");
+const linkedAsset=protectedCore.listAssets().find(asset=>asset.libraryRef==="used-asset");
+protectedCore.addPage({id:"page-with-asset",module:"coloring",recipe:{module:"coloring",settings:{assetRef:linkedAsset.id}}});
+const blockedRemoval=protectedCore.removeLibraryAsset("used-asset");
+assert.equal(blockedRemoval.removed,false,"Asset używany na stronie musi być zabezpieczony.");
+assert.equal(blockedRemoval.reason,"in-use");
+assert.equal(protectedCore.listLibraryAssets().length,1);
 
 console.log("PASS asset-libraries: puste zestawy, wybór, aktywacja, automatyczne podpinanie, zmiana nazwy, odłączanie i migracja.");
