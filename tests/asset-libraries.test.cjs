@@ -24,21 +24,31 @@ function createCore(initialProjects,initialLibrary={}){
 const project={id:"ocean-book",name:"Ocean Book",format:"8.5x11",bleed:"no-bleed",pages:[],assets:{},createdAt:"2026-01-01T00:00:00.000Z",updatedAt:"2026-01-01T00:00:00.000Z"};
 const{core}=createCore([project]);
 
+const emptyPack=core.createLibraryPack("Dino");
+assert.equal(emptyPack.created,true,"Powinno być możliwe utworzenie pustego zestawu.");
+assert.ok(core.listLibraryPacks().includes("Dino"),"Pusty zestaw powinien być widoczny na liście.");
+assert.equal(core.getActiveProject().primaryAssetPack,"Dino","Nowy zestaw powinien stać się otwartym zestawem projektu.");
+
 core.putLibraryAsset({id:"dolphin",name:"Magic Dolphin",filename:"dolphin.svg",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,dolphin",pack:"Ocean Fantasy"});
 core.putLibraryAsset({id:"pearl",name:"Magic Pearl",filename:"pearl.svg",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,pearl",pack:"Ocean Fantasy"});
 
 const activation=core.activateLibraryPack("Ocean Fantasy");
 assert.equal(activation.activated,true);
 assert.equal(activation.added,2);
-assert.deepEqual([...core.getProjectAssetPacks()],["Ocean Fantasy"]);
+assert.deepEqual([...core.getProjectAssetPacks()],["Dino","Ocean Fantasy"]);
 assert.equal(core.listAssets().length,2,"Aktywacja biblioteki powinna podłączyć wszystkie jej assety.");
+
+const selected=core.selectLibraryPack("Ocean Fantasy");
+assert.equal(selected.selected,true);
+assert.equal(core.getActiveProject().primaryAssetPack,"Ocean Fantasy","Otwarty zestaw powinien być zapamiętany w projekcie.");
+assert.ok(core.getProjectAssetPacks().includes("Dino"),"Przełączenie zestawu nie może usuwać starszych danych projektu.");
 
 core.putLibraryAsset({id:"coral-gate",name:"Coral Gate",filename:"coral-gate.svg",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,gate",pack:"Ocean Fantasy"});
 assert.equal(core.listAssets().length,3,"Nowy asset powinien automatycznie trafić do projektu korzystającego z biblioteki.");
 
 const renamed=core.renameLibraryPack("Ocean Fantasy","Fantasy Ocean");
 assert.equal(renamed.renamed,true);
-assert.deepEqual([...core.getProjectAssetPacks()],["Fantasy Ocean"]);
+assert.deepEqual([...core.getProjectAssetPacks()],["Dino","Fantasy Ocean"]);
 assert.ok(core.listAssets().every(asset=>asset.pack==="Fantasy Ocean"),"Zmiana nazwy musi objąć kopie podłączone do projektu.");
 assert.ok(core.listLibraryAssets().every(asset=>asset.pack==="Fantasy Ocean"),"Zmiana nazwy musi objąć całą bibliotekę globalną.");
 
@@ -46,7 +56,7 @@ const deactivation=core.deactivateLibraryPack("Fantasy Ocean");
 assert.equal(deactivation.deactivated,true);
 assert.equal(deactivation.removed,3);
 assert.equal(core.listAssets().length,0);
-assert.deepEqual([...core.getProjectAssetPacks()],[]);
+assert.deepEqual([...core.getProjectAssetPacks()],["Dino"]);
 
 const legacyAsset={id:"legacy-local",name:"Legacy Shell",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,shell",source:"fenix-library",pack:"Ocean Fantasy",libraryRef:"legacy-shell",meta:{libraryRef:"legacy-shell",pack:"Ocean Fantasy"}};
 const legacyLibrary={"legacy-shell":{id:"legacy-shell",name:"Legacy Shell",mime:"image/svg+xml",dataUrl:"data:image/svg+xml,shell",source:"fenix-library",pack:"Ocean Fantasy"}};
@@ -54,4 +64,4 @@ const legacyProject={...project,id:"legacy-project",assets:{"legacy-local":legac
 const{core:legacyCore}=createCore([legacyProject],legacyLibrary);
 assert.deepEqual([...legacyCore.getProjectAssetPacks()],["Ocean Fantasy"],"Starsze projekty powinny odzyskać bibliotekę z istniejących referencji.");
 
-console.log("PASS asset-libraries: aktywacja, automatyczne podpinanie, zmiana nazwy, odłączanie i migracja.");
+console.log("PASS asset-libraries: puste zestawy, wybór, aktywacja, automatyczne podpinanie, zmiana nazwy, odłączanie i migracja.");
