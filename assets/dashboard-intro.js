@@ -98,6 +98,6 @@
 
 (()=>{
   const load=(src,done)=>{if(document.querySelector(`script[data-fenix-sync-src="${src}"]`))return done?.();const s=document.createElement("script");s.src=src;s.dataset.fenixSyncSrc=src;s.onload=()=>done?.();document.body.appendChild(s)};
-  const boot=()=>load("core/sync-core.js?v=7",()=>load("core/sync-ui.js?v=7"));
+  const boot=()=>load("core/sync-core.js?v=8",()=>load("core/sync-ui.js?v=8"));
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();

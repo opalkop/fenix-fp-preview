@@ -28,12 +28,12 @@
 
   if(shellScript&&!window.FenixSync&&!document.querySelector('script[data-fenix-studio-sync]')){
     const core=document.createElement("script");
-    core.src=new URL("../core/sync-core.js?v=2",shellScript.src).href;
+    core.src=new URL("../core/sync-core.js?v=6",shellScript.src).href;
     core.dataset.fenixStudioSync="core";
     core.onload=()=>{
       if(document.getElementById("fenixSyncButton"))return;
       const ui=document.createElement("script");
-      ui.src=new URL("../core/sync-ui.js?v=2",shellScript.src).href;
+      ui.src=new URL("../core/sync-ui.js?v=6",shellScript.src).href;
       ui.dataset.fenixStudioSync="ui";
       document.body.appendChild(ui);
     };
