@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>FENIX Book Builder — Główny moduł</title>
-  <link rel="stylesheet" href="book-builder.css?v=0.22.0">
+  <link rel="stylesheet" href="book-builder.css?v=0.34.0">
   <link rel="stylesheet" href="content-summary.css?v=0.22.3">
 </head>
 <body data-screen="book-builder" data-engine="specialized">
@@ -17,7 +17,21 @@
     <div class="builder-control-sections">
       <details open class="gold">
         <summary><span><strong>1. Zawartość książki</strong><small>Strony i Studia użyte w aktywnym projekcie</small></span></summary>
-        <div class="builder-panel-body"><p id="cartSummary">Wczytywanie…</p><div id="contentSummary" class="content-summary"></div><div class="builder-inline-actions"><button id="autoOrder" class="secondary">Uporządkuj książkę automatycznie</button><button id="reloadCart">Odśwież strony projektu</button></div><p class="hint">Fenix układa: wprowadzenie → ćwiczenia → rozwiązania → Congratulations → QR → pusta strona → Certificate. Pusta strona przed certyfikatem chroni jego rewers przy wycinaniu.</p></div>
+        <div class="builder-panel-body">
+          <p id="cartSummary">Wczytywanie…</p>
+          <div id="contentSummary" class="content-summary"></div>
+          <div class="production-plan-box">
+            <div class="production-plan-head"><strong>Automatyczny plan aktywności</strong><small>Oddziel kolejność produkcji w Studiach od kolejności stron w gotowej książce.</small></div>
+            <div class="builder-form-grid production-plan-grid">
+              <label class="builder-wide"><span>Plan</span><select id="productionPlanPreset"><option value="ocean-fantasy-50">Ocean Fantasy Adventure — 5 stref / 50 aktywności</option></select></label>
+              <div class="builder-field-action"><button id="applyProductionPlan">Zastosuj plan automatycznie</button></div>
+              <div class="builder-field-action"><button id="clearProductionPlan" class="secondary">Usuń przypisania planu</button></div>
+              <p id="productionPlanStatus" class="hint builder-wide">Możesz produkować wszystkie Maze, Coloring itd. seriami. Plan przypisze każdą stronę do właściwego slotu Coral Reef → Turtle Bay → Sunken Treasure → Mystic Deep → Fantasy Kingdom. Rozwiązania pozostają automatycznie powiązane z aktywnościami.</p>
+            </div>
+          </div>
+          <div class="builder-inline-actions"><button id="autoOrder" class="secondary">Uporządkuj książkę automatycznie</button><button id="reloadCart">Odśwież strony projektu</button></div>
+          <p class="hint">Fenix układa: wprowadzenie → ćwiczenia → rozwiązania → Congratulations → QR → pusta strona → Certificate. Pusta strona przed certyfikatem chroni jego rewers przy wycinaniu.</p>
+        </div>
       </details>
       <details open>
         <summary><span><strong>2. Ustawienia książki</strong><small>Tytuł, format, numeracja i puste strony</small></span></summary>
@@ -57,9 +71,11 @@
 <script src="../intro-studio/intro-renderer.js?v=0.27.6"></script>
 <script src="../shared/ending-renderers.js?v=0.27.6"></script>
 <script src="../../core/fenix-core.js?v=0.31.2"></script>
+<script src="../../core/production-plan.js?v=0.34.0"></script>
 <script src="production-renderers.js?v=1.2.0"></script>
 <script src="alphabet-production.js?v=1.1.0"></script>
 <script src="hidden-production.js?v=1.0.0"></script>
 <script src="book-builder.js?v=0.33.0"></script>
+<script src="production-plan-ui.js?v=0.34.0"></script>
 </body>
 </html>
