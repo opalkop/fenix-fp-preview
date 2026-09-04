@@ -1,0 +1,14 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
+const root=path.join(__dirname,"..");
+const html=fs.readFileSync(path.join(root,"modules/maze-studio/index.html"),"utf8");
+const source=fs.readFileSync(path.join(root,"modules/maze-studio/maze-production-fix.js"),"utf8");
+assert.match(html,/maze-production-fix\.js\?v=0\.35\.0/,"Maze Studio musi ładować finalny fix po głównych handlerach.");
+assert.match(source,/FenixCore\.listAssets\(\)/,"Deco musi korzystać z pełnej biblioteki aktywnego projektu.");
+assert.doesNotMatch(source,/window\.FenixCore/,"Fix Deco nie może polegać na window.FenixCore, bo core jest globalnym const.");
+assert.match(source,/assetRoomRects/,"Skalowanie gameplay assetów ma korzystać z faktycznie zarezerwowanych stref.");
+assert.match(source,/roomW\*\.82/,"Widoczny asset ma wypełniać zarezerwowany pokój zamiast pojedynczej komórki.");
+assert.match(source,/MutationObserver/,"Picker Deco ma odbudowywać się po starym refreshAssets, który może wyczyścić host.");
+console.log("PASS maze-production-fix: visible room sizing and resilient full-library Deco picker.");
