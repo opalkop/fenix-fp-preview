@@ -1,5 +1,5 @@
 name: Sync FP Preview
-# Manual dispatch marker: 2026-09-04Trelease-hardening
+# Manual dispatch marker: 2026-09-04Tproduction-plan-automation
 
 on:
   schedule:
