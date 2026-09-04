@@ -1,5 +1,5 @@
 name: Sync FP Preview
-# Manual dispatch marker: 2026-09-04Tproduction-plan-automation
+# Manual dispatch marker: 2026-09-04Tmaze-asset-scale-deco-fix
 
 on:
   schedule:
