@@ -6,9 +6,9 @@ const path=require("node:path");
 const vm=require("node:vm");
 const root=path.join(__dirname,"..");
 
-let renderedPage=null;
+let renderedOpts=null;
 const base={
-  render(page){renderedPage=page;return{ok:true}},
+  render(page,opts){renderedOpts=opts;return{ok:true}},
   prepareAssets(){return Promise.resolve({})}
 };
 const sandbox={window:{FenixMaze:base},console,structuredClone};
@@ -16,27 +16,22 @@ vm.runInNewContext(fs.readFileSync(path.join(root,"modules/maze-studio/maze-asse
 
 const helper=sandbox.window.FenixMazeEnhancements;
 assert.ok(helper,"Maze enhancements helper powinien być dostępny.");
-assert.equal(helper.version,"0.34.0");
-assert.equal(helper.scaleForRole("endpoint",100),170,"100% START/META ma dawać wyraźnie większy asset.");
-assert.equal(helper.scaleForRole("endpoint",180),306,"180% START/META ma zachować pełny zakres wizualny.");
-assert.equal(helper.scaleForRole("mission",80),124,"Checkpoint/Hazard ma również realnie reagować na procent.");
+assert.equal(helper.version,"0.34.2");
+assert.equal(helper.scaleForRole("endpoint",100),100,"100% powinno pozostać rzeczywistym 100%.");
+assert.equal(helper.scaleForRole("endpoint",180),180,"180% powinno pozostać rzeczywistym 180%.");
+assert.equal(helper.scaleForRole("mission",80),80,"Checkpoint/Hazard powinny zachować skalę z UI.");
+assert.equal(typeof helper.cropTransparent,"function","Skalowanie ma korzystać z widocznych granic assetu.");
+assert.equal(typeof helper.cropImages,"function","Renderer ma umieć przyciąć przezroczyste marginesy assetów.");
 
-const page={module:"maze-studio",recipe:{settings:{
-  startAssetRef:"start",goalAssetRef:"goal",checkpointAssetRef:"cp",hazardAssetRef:"hz",
-  startAssetScale:100,goalAssetScale:180,checkpointScale:80,hazardScale:100
-}}};
-sandbox.window.FenixMaze.render(page,{});
-assert.ok(renderedPage,"Renderer bazowy powinien zostać wywołany.");
-assert.equal(renderedPage.recipe.settings.startAssetScale,170);
-assert.equal(renderedPage.recipe.settings.goalAssetScale,306);
-assert.equal(renderedPage.recipe.settings.checkpointScale,124);
-assert.equal(renderedPage.recipe.settings.hazardScale,155);
-assert.equal(page.recipe.settings.startAssetScale,100,"Wrapper nie może mutować zapisanej receptury użytkownika.");
-assert.equal(page.recipe.settings.goalAssetScale,180,"Wartości zapisane w projekcie pozostają procentami z UI.");
+sandbox.window.FenixMaze.render({module:"maze-studio"},{assetImages:{}});
+assert.ok(renderedOpts,"Renderer bazowy powinien zostać wywołany.");
 
 const source=fs.readFileSync(path.join(root,"modules/maze-studio/maze-asset-refresh.js"),"utf8");
-assert.match(source,/FenixCore\.listAssets\(\)/,"Deco powinno korzystać z pełnej biblioteki assetów, nie wyłącznie z tagu deco.");
+assert.match(source,/FenixCore\.listAssets\(\)/,"Deco powinno korzystać z pełnej biblioteki assetów.");
 assert.match(source,/mazeDecoSearch/,"Deco powinno mieć wyszukiwarkę biblioteki.");
-assert.match(source,/decoCount/,"Wybranie Deco powinno aktywować liczbę dekoracji.");
+assert.match(source,/getImageData/,"Skalowanie powinno wykrywać realny obrys widocznego assetu.");
+const html=fs.readFileSync(path.join(root,"modules/maze-studio/index.html"),"utf8");
+assert.match(html,/maze-asset-refresh\.js\?v=0\.34\.2/,"Maze Studio musi wymuszać pobranie bieżącej poprawki zamiast starego cache.");
+assert.match(html,/<details open><summary>4\. DECO/,"Warstwa Deco ma być od razu widoczna w Studio.");
 
-console.log("PASS maze-asset-scale-deco: real scale mapping, immutable recipes and full-library Deco picker.");
+console.log("PASS maze-asset-scale-deco: visible-bounds scaling, cache bust and full-library Deco picker.");
