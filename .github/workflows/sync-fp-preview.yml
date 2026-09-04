@@ -1,5 +1,5 @@
 name: Sync FP Preview
-# Manual dispatch marker: 2026-09-03Tasset-delete
+# Manual dispatch marker: 2026-09-04Trelease-hardening
 
 on:
   schedule:
