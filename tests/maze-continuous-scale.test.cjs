@@ -1,0 +1,15 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
+const root=path.join(__dirname,"..");
+const scale=fs.readFileSync(path.join(root,"modules/maze-studio/maze-continuous-scale.js"),"utf8");
+const html=fs.readFileSync(path.join(root,"modules/maze-studio/index.html"),"utf8");
+assert.match(scale,/pct\/100/,"Widoczna wielkość assetu musi reagować ciągle na dokładny procent.");
+assert.match(scale,/roomW\/gridW/,"Skala ma korzystać z rzeczywistego rozmiaru komórki wyliczonego z pokoju.");
+assert.match(scale,/Math\.min\(requested,fit\)/,"Asset ma rosnąć ciągle, ale nie wychodzić poza zarezerwowany pokój.");
+assert.match(scale,/fillRect\(rect\.left\+inset/,"Przed finalnym redraw należy usunąć wcześniejszy mniejszy render z wnętrza pokoju.");
+const production=html.indexOf('maze-production-fix.js?v=0.35.0');
+const continuous=html.indexOf('maze-continuous-scale.js?v=0.36.0');
+assert.ok(production>=0&&continuous>production,"Continuous scale musi ładować się po produkcyjnej warstwie Maze.");
+console.log("PASS maze-continuous-scale: exact percent scaling with room fit and final redraw.");
