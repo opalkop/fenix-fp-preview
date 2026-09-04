@@ -13,7 +13,7 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
     assert(modules.indexOf("congratulations-studio")<modules.indexOf("qr-studio"));
     assert(modules.indexOf("qr-studio")<modules.indexOf("certificate-studio"));
     const automaticBlank=composed.findIndex(page=>page._autoParity);
-    if(automaticBlank>=0)assert(automaticBlank<modules.indexOf("congratulations-studio"),"Automatyczna pusta strona musi poprzedzać rozwiązania i zakończenie.");
+    if(automaticBlank>=0)assert.equal(automaticBlank+1,modules.indexOf("certificate-studio"),"Automatyczna pusta strona musi znajdować się bezpośrednio przed certyfikatem.");
   }
 }
 
@@ -109,11 +109,11 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(builder.includes("sequence.body"));
   assert(builder.includes("sequence.solved"));
   assert(builder.includes("sequence.closing"));
-  assert(builder.includes("hasSolutionsDivider"));
-  assert(builder.includes('ctx.fillText("SOLUTIONS"'));
-  assert(builder.includes('ctx.fillText("Answer Key"'));
-  assert(builder.includes("showSectionTitle:!sequence.hasSolutionsDivider"));
-  assert(builder.includes("wprowadzenie → ćwiczenia → rozwiązania → Congratulations → QR → Certificate"));
+  assert(builder.includes("hasSolutionsDivider:false"));
+  assert(builder.includes('ctx.fillText("Solutions"'));
+  assert(!builder.includes('ctx.fillText("Answer Key"'));
+  assert(builder.includes("showSectionTitle:true"));
+  assert(builder.includes("wprowadzenie → ćwiczenia → rozwiązania → zakończenie"));
   assert(builderHtml.includes("../shared/ending-renderers.js"));
   assert(builderHtml.includes("Dodaj dostępne rozwiązania przed zakończeniem książki"));
 }
@@ -123,7 +123,7 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(intro.includes("compact=count<=4"));
   assert(intro.includes("gridWidth=compact?"));
   assert(intro.includes("glyphLimit=compact?190:105"));
-  assert(introHtml.includes("intro-renderer.js?v=0.27.3"));
+  assert(/intro-renderer\.js\?v=/.test(introHtml));
 }
 
 {

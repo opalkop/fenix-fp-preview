@@ -32,8 +32,8 @@ window.FenixBookOrder=Object.freeze((()=>{
     body.push(...technicalBlanks);
     const certIndex=closing.findIndex(page=>moduleOf(page)==="certificate-studio");
     if(certIndex>=0){
-      const hasBlankBefore=certIndex>0&&isBlank(closing[certIndex-1]);
-      if(!hasBlankBefore)closing.splice(certIndex,0,parityBlank());
+      const certificatePage=body.length+solutionPageCount+certIndex+1;
+      if(certificatePage%2!==0)closing.splice(certIndex,0,parityBlank());
     }
     return[...body,...closing];
   }

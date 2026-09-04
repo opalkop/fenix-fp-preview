@@ -11,7 +11,7 @@
  const a=FenixMaze.render(normalized,{solution:true,width:850,height:1100,assetImages:assets});
  const b=FenixMaze.render(normalized,{solution:true,width:2550,height:3300,assetImages:assets});
  check("Renderer version",a.rendererVersion==="0.33.2"&&b.rendererVersion==="0.33.2",`${a.rendererVersion}/${b.rendererVersion}`);
- check("Asset-first engine version",a.engineVersion==="0.33.0"&&b.engineVersion==="0.33.0",`${a.engineVersion}/${b.engineVersion}`);
+ check("Asset-first engine version",a.engineVersion==="0.33.12"&&b.engineVersion==="0.33.12",`${a.engineVersion}/${b.engineVersion}`);
  check("Cleanup pad exceeds wall width",a.cleanupPad>2&&b.cleanupPad>6,`${a.cleanupPad}/${b.cleanupPad}`);
  const sig=r=>JSON.stringify({start:r.maze.start,end:r.maze.end,zones:(r.assetZones||[]).map(z=>({role:z.role,x:z.x,y:z.y,w:z.w,h:z.h})),checkpoints:r.checkpoints,hazards:r.hazards,solution:r.solutionPath});
  check("Preview and print geometry identical",sig(a)===sig(b));

@@ -1,0 +1,13 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
+const core=fs.readFileSync(path.join(__dirname,"..","core","fenix-core.js"),"utf8");
+assert.match(core,/pageSnapshotId=.*page:/,"Page snapshots powinny mieć osobne klucze IndexedDB.");
+assert.match(core,/stripPagePayloads/,"Persist powinien usuwać ciężkie bitmapy stron z localStorage.");
+assert.match(core,/stripHeavyPayloads\(state\.projects\)/,"Projekt zapisany do localStorage powinien być odchudzony.");
+assert.match(core,/hydrateProjectPageSnapshots/,"Start aplikacji powinien odtwarzać snapshoty z IndexedDB.");
+assert.match(core,/queueProjectPages/,"Zmiany stron powinny kolejkować zapis snapshotów do IndexedDB.");
+assert.match(core,/queueRemovedPageSnapshots/,"Usunięte strony powinny usuwać swoje snapshoty z IndexedDB.");
+assert.match(core,/heavyPageSnapshotsInIndexedDB/,"Diagnostyka storage powinna raportować snapshoty stron w IndexedDB.");
+console.log("PASS page-snapshot-storage: preview/solution payloads are kept out of localStorage in IndexedDB mode.");

@@ -27,7 +27,8 @@ assert.match(builder,/core\/book-order\.js/,"Book Builder powinien ładować log
 assert.match(builder,/core\/fenix-pdf\.js/,"Book Builder powinien ładować lokalny silnik PDF.");
 assert.match(builder,/word-search-studio\/word-search-core\.js/,"Book Builder powinien ładować renderer Word Search.");
 const builderJs=read("modules/book-builder/book-builder.js");
-assert.match(builderJs,/isWordSearch/,"Book Builder powinien rozpoznawać strony Word Search.");
+assert.match(builderJs,/function wordSearchCanvas/,"Book Builder powinien mieć aktywny renderer Word Search.");
+assert.match(builderJs,/module===?"word-search-studio"|module==="word-search-studio"/,"Book Builder powinien kierować strony Word Search do właściwego renderera.");
 assert.match(builderJs,/FenixWordSearch\.render/,"Book Builder powinien odtwarzać Word Search z receptury.");
 assert.match(builderJs,/grayscale\(1\)/,"Arkusze rozwiązań powinny być wymuszane jako czarno-białe.");
 assert.match(builderJs,/Activity Page/,"Rozwiązanie powinno wskazywać numer właściwej strony aktywności.");
