@@ -17,12 +17,29 @@
   const fileInput=$("#assetSetFile");
   let openPack="";
   let activeProjectId="";
+  let compatPromise=null;
 
-  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
+  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;","\"":"&quot;","'":"&#39;"}[char]));
   const assetWord=value=>Number(value)===1?"asset":Number(value)>1&&Number(value)<5?"assety":"assetów";
   const setWord=value=>Number(value)===1?"zestaw":Number(value)>1&&Number(value)<5?"zestawy":"zestawów";
   const readDataUrl=file=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(reader.error||new Error("Nie udało się odczytać pliku."));reader.readAsDataURL(file)});
   const readDimensions=dataUrl=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve({width:image.naturalWidth||image.width,height:image.naturalHeight||image.height});image.onerror=()=>reject(new Error("Nie udało się odczytać obrazu."));image.src=dataUrl});
+
+  function ensureCompat(){
+    if(window.FenixAssetLibraryCompat)return Promise.resolve(window.FenixAssetLibraryCompat);
+    if(compatPromise)return compatPromise;
+    compatPromise=new Promise((resolve,reject)=>{
+      const existing=document.querySelector('script[data-fenix-asset-legacy-compat]');
+      if(existing){existing.addEventListener("load",()=>resolve(window.FenixAssetLibraryCompat),{once:true});existing.addEventListener("error",()=>reject(new Error("Nie udało się załadować warstwy zgodności assetów.")),{once:true});return}
+      const script=document.createElement("script");
+      script.src="core/asset-library-legacy-compat.js?v=0.35.0";
+      script.dataset.fenixAssetLegacyCompat="true";
+      script.onload=()=>resolve(window.FenixAssetLibraryCompat);
+      script.onerror=()=>reject(new Error("Nie udało się załadować warstwy zgodności assetów."));
+      document.head.appendChild(script);
+    });
+    return compatPromise;
+  }
 
   function setStatus(message,type="neutral"){
     if(!status)return;
@@ -68,18 +85,30 @@
     assetGrid.querySelectorAll("[data-delete-asset]").forEach(button=>button.addEventListener("click",()=>removeAsset(button.dataset.deleteAsset)));
   }
 
-  function removeAsset(assetId){
+  async function removeAsset(assetId){
     const asset=packAssets(openPack).find(item=>item.id===assetId);
     if(!asset)return;
     if(!confirm(`Usunąć asset „${asset.name||asset.filename||"Asset"}” z zestawu „${openPack}”?`))return;
-    const result=FenixCore.removeLibraryAsset(asset.id);
-    if(result?.reason==="in-use"){
-      setStatus(`Nie usunięto „${asset.name}”. Asset jest używany na ${result.usage.length} ${result.usage.length===1?"stronie":"stronach"} książki.`,"warning");
-      return;
+    setStatus(`Usuwam „${asset.name||asset.filename||"Asset"}”…`);
+    try{
+      const compat=await ensureCompat();
+      const result=compat?.removeLibraryAssetSafely
+        ?await compat.removeLibraryAssetSafely(asset.id)
+        :FenixCore.removeLibraryAsset(asset.id);
+      if(result?.reason==="in-use"){
+        setStatus(`Nie usunięto „${asset.name}”. Asset jest używany na ${result.usage.length} ${result.usage.length===1?"stronie":"stronach"} książki.`,"warning");
+        return;
+      }
+      if(!result?.removed){setStatus("Nie udało się usunąć assetu.","error");return}
+      render();
+      const preserved=Number(result?.preserved?.materialized||0);
+      setStatus(preserved
+        ?`Usunięto asset „${asset.name}” z zestawu „${openPack}”. Zachowano ${preserved} używan${preserved===1?"ą kopię":"e kopie"} w istniejących projektach.`
+        :`Usunięto asset „${asset.name}” z zestawu „${openPack}”.`,"ok");
+    }catch(error){
+      console.error("FENIX library asset remove",error);
+      setStatus(`Nie udało się usunąć assetu: ${error?.message||error}`,"error");
     }
-    if(!result?.removed){setStatus("Nie udało się usunąć assetu.","error");return}
-    render();
-    setStatus(`Usunięto asset „${asset.name}” z zestawu „${openPack}”.`,"ok");
   }
 
   function render(){
@@ -161,5 +190,5 @@
   fileInput?.addEventListener("change",()=>{importFiles(fileInput.files);fileInput.value=""});
   window.addEventListener("fenix-state-change",event=>{if(event.detail?.assets||event.detail?.activeProject||event.detail?.projects||event.detail?.library)render()});
 
-  FenixCore.ready.then(()=>{chooseInitialPack();render()});
+  FenixCore.ready.then(()=>{chooseInitialPack();render();ensureCompat().catch(error=>console.error("FENIX asset compatibility preload",error))});
 })();
