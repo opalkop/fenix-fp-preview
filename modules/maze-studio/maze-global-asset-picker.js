@@ -110,5 +110,8 @@
   window.addEventListener("fenix-library-change",()=>schedule(0));
   window.addEventListener("fenix-assets-change",()=>schedule(0));
   document.getElementById("pageSelect")?.addEventListener("change",()=>setTimeout(()=>{ROLES.forEach(role=>{const pack=document.getElementById(role.packId);if(pack)pack.value=""});schedule(0)},0));
-  Promise.resolve().then(async()=>{if(FenixCore.ready)await FenixCore.ready;bind();rebuildAll();setTimeout(schedule,150);setTimeout(schedule,600)});
+  bind();
+  rebuildAll();
+  setTimeout(schedule,150);
+  setTimeout(schedule,600);
 })();
