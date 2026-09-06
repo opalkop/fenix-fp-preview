@@ -1,6 +1,6 @@
 "use strict";
 (()=>{
-  if(typeof document==="undefined"||!window.FenixCore)return;
+  if(typeof document==="undefined"||typeof FenixCore==="undefined")return;
   const ROLES=[
     {assetId:"startAsset",packId:"startAssetPack",label:"Zestaw START"},
     {assetId:"goalAsset",packId:"goalAssetPack",label:"Zestaw META"},
