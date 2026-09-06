@@ -1,6 +1,6 @@
 "use strict";
 (()=>{
-  const VERSION="0.34.2";
+  const VERSION="0.34.3";
   const clamp=(value,min,max,fallback)=>{const n=Number(value);return Math.max(min,Math.min(max,Number.isFinite(n)?n:fallback))};
   const scaleForRole=(role,value)=>clamp(value,40,role==="endpoint"?180:160,role==="endpoint"?100:80);
   const cropCache=new WeakMap();
@@ -38,25 +38,67 @@
   const canvas=()=>document.getElementById("page");
   const esc=value=>String(value??"").replace(/[&<>'\"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"}[ch]));
   const decoNameHint=/deco|corner|divider|coral|kelp|bubble|shell|sparkle|anemone|reef|crystal|ruin|pearl|wave/i;
-  let running=false,lastRun=0,decoRefreshQueued=false;
+  let running=false,lastRun=0,decoRefreshQueued=false,gameplayRefreshQueued=false,packSelecting=false;
   function assetTags(asset){const raw=asset?.tags;if(Array.isArray(raw))return raw.map(String);if(typeof raw==="string")return raw.split(/[;,\s]+/).filter(Boolean);return[]}
   function isRecommendedDeco(asset){return assetTags(asset).some(tag=>tag.toLowerCase()==="deco")||decoNameHint.test(String(asset?.name||""))}
+  function packOf(asset){return String(asset?.pack||asset?.meta?.pack||"").trim()}
+  function currentPack(){return String(document.getElementById("mazeAssetPackSelect")?.value||"").trim()}
+  function samePack(asset,pack=currentPack()){return !pack||packOf(asset).toLowerCase()===pack.toLowerCase()}
+  function savedSettings(){const select=document.getElementById("pageSelect"),id=select?.value||pageId();if(!id)return{};const raw=FenixCore.getCart?.().find(item=>item.id===id);return raw?.recipe?.settings||raw?.settings||{}}
+  function savedPack(){const settings=savedSettings(),refs=[settings.startAssetRef,settings.goalAssetRef,settings.checkpointAssetRef,settings.hazardAssetRef,...(Array.isArray(settings.decoAssetRefs)?settings.decoAssetRefs:[])].filter(Boolean);for(const ref of refs){const asset=FenixCore.getAsset?.(ref);const pack=packOf(asset);if(pack)return pack}return""}
   function currentSelectedDeco(){return [...document.querySelectorAll('#decoAssetChoices input[type="checkbox"]:checked')].map(input=>input.value)}
-  function savedDecoRefs(){const select=document.getElementById("pageSelect"),id=select?.value||pageId();if(!id)return[];const raw=FenixCore.getCart?.().find(item=>item.id===id),refs=raw?.recipe?.settings?.decoAssetRefs||raw?.settings?.decoAssetRefs;return Array.isArray(refs)?refs.filter(Boolean):[]}
+  function savedDecoRefs(){const refs=savedSettings().decoAssetRefs;return Array.isArray(refs)?refs.filter(Boolean):[]}
   function updateDecoSummary(){const summary=document.getElementById("decoSummary"),count=document.getElementById("decoCount"),selected=currentSelectedDeco().length;if(summary)summary.textContent=`${selected} wybranych · ${Number(count?.value)||0} na stronie`}
   function markMazeDirty(){const count=document.getElementById("decoCount");if(count){count.dispatchEvent(new Event("input",{bubbles:true}));count.dispatchEvent(new Event("change",{bubbles:true}))}}
-  function injectDecoStyle(){if(document.getElementById("maze-deco-library-style"))return;const style=document.createElement("style");style.id="maze-deco-library-style";style.textContent=`.maze-deco-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px}.maze-deco-toolbar input{flex:1;min-width:220px;padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px}.maze-deco-toolbar small{color:#64748b}.maze-deco-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;max-height:430px;overflow:auto;padding:4px}.maze-deco-card{position:relative;display:grid!important;grid-template-rows:76px auto;gap:5px;padding:7px;border:1px solid #dbe3ee;border-radius:10px;background:#fff;cursor:pointer}.maze-deco-card:hover{border-color:#f08a2c}.maze-deco-card input{position:absolute;right:7px;top:7px;width:auto!important;z-index:2}.maze-deco-card img{width:100%;height:76px;object-fit:contain;background:#fff}.maze-deco-card strong{font-size:10px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.maze-deco-card.recommended{border-color:#d7b56d;background:#fffdf7}.maze-deco-card[hidden]{display:none!important}.maze-scale-behavior{margin-top:8px;padding:9px 11px;border-radius:9px;background:#eef7ff;color:#31506f;font-size:11px;line-height:1.4}`;document.head.appendChild(style)}
+  function injectDecoStyle(){if(document.getElementById("maze-deco-library-style"))return;const style=document.createElement("style");style.id="maze-deco-library-style";style.textContent=`.maze-pack-picker{display:grid;grid-template-columns:minmax(220px,360px) 1fr;gap:10px;align-items:end;margin:0 0 14px;padding:12px;border:1px solid #dbe3ee;border-radius:10px;background:#f8fafc}.maze-pack-picker label{display:grid;gap:5px;font-size:12px;font-weight:700}.maze-pack-picker select{width:100%;padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}.maze-pack-picker small{color:#64748b;line-height:1.35}.maze-deco-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px}.maze-deco-toolbar input{flex:1;min-width:220px;padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px}.maze-deco-toolbar small{color:#64748b}.maze-deco-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;max-height:430px;overflow:auto;padding:4px}.maze-deco-card{position:relative;display:grid!important;grid-template-rows:76px auto;gap:5px;padding:7px;border:1px solid #dbe3ee;border-radius:10px;background:#fff;cursor:pointer}.maze-deco-card:hover{border-color:#f08a2c}.maze-deco-card input{position:absolute;right:7px;top:7px;width:auto!important;z-index:2}.maze-deco-card img{width:100%;height:76px;object-fit:contain;background:#fff}.maze-deco-card strong{font-size:10px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.maze-deco-card.recommended{border-color:#d7b56d;background:#fffdf7}.maze-deco-card[hidden]{display:none!important}.maze-scale-behavior{margin-top:8px;padding:9px 11px;border-radius:9px;background:#eef7ff;color:#31506f;font-size:11px;line-height:1.4}`;document.head.appendChild(style)}
+  function ensurePackPicker(){
+    injectDecoStyle();
+    const start=document.getElementById("startAsset"),grid=start?.closest(".asset-maze-grid");if(!grid)return null;
+    let wrap=document.getElementById("mazeAssetPackPicker");
+    if(!wrap){wrap=document.createElement("div");wrap.id="mazeAssetPackPicker";wrap.className="maze-pack-picker";wrap.innerHTML='<label>Zestaw assetów<select id="mazeAssetPackSelect"></select></label><small>Wybierz bibliotekę używaną przez START, META, CHECKPOINT, ZAGROŻENIA i DECO. Wybrany zestaw zostanie dołączony do aktywnego projektu.</small>';grid.parentNode.insertBefore(wrap,grid);document.getElementById("mazeAssetPackSelect")?.addEventListener("change",event=>selectPack(event.target.value))}
+    refreshPackOptions();return wrap
+  }
+  function refreshPackOptions(preferred=""){
+    const select=document.getElementById("mazeAssetPackSelect");if(!select||!FenixCore.listLibraryPacks)return;
+    const packs=FenixCore.listLibraryPacks()||[],project=FenixCore.getActiveProject?.(),current=String(preferred||select.value||savedPack()||project?.primaryAssetPack||"").trim();
+    select.innerHTML='<option value="">Wszystkie assety projektu</option>'+packs.map(pack=>`<option value="${esc(pack)}">${esc(pack)}</option>`).join("");
+    const canonical=packs.find(pack=>pack.toLowerCase()===current.toLowerCase())||"";select.value=canonical
+  }
+  function gameplayAssets(){const assets=(FenixCore.listAssets?.()||[]).filter(asset=>samePack(asset)),tagged=assets.filter(asset=>assetTags(asset).some(tag=>tag.toLowerCase()==="gameplay"));return tagged.length?tagged:assets}
+  function selectEmptyLabel(select){return select?.id==="startAsset"?"Bez assetu — znacznik S":select?.id==="goalAsset"?"Bez assetu — znacznik M":"Bez assetu"}
+  function rebuildSelect(select,assets,savedRef=""){if(!select)return;const current=String(savedRef||select.value||"");select.innerHTML=`<option value="">${selectEmptyLabel(select)}</option>`+assets.map(asset=>`<option value="${esc(asset.id)}">${esc(asset.name||asset.filename||asset.id)}</option>`).join("");select.value=assets.some(asset=>asset.id===current)?current:""}
+  function rebuildGameplayLibrary(){
+    ensurePackPicker();
+    const settings=savedSettings(),assets=gameplayAssets();
+    rebuildSelect(document.getElementById("startAsset"),assets,settings.startAssetRef);
+    rebuildSelect(document.getElementById("goalAsset"),assets,settings.goalAssetRef);
+    rebuildSelect(document.getElementById("checkpointAsset"),assets,settings.checkpointAssetRef);
+    rebuildSelect(document.getElementById("hazardAsset"),assets,settings.hazardAssetRef);
+    const info=document.getElementById("assetInfo"),pack=currentPack();if(info)info.textContent=`Zestaw: ${pack||"wszystkie assety projektu"} · assety gameplay ${assets.length}. Wybór zestawu filtruje START, META, checkpointy, zagrożenia i DECO.`
+  }
   function rebuildDecoLibrary(){
     const host=document.getElementById("decoAssetChoices");if(!host||!FenixCore.listAssets)return;
-    injectDecoStyle();const selected=new Set([...currentSelectedDeco(),...savedDecoRefs()]);const assets=[...FenixCore.listAssets()].sort((a,b)=>Number(isRecommendedDeco(b))-Number(isRecommendedDeco(a))||String(a.name||"").localeCompare(String(b.name||"")));
-    if(!assets.length){host.innerHTML='<div class="asset-empty">Brak assetów w bibliotece.</div>';return}
-    host.innerHTML=`<div class="maze-deco-toolbar"><input id="mazeDecoSearch" type="search" placeholder="Szukaj Deco w bibliotece (${assets.length})"><small>Cała biblioteka jest dostępna; polecane Deco są wyróżnione.</small></div><div class="maze-deco-grid">${assets.map(asset=>{const full=FenixCore.getAsset?.(asset.id)||asset,src=full?.dataUrl||"",recommended=isRecommendedDeco(full);return `<label class="deco-choice maze-deco-card ${recommended?"recommended":""}" data-name="${esc(String(full.name||"").toLowerCase())}"><input type="checkbox" value="${esc(full.id)}" ${selected.has(full.id)?"checked":""}>${src?`<img src="${esc(src)}" alt="">`:'<div></div>'}<strong title="${esc(full.name||"")}">${esc(full.name||full.id)}</strong></label>`}).join("")}</div>`;
+    ensurePackPicker();injectDecoStyle();const selected=new Set([...currentSelectedDeco(),...savedDecoRefs()]);const assets=[...FenixCore.listAssets()].filter(asset=>samePack(asset)).sort((a,b)=>Number(isRecommendedDeco(b))-Number(isRecommendedDeco(a))||String(a.name||"").localeCompare(String(b.name||"")));
+    if(!assets.length){host.innerHTML='<div class="asset-empty">Brak assetów w wybranym zestawie.</div>';updateDecoSummary();return}
+    host.innerHTML=`<div class="maze-deco-toolbar"><input id="mazeDecoSearch" type="search" placeholder="Szukaj Deco w zestawie (${assets.length})"><small>Wyświetlany jest tylko wybrany zestaw; polecane Deco są wyróżnione.</small></div><div class="maze-deco-grid">${assets.map(asset=>{const full=FenixCore.getAsset?.(asset.id)||asset,src=full?.dataUrl||"",recommended=isRecommendedDeco(full);return `<label class="deco-choice maze-deco-card ${recommended?"recommended":""}" data-name="${esc(String(full.name||"").toLowerCase())}"><input type="checkbox" value="${esc(full.id)}" ${selected.has(full.id)?"checked":""}>${src?`<img src="${esc(src)}" alt="">`:'<div></div>'}<strong title="${esc(full.name||"")}">${esc(full.name||full.id)}</strong></label>`}).join("")}</div>`;
     const search=document.getElementById("mazeDecoSearch");search?.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();host.querySelectorAll(".maze-deco-card").forEach(card=>card.hidden=!!q&&!card.dataset.name.includes(q))});
     host.querySelectorAll('input[type="checkbox"]').forEach(input=>input.addEventListener("change",()=>{const count=document.getElementById("decoCount"),selectedCount=currentSelectedDeco().length;if(count&&selectedCount>0&&Number(count.value)===0)count.value=String(Math.min(3,selectedCount));if(count&&selectedCount===0)count.value="0";updateDecoSummary();markMazeDirty()}));
-    updateDecoSummary();const info=document.getElementById("assetInfo");if(info)info.textContent=`Biblioteka projektu: Maze ${assets.length} · Deco do wyboru ${assets.length}. Skala jest liczona od widocznego rysunku, bez przezroczystego marginesu pliku.`;
+    updateDecoSummary();
     const section=host.closest("details");if(section&&!section.querySelector(".maze-scale-behavior")){const note=document.createElement("div");note.className="maze-scale-behavior";note.textContent="START, META, checkpointy i zagrożenia są skalowane procentowo względem widocznej grafiki, a nie całego przezroczystego płótna assetu. Deco są układane poza grywalnym obszarem labiryntu.";section.querySelector(".deco-compact")?.appendChild(note)}
   }
+  async function selectPack(pack){
+    if(packSelecting)return;packSelecting=true;const name=String(pack||"").trim(),status=document.getElementById("status");
+    try{
+      if(name&&typeof FenixCore.selectLibraryPack==="function"){const result=FenixCore.selectLibraryPack(name);if(result?.selected===false)throw new Error(`Nie udało się aktywować zestawu ${name}`);if(typeof FenixCore.flushStorage==="function")await FenixCore.flushStorage()}
+      refreshPackOptions(name);rebuildGameplayLibrary();rebuildDecoLibrary();markMazeDirty();if(status)status.textContent=name?`Wybrano zestaw assetów: ${name}`:"Wyświetlam wszystkie assety projektu"
+    }catch(error){console.error("Maze asset pack selection failed",error);if(status)status.textContent=`Błąd wyboru zestawu assetów: ${error?.message||error}`}
+    finally{packSelecting=false}
+  }
+  function queueGameplayRefresh(){if(gameplayRefreshQueued)return;gameplayRefreshQueued=true;setTimeout(()=>{gameplayRefreshQueued=false;refreshPackOptions();rebuildGameplayLibrary()},0)}
   function queueDecoRefresh(){if(decoRefreshQueued)return;decoRefreshQueued=true;setTimeout(()=>{decoRefreshQueued=false;rebuildDecoLibrary()},0)}
   async function rerenderSavedMaze(){const id=pageId();if(!id||running||!window.FenixCore||!window.FenixMaze||!window.FenixPageSchema)return;const now=Date.now();if(now-lastRun<120)return;running=true;lastRun=now;try{await FenixCore.ready;if(typeof FenixCore.flushStorage==="function")await FenixCore.flushStorage();const raw=FenixCore.getCart().find(item=>item.id===id&&FenixPageSchema.moduleOf(item)==="maze-studio");if(!raw)return;const page=FenixPageSchema.normalize(raw),s=page.recipe?.settings||{},refs=[s.startAssetRef,s.goalAssetRef,s.checkpointAssetRef,s.hazardAssetRef,...(Array.isArray(s.decoAssetRefs)?s.decoAssetRefs:[])].filter(Boolean);if(!refs.length)return;const images=await FenixMaze.prepareAssets(page);if(!Object.keys(images).length)return;FenixMaze.render(page,{solution:!!s.showSolution,width:2550,height:3300,canvas:canvas(),assetImages:images});const status=document.getElementById("status");if(status)status.textContent="Wczytano zapisany labirynt z assetami"}catch(error){console.error("Maze asset refresh failed",error)}finally{running=false}}
-  window.addEventListener("fenix-storage-ready",()=>{queueDecoRefresh();setTimeout(rerenderSavedMaze,0)});window.addEventListener("fenix-state-change",event=>{if(event.detail?.assets||event.detail?.storage){queueDecoRefresh();setTimeout(rerenderSavedMaze,0)}});document.getElementById("pageSelect")?.addEventListener("change",()=>setTimeout(queueDecoRefresh,0));Promise.resolve().then(async()=>{if(window.FenixCore?.ready)await FenixCore.ready;requestAnimationFrame(()=>requestAnimationFrame(()=>{rebuildDecoLibrary();rerenderSavedMaze()}))});
+  window.addEventListener("fenix-storage-ready",()=>{ensurePackPicker();queueGameplayRefresh();queueDecoRefresh();setTimeout(rerenderSavedMaze,0)});
+  window.addEventListener("fenix-state-change",event=>{if(packSelecting)return;if(event.detail?.assets||event.detail?.storage||event.detail?.library||event.detail?.activeProject){queueGameplayRefresh();queueDecoRefresh();setTimeout(rerenderSavedMaze,0)}});
+  document.getElementById("pageSelect")?.addEventListener("change",()=>setTimeout(()=>{refreshPackOptions(savedPack());queueGameplayRefresh();queueDecoRefresh()},0));
+  Promise.resolve().then(async()=>{if(window.FenixCore?.ready)await FenixCore.ready;requestAnimationFrame(()=>requestAnimationFrame(()=>{ensurePackPicker();refreshPackOptions(savedPack());rebuildGameplayLibrary();rebuildDecoLibrary();rerenderSavedMaze()}))});
 })();
