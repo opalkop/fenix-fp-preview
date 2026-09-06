@@ -12,6 +12,7 @@
   const currentName=$("#assetSetCurrentName");
   const assetCount=$("#assetSetAssetCount");
   const previewCount=$("#assetSetPreviewCount");
+  const previewDetails=$("#assetSetPreviewDetails");
   const assetGrid=$("#assetSetAssetGrid");
   const status=$("#assetSetStatus");
   const fileInput=$("#assetSetFile");
@@ -47,9 +48,7 @@
     status.dataset.status=type;
   }
 
-  function packAssets(pack){
-    return FenixCore.listLibraryAssets({pack});
-  }
+  function packAssets(pack){return FenixCore.listLibraryAssets({pack})}
 
   function chooseInitialPack(){
     const project=FenixCore.getActiveProject();
@@ -62,6 +61,8 @@
     const result=FenixCore.selectLibraryPack(pack);
     if(!result?.selected)return;
     openPack=result.pack;
+    if(previewDetails)previewDetails.open=false;
+    if(assetGrid)assetGrid.innerHTML="";
     render();
     if(announce)setStatus(`Otwarty zestaw: „${result.pack}”. Nowe pliki trafią właśnie tutaj.`,"ok");
   }
@@ -77,11 +78,9 @@
   }
 
   function renderPreview(assets){
-    if(!assets.length){
-      assetGrid.innerHTML='<div class="asset-set-grid-empty">Ten zestaw jest pusty. Dodaj pierwsze pliki SVG lub PNG.</div>';
-      return;
-    }
-    assetGrid.innerHTML=assets.map(asset=>`<article class="asset-set-thumb"><div><img src="${asset.dataUrl}" alt="${escapeHtml(asset.name||"Asset")}"><button type="button" data-delete-asset="${escapeHtml(asset.id)}" aria-label="Usuń asset ${escapeHtml(asset.name||"Asset")}" title="Usuń asset">×</button></div><strong title="${escapeHtml(asset.name||asset.filename||"Asset")}">${escapeHtml(asset.name||asset.filename||"Asset")}</strong></article>`).join("");
+    if(!assetGrid)return;
+    if(!assets.length){assetGrid.innerHTML='<div class="asset-set-grid-empty">Ten zestaw jest pusty. Dodaj pierwsze pliki SVG lub PNG.</div>';return}
+    assetGrid.innerHTML=assets.map(asset=>`<article class="asset-set-thumb"><div><img loading="lazy" decoding="async" src="${asset.dataUrl}" alt="${escapeHtml(asset.name||"Asset")}"><button type="button" data-delete-asset="${escapeHtml(asset.id)}" aria-label="Usuń asset ${escapeHtml(asset.name||"Asset")}" title="Usuń asset">×</button></div><strong title="${escapeHtml(asset.name||asset.filename||"Asset")}">${escapeHtml(asset.name||asset.filename||"Asset")}</strong></article>`).join("");
     assetGrid.querySelectorAll("[data-delete-asset]").forEach(button=>button.addEventListener("click",()=>removeAsset(button.dataset.deleteAsset)));
   }
 
@@ -92,23 +91,13 @@
     setStatus(`Usuwam „${asset.name||asset.filename||"Asset"}”…`);
     try{
       const compat=await ensureCompat();
-      const result=compat?.removeLibraryAssetSafely
-        ?await compat.removeLibraryAssetSafely(asset.id)
-        :FenixCore.removeLibraryAsset(asset.id);
-      if(result?.reason==="in-use"){
-        setStatus(`Nie usunięto „${asset.name}”. Asset jest używany na ${result.usage.length} ${result.usage.length===1?"stronie":"stronach"} książki.`,"warning");
-        return;
-      }
+      const result=compat?.removeLibraryAssetSafely?await compat.removeLibraryAssetSafely(asset.id):FenixCore.removeLibraryAsset(asset.id);
+      if(result?.reason==="in-use"){setStatus(`Nie usunięto „${asset.name}”. Asset jest używany na ${result.usage.length} ${result.usage.length===1?"stronie":"stronach"} książki.`,"warning");return}
       if(!result?.removed){setStatus("Nie udało się usunąć assetu.","error");return}
       render();
       const preserved=Number(result?.preserved?.materialized||0);
-      setStatus(preserved
-        ?`Usunięto asset „${asset.name}” z zestawu „${openPack}”. Zachowano ${preserved} używan${preserved===1?"ą kopię":"e kopie"} w istniejących projektach.`
-        :`Usunięto asset „${asset.name}” z zestawu „${openPack}”.`,"ok");
-    }catch(error){
-      console.error("FENIX library asset remove",error);
-      setStatus(`Nie udało się usunąć assetu: ${error?.message||error}`,"error");
-    }
+      setStatus(preserved?`Usunięto asset „${asset.name}” z zestawu „${openPack}”. Zachowano ${preserved} używan${preserved===1?"ą kopię":"e kopie"} w istniejących projektach.`:`Usunięto asset „${asset.name}” z zestawu „${openPack}”.`,"ok");
+    }catch(error){console.error("FENIX library asset remove",error);setStatus(`Nie udało się usunąć assetu: ${error?.message||error}`,"error")}
   }
 
   function render(){
@@ -120,17 +109,16 @@
     empty.hidden=packs.length>0;
     workspace.hidden=!openPack;
     renderSetList(packs,project?.primaryAssetPack||"");
-    if(!openPack)return;
+    if(!openPack){if(assetGrid)assetGrid.innerHTML="";return}
     const assets=packAssets(openPack);
     currentName.textContent=openPack;
     assetCount.textContent=`${assets.length} ${assetWord(assets.length)}`;
     previewCount.textContent=String(assets.length);
-    renderPreview(assets);
+    if(previewDetails?.open)renderPreview(assets);else if(assetGrid)assetGrid.innerHTML="";
   }
 
   async function importFiles(files){
-    const pack=openPack;
-    const list=[...(files||[])];
+    const pack=openPack,list=[...(files||[])];
     if(!pack||!list.length)return;
     FenixCore.selectLibraryPack(pack);
     setStatus(`Dodaję ${list.length} plików do zestawu „${pack}”…`);
@@ -140,55 +128,37 @@
         const duplicate=packAssets(pack).some(asset=>asset.filename===file.name&&Number(asset.sizeBytes)===Number(file.size)&&asset.mime===file.type);
         if(duplicate){duplicates++;continue}
         if(typeof FenixAssetValidator==="undefined"||!FenixAssetValidator.SUPPORTED.includes(file.type))throw new Error("Nieobsługiwany format");
-        const dataUrl=await readDataUrl(file);
-        const dimensions=await readDimensions(dataUrl);
+        const dataUrl=await readDataUrl(file),dimensions=await readDimensions(dataUrl);
         const base={name:file.name.replace(/\.[^.]+$/g,"")||"Asset",filename:file.name,mime:file.type,dataUrl,source:"fenix-library",pack,sizeBytes:file.size,width:dimensions.width,height:dimensions.height,aspectRatio:dimensions.width&&dimensions.height?Number((dimensions.width/dimensions.height).toFixed(4)):null,tags:[]};
-        const validation=await FenixAssetValidator.validate(base);
-        FenixCore.putLibraryAsset({...base,validation});
-        added++;
-      }catch(error){
-        console.error("FENIX asset set import",file?.name,error);
-        failed++;
-      }
+        const validation=await FenixAssetValidator.validate(base);FenixCore.putLibraryAsset({...base,validation});added++;
+      }catch(error){console.error("FENIX asset set import",file?.name,error);failed++}
     }
-    await FenixCore.flushStorage();
-    render();
-    const notes=[];
-    if(added)notes.push(`dodano ${added}`);
-    if(duplicates)notes.push(`duplikaty ${duplicates}`);
-    if(failed)notes.push(`błędy ${failed}`);
+    await FenixCore.flushStorage();render();
+    const notes=[];if(added)notes.push(`dodano ${added}`);if(duplicates)notes.push(`duplikaty ${duplicates}`);if(failed)notes.push(`błędy ${failed}`);
     setStatus(`Zestaw „${pack}”: ${notes.join(" · ")||"bez nowych plików"}.`,failed?"warning":"ok");
   }
 
   function createSet(){
-    const answer=prompt("Nazwa nowego zestawu assetów:","Ocean Fantasy");
-    if(answer==null)return;
-    const name=String(answer).trim();
-    if(!name){setStatus("Podaj nazwę zestawu, np. Ocean Fantasy.","warning");return}
-    const result=FenixCore.createLibraryPack(name);
-    openPack=result.pack||name;
-    render();
-    setStatus(result.created?`Utworzono i otwarto zestaw „${openPack}”.`:`Zestaw „${openPack}” już istniał — został otwarty.`,"ok");
+    const answer=prompt("Nazwa nowego zestawu assetów:","Ocean Fantasy");if(answer==null)return;
+    const name=String(answer).trim();if(!name){setStatus("Podaj nazwę zestawu, np. Ocean Fantasy.","warning");return}
+    const result=FenixCore.createLibraryPack(name);openPack=result.pack||name;render();setStatus(result.created?`Utworzono i otwarto zestaw „${openPack}”.`:`Zestaw „${openPack}” już istniał — został otwarty.`,"ok");
   }
 
   function renameSet(){
-    if(!openPack)return;
-    const answer=prompt("Nowa nazwa zestawu:",openPack);
-    if(answer==null)return;
-    const name=String(answer).trim();
-    if(!name)return setStatus("Nazwa zestawu nie może być pusta.","warning");
-    const result=FenixCore.renameLibraryPack(openPack,name);
-    if(!result?.renamed)return setStatus(result?.reason==="exists"?"Zestaw o tej nazwie już istnieje.":"Nie udało się zmienić nazwy zestawu.","warning");
-    openPack=result.to;
-    render();
-    setStatus(`Zmieniono nazwę zestawu na „${result.to}”.`,"ok");
+    if(!openPack)return;const answer=prompt("Nowa nazwa zestawu:",openPack);if(answer==null)return;
+    const name=String(answer).trim();if(!name)return setStatus("Nazwa zestawu nie może być pusta.","warning");
+    const result=FenixCore.renameLibraryPack(openPack,name);if(!result?.renamed)return setStatus(result?.reason==="exists"?"Zestaw o tej nazwie już istnieje.":"Nie udało się zmienić nazwy zestawu.","warning");
+    openPack=result.to;render();setStatus(`Zmieniono nazwę zestawu na „${result.to}”.`,"ok");
   }
 
   $("#assetSetCreate")?.addEventListener("click",createSet);
   $("#assetSetRename")?.addEventListener("click",renameSet);
   $("#assetSetAddFiles")?.addEventListener("click",()=>fileInput?.click());
   fileInput?.addEventListener("change",()=>{importFiles(fileInput.files);fileInput.value=""});
+  previewDetails?.addEventListener("toggle",()=>{if(previewDetails.open&&openPack)renderPreview(packAssets(openPack));else if(assetGrid)assetGrid.innerHTML=""});
   window.addEventListener("fenix-state-change",event=>{if(event.detail?.assets||event.detail?.activeProject||event.detail?.projects||event.detail?.library)render()});
 
-  FenixCore.ready.then(()=>{chooseInitialPack();render();ensureCompat().catch(error=>console.error("FENIX asset compatibility preload",error))});
+  chooseInitialPack();
+  render();
+  FenixCore.ready.then(()=>{render();ensureCompat().catch(error=>console.error("FENIX asset compatibility preload",error))});
 })();
