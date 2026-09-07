@@ -4,7 +4,7 @@
 
   const PACK_ID="wsDecoAssetPack";
   const CHOICES_ID="decoAssetChoices";
-  let busy=false,timer=null;
+  let busy=false,timer=null,hydratedPageId=null;
   let selectedLibraryIds=new Set();
 
   const esc=value=>String(value??"").replace(/[&<>'\"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"}[ch]));
@@ -13,6 +13,7 @@
   const tagsOf=asset=>Array.isArray(asset?.tags)?asset.tags.map(tag=>String(tag||"").trim().toLowerCase()):[];
   const libraryPacks=()=>FenixCore.listLibraryPacks?.()||[];
   const libraryAssets=pack=>FenixCore.listLibraryAssets?.({pack:pack||""})||[];
+  const allLibraryAssets=()=>FenixCore.listLibraryAssets?.()||[];
   const projectAssets=()=>FenixCore.listAssets?.()||[];
 
   function linkedLocalId(libraryId){
@@ -21,12 +22,43 @@
   }
 
   function libraryIdFromValue(value){
-    const local=FenixCore.getAsset?.(value);
-    return refOf(local)||"";
+    const id=String(value||"").trim();if(!id)return"";
+    const local=FenixCore.getAsset?.(id);
+    const linked=refOf(local);
+    if(linked)return linked;
+    return allLibraryAssets().some(asset=>asset.id===id)?id:"";
+  }
+
+  function currentPageId(){
+    const selected=String(document.getElementById("pageSelect")?.value||"").trim();
+    if(selected)return selected;
+    return String(new URLSearchParams(location.search).get("id")||"").trim();
+  }
+
+  function currentSavedPage(){
+    const id=currentPageId();
+    if(!id)return null;
+    return (FenixCore.getCart?.()||[]).find(page=>page?.id===id)||null;
+  }
+
+  function hydrateSelectionsFromSavedPage(force=false){
+    const page=currentSavedPage();
+    const pageId=page?.id||"";
+    if(!force&&pageId===hydratedPageId)return false;
+    hydratedPageId=pageId;
+    if(!page){selectedLibraryIds.clear();return true}
+    const refs=page?.recipe?.settings?.decoAssetRefs;
+    const next=new Set();
+    (Array.isArray(refs)?refs:[]).forEach(value=>{
+      const libraryId=libraryIdFromValue(value);
+      if(libraryId)next.add(libraryId);
+    });
+    selectedLibraryIds=next;
+    return true;
   }
 
   function captureSelectionsFromDom(){
-    const host=document.getElementById(CHOICES_ID);if(!host)return;
+    const host=document.getElementById(CHOICES_ID);if(!host||host.dataset.wsGlobalDecoRendered!=="1")return;
     const next=new Set();
     host.querySelectorAll('input[type="checkbox"]:checked').forEach(input=>{
       const explicit=String(input.dataset.libraryId||"").trim();
@@ -39,7 +71,7 @@
 
   function selectedPackFromAssets(){
     for(const libraryId of selectedLibraryIds){
-      const asset=FenixCore.listLibraryAssets?.().find(item=>item.id===libraryId);
+      const asset=allLibraryAssets().find(item=>item.id===libraryId);
       const pack=packOf(asset);
       if(pack)return pack;
     }
@@ -64,7 +96,13 @@
     label.innerHTML=`Zestaw assetów DECO<select id="${PACK_ID}"></select><small>Wybierz bibliotekę, z której Word Search ma pobierać dekoracje.</small>`;
     block.insertBefore(label,choices);
     select=label.querySelector("select");
-    select.addEventListener("change",()=>{if(busy)return;selectedLibraryIds.clear();rebuildChoices(true);triggerDraw()});
+    select.addEventListener("change",()=>{
+      if(busy)return;
+      hydratedPageId=currentPageId();
+      selectedLibraryIds.clear();
+      rebuildChoices(true);
+      triggerDraw();
+    });
     return select;
   }
 
@@ -73,7 +111,7 @@
     const selected=selectedPackFromAssets();
     const project=FenixCore.getActiveProject?.();
     const primary=String(project?.primaryAssetPack||"").trim();
-    const candidates=[current,selected,primary];
+    const candidates=[selected,current,primary];
     for(const candidate of candidates){
       const match=packs.find(pack=>pack.toLowerCase()===String(candidate||"").toLowerCase());
       if(match)return match;
@@ -95,7 +133,9 @@
   function candidateAssets(pack){
     const all=libraryAssets(pack).slice().sort((a,b)=>String(a.name||a.filename||"").localeCompare(String(b.name||b.filename||""),"pl"));
     const tagged=all.filter(asset=>tagsOf(asset).includes("deco"));
-    return tagged.length?tagged:all;
+    if(!tagged.length)return all;
+    const selectedOutsideTag=all.filter(asset=>selectedLibraryIds.has(asset.id)&&!tagsOf(asset).includes("deco"));
+    return [...tagged,...selectedOutsideTag].filter((asset,index,array)=>array.findIndex(item=>item.id===asset.id)===index);
   }
 
   function triggerDraw(){
@@ -104,7 +144,8 @@
 
   function rebuildChoices(packChanged=false){
     const choices=document.getElementById(CHOICES_ID);if(!choices)return;
-    if(!packChanged)captureSelectionsFromDom();
+    const pageChanged=hydrateSelectionsFromSavedPage(false);
+    if(!packChanged&&!pageChanged)captureSelectionsFromDom();
     const pack=fillPackOptions();
     const assets=pack?candidateAssets(pack):[];
     busy=true;
@@ -114,8 +155,9 @@
       const status=asset.validation?.status==="ok"?"✓ B&W OK":"! sprawdź B&W";
       return`<label class="deco-choice"><input type="checkbox" value="${esc(localId||asset.id)}" data-library-id="${esc(asset.id)}" ${checked?"checked":""}><span><strong>${esc(asset.name||asset.filename||asset.id)}</strong><small>${esc(status)}</small></span></label>`;
     }).join(""):(pack?'<div class="asset-empty">Brak assetów w wybranym zestawie.</div>':'<div class="asset-empty">Najpierw wybierz zestaw assetów.</div>');
+    choices.dataset.wsGlobalDecoRendered="1";
     const info=document.getElementById("assetInfo");
-    if(info)info.textContent=pack?`Word Search pobiera dekoracje z zestawu „${pack}”. Jeśli zestaw ma assety oznaczone tagiem Deco, pokazuje tylko je; w przeciwnym razie udostępnia cały zestaw.`:`Wybierz zestaw assetów DECO. Sama siatka pozostaje czysta i czarno-biała.`;
+    if(info)info.textContent=pack?`Word Search pobiera dekoracje z zestawu „${pack}”. Zapisane Deco są odtwarzane razem ze stroną podczas edycji.`:`Wybierz zestaw assetów DECO. Sama siatka pozostaje czysta i czarno-biała.`;
     busy=false;
   }
 
@@ -125,6 +167,7 @@
     const libraryId=String(input.dataset.libraryId||"").trim();
     if(!libraryId)return;
     event.stopImmediatePropagation();
+    hydratedPageId=currentPageId();
     if(input.checked){
       selectedLibraryIds.add(libraryId);
       let localId=linkedLocalId(libraryId);
@@ -150,19 +193,29 @@
     }
   }
 
-  function schedule(delay=25){
+  function schedule(delay=25,forceHydrate=false){
     clearTimeout(timer);
-    timer=setTimeout(()=>{if(busy)return;bind();rebuildChoices(false)},delay);
+    timer=setTimeout(()=>{
+      if(busy)return;
+      bind();
+      if(forceHydrate)hydrateSelectionsFromSavedPage(true);
+      rebuildChoices(false);
+      triggerDraw();
+    },delay);
   }
 
-  window.addEventListener("fenix-state-change",event=>{if(event.detail?.assets||event.detail?.library||event.detail?.activeProject||event.detail?.storage)schedule(35)});
-  window.addEventListener("fenix-storage-ready",()=>schedule(0));
-  window.addEventListener("fenix-library-change",()=>schedule(0));
-  window.addEventListener("fenix-assets-change",()=>schedule(0));
-  document.getElementById("pageSelect")?.addEventListener("change",()=>setTimeout(()=>{selectedLibraryIds.clear();schedule(0)},0));
+  window.addEventListener("fenix-state-change",event=>{
+    if(event.detail?.cart)schedule(25,true);
+    else if(event.detail?.assets||event.detail?.library||event.detail?.activeProject||event.detail?.storage)schedule(35,false);
+  });
+  window.addEventListener("fenix-storage-ready",()=>schedule(0,true));
+  window.addEventListener("fenix-library-change",()=>schedule(0,false));
+  window.addEventListener("fenix-assets-change",()=>schedule(0,false));
+  document.getElementById("pageSelect")?.addEventListener("change",()=>setTimeout(()=>schedule(0,true),0));
 
   bind();
-  schedule(0);
-  setTimeout(schedule,150);
-  setTimeout(schedule,600);
+  hydrateSelectionsFromSavedPage(true);
+  schedule(0,false);
+  setTimeout(()=>schedule(0,true),150);
+  setTimeout(()=>schedule(0,true),600);
 })();
