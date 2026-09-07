@@ -4,11 +4,27 @@
  const ids=["title","subtitle","instruction","titleSize","titleY","subtitleSize","instructionSize","ageProfile","difficulty","cols","rows","wordCount","maxWordLength","seed","words","gridFontSize","wordListTitleSize","wordListSize","decoCount","decoScale","sideMargin","topMargin","bottomMargin","wordListPosition","solution"],f=Object.fromEntries(ids.map(id=>[id,$(id)]));
  const presets={"4-6":{easy:[9,9,6,7,["right","down"]],medium:[10,10,7,8,["right","down","diagDown"]],hard:[12,12,8,9,["right","down","diagDown","diagUp"]]},"5-7":{easy:[10,10,7,8,["right","down","diagDown"]],medium:[12,12,9,10,["right","down","diagDown","diagUp"]],hard:[14,14,11,11,["right","down","diagDown","diagUp","left"]]},"6-8":{easy:[12,12,8,10,["right","down","diagDown","diagUp"]],medium:[14,14,11,12,["right","down","diagDown","diagUp","left"]],hard:[16,16,14,14,["right","down","diagDown","diagUp","left","up","diagBackDown","diagBackUp"]]}};
  let currentId=null,directions=["right","down"],timer=null;
- const checkedDeco=()=>deco?[...deco.querySelectorAll('input:checked')]:[],n=(id,d)=>Number(f[id]?.value)||d,words=()=>FenixWordSearch.normalizeWords(f.words.value),selectedDeco=()=>checkedDeco().map(x=>x.value).filter(Boolean),selectedDecoLibraries=()=>[...new Set(checkedDeco().map(x=>String(x.dataset.libraryId||"").trim()).filter(Boolean))];
+ const checkedDeco=()=>deco?[...deco.querySelectorAll('input:checked')]:[];
+ const n=(id,d)=>Number(f[id]?.value)||d;
+ const words=()=>FenixWordSearch.normalizeWords(f.words.value);
+ const libraryRefOf=asset=>String(asset?.libraryRef||asset?.meta?.libraryRef||"").trim();
+ const selectedDeco=()=>checkedDeco().map(x=>x.value).filter(Boolean);
+ const selectedDecoLibraries=()=>[...new Set(checkedDeco().map(x=>String(x.dataset.libraryId||libraryRefOf(FenixCore.getAsset?.(x.value))||"").trim()).filter(Boolean))];
  function settings(){return{ageProfile:f.ageProfile.value,difficulty:f.difficulty.value,cols:n("cols",9),rows:n("rows",9),wordCount:n("wordCount",6),maxWordLength:n("maxWordLength",7),directions:directions.slice(),typographyVersion:2,titleSize:n("titleSize",112),titleY:n("titleY",230),subtitle:f.subtitle.value,instruction:f.instruction.value,subtitleSize:n("subtitleSize",48),instructionSize:n("instructionSize",46),gridFontSize:n("gridFontSize",54),wordListTitleSize:n("wordListTitleSize",42),wordListSize:n("wordListSize",52),decoAssetRefs:selectedDeco(),decoLibraryRefs:selectedDecoLibraries(),decoCount:n("decoCount",0),decoScale:n("decoScale",80),sideMargin:n("sideMargin",110),topMargin:n("topMargin",330),bottomMargin:n("bottomMargin",190),wordListPosition:f.wordListPosition.value,showSolution:f.solution.value==="yes"}}
- function draft(){const s=settings(),list=words(),seed=n("seed",1),title=f.title.value.trim()||"Find the Words!";return{module:"word-search-studio",title,seed,recipe:{module:"word-search-studio",seed,title,settings:s,content:{words:list}},content:{words:list},solution:{available:true,imageData:null},source:{app:"fenix-mobile",version:"0.27.8",format:"native"}}}
+ function draft(){const s=settings(),list=words(),seed=n("seed",1),title=f.title.value.trim()||"Find the Words!";return{module:"word-search-studio",title,seed,recipe:{module:"word-search-studio",seed,title,settings:s,content:{words:list}},content:{words:list},solution:{available:true,imageData:null},source:{app:"fenix-mobile",version:"0.27.9",format:"native"}}}
  function announcePageState(pageId,settings){window.dispatchEvent(new CustomEvent("fenix-word-search-page-loaded",{detail:{pageId:pageId||"",settings:settings||{}}}))}
- function refreshDeco(saved={}){if(!deco)return;const selected=new Set(saved.decoAssetRefs||selectedDeco()),assets=FenixCore.findAssets({tag:"deco"});deco.innerHTML=assets.length?assets.map(a=>`<label class="deco-choice"><input type="checkbox" value="${a.id}" ${selected.has(a.id)?"checked":""}><span><strong>${a.name}</strong><small>${a.validation?.status==="ok"?"✓ B&W OK":"! sprawdź B&W"}</small></span></label>`).join(""):'<div class="asset-empty">Brak assetów Deco w projekcie.</div>';deco.querySelectorAll("input").forEach(x=>x.onchange=draw)}
+ function refreshDeco(saved={}){
+  if(!deco)return;
+  const selectedLocal=new Set(Array.isArray(saved.decoAssetRefs)?saved.decoAssetRefs:selectedDeco());
+  const selectedLibrary=new Set(Array.isArray(saved.decoLibraryRefs)?saved.decoLibraryRefs:selectedDecoLibraries());
+  const assets=FenixCore.findAssets({tag:"deco"});
+  deco.innerHTML=assets.length?assets.map(a=>{
+   const libraryId=libraryRefOf(a);
+   const checked=selectedLocal.has(a.id)||(libraryId&&selectedLibrary.has(libraryId));
+   return`<label class="deco-choice"><input type="checkbox" value="${a.id}"${libraryId?` data-library-id="${libraryId}"`:""} ${checked?"checked":""}><span><strong>${a.name}</strong><small>${a.validation?.status==="ok"?"✓ B&W OK":"! sprawdź B&W"}</small></span></label>`;
+  }).join(""):'<div class="asset-empty">Brak assetów Deco w projekcie.</div>';
+  deco.querySelectorAll("input").forEach(x=>x.onchange=draw);
+ }
  async function draw(){const page=draft(),assets=await FenixWordSearch.prepareAssets(page),result=FenixWordSearch.render(page,{solution:page.recipe.settings.showSolution,width:2550,height:3300,canvas,assetImages:assets});status.textContent=`Gotowy · ${result.cols}×${result.rows} · seed ${page.recipe.seed} · słowa ${result.placements.length}/${result.words.length}`;$("wordStats").textContent=`${words().length} słów · używane do ${f.wordCount.value}`;$("wordWarning").textContent=result.unplaced.length?`Nie umieszczono: ${result.unplaced.join(", ")}`:"Wszystkie słowa mieszczą się w ustawieniach."}
  function schedule(){clearTimeout(timer);timer=setTimeout(draw,120)}
  function applyPreset(){const p=presets[f.ageProfile.value]?.[f.difficulty.value];if(!p)return;[f.cols.value,f.rows.value,f.wordCount.value,f.maxWordLength.value,directions]=[p[0],p[1],p[2],p[3],p[4].slice()];$("difficultyInfo").textContent=`Profil ${f.ageProfile.value} lat · siatka ${p[0]}×${p[1]} · ${p[2]} słów · maks. ${p[3]} znaków.`;draw()}
