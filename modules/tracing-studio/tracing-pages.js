@@ -11,3 +11,4 @@
   async function init(){await FenixCore.ready;const newBtn=$("newPage");if(newBtn)newBtn.onclick=()=>{location.href=location.pathname};const cart=$("cart");if(cart&&requestedId)cart.textContent="Zapisz zmiany w projekcie";renderPages();updateSelectedPanel();["treatment","exerciseMode"].forEach(id=>$(id)?.addEventListener("change",updateSelectedPanel));const observer=new MutationObserver(()=>updateSelectedPanel());if($("assetGrid"))observer.observe($("assetGrid"),{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});window.addEventListener("fenix-state-change",()=>{renderPages();updateSelectedPanel()})}
   void init();
 })();
+(()=>{const s=document.createElement("script");s.src="tracing-asset-search.js?v=0.1.0";document.head.appendChild(s)})();
