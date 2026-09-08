@@ -15,12 +15,21 @@
   function currentMask(){const page=$("pageCounter")?.textContent||"1 / 1", seed=$("seed")?.value||"fenix";return VALID_MASKS[hash(seed+"|"+page)%VALID_MASKS.length]}
   function paintBalancedTask(solutionImage){const ctx=canvas.getContext("2d"), mask=currentMask(), gridTop=330, left=215, cell=105;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(solutionImage,0,0);ctx.fillStyle="#fff";ctx.strokeStyle="#111";ctx.lineWidth=3;for(let row=0;row<4;row++){const col=mask[row],x=left+col*cell,y=gridTop+row*cell;ctx.fillRect(x+3,y+3,cell-6,cell-6);ctx.strokeRect(x,y,cell,cell)}}
   function rebalanceTask(){clearTimeout(timer);timer=setTimeout(()=>{if(busy||!isSudoku()||selectedCards().length!==4)return;busy=true;const wantedSolution=$("solutionTab").classList.contains("primary");$("solutionTab").click();const solution=document.createElement("canvas");solution.width=canvas.width;solution.height=canvas.height;solution.getContext("2d").drawImage(canvas,0,0);if(wantedSolution){busy=false;return}$("taskTab").click();paintBalancedTask(solution);busy=false},20)}
+  function installSearch(paneId,gridId,placeholder){
+    const pane=$(paneId),grid=$(gridId);if(!pane||!grid)return;
+    let input=pane.querySelector('.logic-asset-search');
+    if(!input){input=document.createElement('input');input.type='search';input.className='logic-asset-search';input.placeholder=placeholder;input.autocomplete='off';input.style.cssText='width:100%;box-sizing:border-box;margin:8px 0 10px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;background:#fff;color:#111;';grid.insertAdjacentElement('beforebegin',input)}
+    if(input.dataset.bound==='1')return;input.dataset.bound='1';
+    const filter=()=>{const q=input.value.trim().toLocaleLowerCase('pl');grid.querySelectorAll('.logic-asset').forEach(card=>{const name=(card.querySelector('strong')?.textContent||card.textContent||'').toLocaleLowerCase('pl');card.hidden=!!q&&!name.includes(q)})};
+    input.addEventListener('input',filter);input.addEventListener('search',filter);
+  }
+  function ensureSearch(){installSearch('projectPane','assetGrid','Szukaj assetu projektu…');installSearch('libraryPane','libraryGrid','Szukaj w Bibliotece Feniksa…')}
   $("randomSudokuSet")?.addEventListener("click",randomizeSet);
   $("clearSudokuSet")?.addEventListener("click",clearSet);
   ["generate","randomSeed","prev","next","taskTab"].forEach(id=>$(id)?.addEventListener("click",()=>{if(!busy)rebalanceTask()}));
   $("type").addEventListener("change",()=>{if($("type").value==="sudoku"&&!new URLSearchParams(location.search).get("id"))$("count").value=1;rebalanceTask()});
   $("count")?.addEventListener("change",()=>{const n=Math.max(1,Math.min(20,Number($("count").value)||1));$("count").value=n});
-  window.addEventListener("fenix-state-change",rebalanceTask);
-  setTimeout(rebalanceTask,120);
-  (async()=>{try{await FenixCore.ready;if(!document.querySelector('script[data-logic-pages]')){const s=document.createElement('script');s.src='logic-pages.js?v=1.0.1';s.dataset.logicPages='1';document.body.appendChild(s)}}catch(error){console.error('Logic pages init',error)}})();
+  window.addEventListener("fenix-state-change",()=>{rebalanceTask();setTimeout(ensureSearch,0)});
+  ensureSearch();setTimeout(ensureSearch,120);setTimeout(ensureSearch,500);setTimeout(rebalanceTask,120);
+  (async()=>{try{await FenixCore.ready;ensureSearch();if(!document.querySelector('script[data-logic-pages]')){const s=document.createElement('script');s.src='logic-pages.js?v=1.0.1';s.dataset.logicPages='1';document.body.appendChild(s)}}catch(error){console.error('Logic pages init',error)}})();
 })();
