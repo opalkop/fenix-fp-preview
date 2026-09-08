@@ -7,9 +7,9 @@
   link.rel="stylesheet";
   link.href=new URL("assets/help-overlay.css?v=0.15.0",root).href;
   document.head.appendChild(link);
-  if(document.body?.classList.contains("fenix-studio-shell")&&!document.querySelector('script[data-fenix-studio-actions]')){
+  if(!document.querySelector('script[data-fenix-studio-actions]')){
     const actions=document.createElement("script");
-    actions.src=new URL("assets/studio-actions-standard.js?v=0.1.0",root).href;
+    actions.src=new URL("assets/studio-actions-standard.js?v=0.1.1",root).href;
     actions.dataset.fenixStudioActions="true";
     document.body.appendChild(actions);
   }
