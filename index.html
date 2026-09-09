@@ -41,6 +41,7 @@
     <nav class="nav">
       <button class="nav-button" id="importProject"><span class="nav-icon">↓</span>Import projektu</button>
       <button class="nav-button" id="importMobile"><span class="nav-icon">↑</span>Import Mobile</button>
+      <button class="nav-button" id="exportDiagnosticProject"><span class="nav-icon">⇩</span>Eksport diagnostyczny</button>
     </nav>
     <div class="theme-box"><label for="themeSelect">Motyw interfejsu</label><select id="themeSelect"><option value="light">Jasny</option><option value="dark">Ciemny</option><option value="system">Systemowy</option><option value="fenix">Fenix Mode</option></select></div>
     <input id="importProjectFile" type="file" accept=".fenixproject,.fenixpack,.json,application/json" hidden>
@@ -65,20 +66,8 @@
 
     <section id="modules"><div class="modules-heading"><span class="section-kicker">STUDIA PRODUKCYJNE</span><h3>Wybierz Studio</h3><p>Twórz strony w wybranych Studiach. Ustawienia treści wprowadzenia znajdziesz wyłącznie w Intro Studio.</p></div><div id="grid" class="modules"></div>
       <a id="bookBuilderGateway" class="book-builder-gateway" href="modules/book-builder/index.html" aria-label="Otwórz Book Builder — finalizację książki">
-        <div class="book-builder-gateway-main">
-          <span class="book-builder-gateway-icon" aria-hidden="true">▤</span>
-          <div>
-            <div class="book-builder-gateway-kicker">GŁÓWNE STUDIO · FINALIZACJA</div>
-            <h3>Book Builder</h3>
-            <p>Złóż strony, ustal ich kolejność, sprawdź projekt i wygeneruj finalny PDF.</p>
-          </div>
-        </div>
-        <div class="book-builder-gateway-status" aria-live="polite">
-          <span><strong id="builderPages">0</strong><small>stron</small></span>
-          <span><strong id="builderStudios">0</strong><small>Studiów</small></span>
-          <span><strong id="builderReadiness">0%</strong><small>gotowości</small></span>
-          <b id="builderAction">Otwórz Book Builder →</b>
-        </div>
+        <div class="book-builder-gateway-main"><span class="book-builder-gateway-icon" aria-hidden="true">▤</span><div><div class="book-builder-gateway-kicker">GŁÓWNE STUDIO · FINALIZACJA</div><h3>Book Builder</h3><p>Złóż strony, ustal ich kolejność, sprawdź projekt i wygeneruj finalny PDF.</p></div></div>
+        <div class="book-builder-gateway-status" aria-live="polite"><span><strong id="builderPages">0</strong><small>stron</small></span><span><strong id="builderStudios">0</strong><small>Studiów</small></span><span><strong id="builderReadiness">0%</strong><small>gotowości</small></span><b id="builderAction">Otwórz Book Builder →</b></div>
       </a>
     </section>
 
@@ -86,48 +75,19 @@
       <section class="panel project-assets-panel" id="projectAssets">
         <div class="panel-head"><div><span class="section-kicker">ASSETY PROJEKTU</span><h3>Zestawy assetów</h3></div><span id="projectAssetsCount">0 zestawów</span></div>
         <p class="project-assets-lead">Otwórz zestaw albo utwórz nowy. Wszystkie dodawane pliki trafią do aktualnie otwartego zestawu.</p>
-
-        <div class="asset-set-browser">
-          <div class="asset-set-browser-head"><strong>Twoje zestawy</strong><button id="assetSetCreate" type="button">＋ Utwórz nowy zestaw</button></div>
-          <div id="assetSetList" class="asset-set-list"></div>
-        </div>
-
-        <div id="assetSetWorkspace" class="asset-set-workspace" hidden>
-          <div class="asset-set-open-banner">
-            <div><span>OTWARTY ZESTAW</span><h4 id="assetSetCurrentName">—</h4><p>Każdy dodany plik trafi właśnie do tego zestawu.</p></div>
-            <strong id="assetSetAssetCount">0 assetów</strong>
-          </div>
-          <div class="asset-set-actions">
-            <button id="assetSetAddFiles" class="asset-set-primary" type="button">＋ Dodaj SVG lub PNG</button>
-            <button id="assetSetRename" type="button">Zmień nazwę zestawu</button>
-          </div>
-          <input id="assetSetFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden>
-          <div id="assetSetStatus" class="project-assets-status" aria-live="polite">Zestaw jest gotowy do pracy.</div>
-          <details id="assetSetPreviewDetails" class="asset-set-preview">
-            <summary>Pokaż assety (<span id="assetSetPreviewCount">0</span>)</summary>
-            <div id="assetSetAssetGrid" class="asset-set-grid"></div>
-          </details>
-        </div>
-
+        <div class="asset-set-browser"><div class="asset-set-browser-head"><strong>Twoje zestawy</strong><button id="assetSetCreate" type="button">＋ Utwórz nowy zestaw</button></div><div id="assetSetList" class="asset-set-list"></div></div>
+        <div id="assetSetWorkspace" class="asset-set-workspace" hidden><div class="asset-set-open-banner"><div><span>OTWARTY ZESTAW</span><h4 id="assetSetCurrentName">—</h4><p>Każdy dodany plik trafi właśnie do tego zestawu.</p></div><strong id="assetSetAssetCount">0 assetów</strong></div><div class="asset-set-actions"><button id="assetSetAddFiles" class="asset-set-primary" type="button">＋ Dodaj SVG lub PNG</button><button id="assetSetRename" type="button">Zmień nazwę zestawu</button></div><input id="assetSetFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden><div id="assetSetStatus" class="project-assets-status" aria-live="polite">Zestaw jest gotowy do pracy.</div><details id="assetSetPreviewDetails" class="asset-set-preview"><summary>Pokaż assety (<span id="assetSetPreviewCount">0</span>)</summary><div id="assetSetAssetGrid" class="asset-set-grid"></div></details></div>
         <div id="assetSetEmpty" class="project-assets-empty" hidden><span class="project-assets-symbol">◆</span><div><strong>Nie masz jeszcze żadnego zestawu.</strong><p>Utwórz pierwszy zestaw, np. Ocean Fantasy, Dino albo Knight.</p></div></div>
       </section>
 
-      <section class="panel" id="projectLibrary">
-        <div class="panel-head"><div><span class="section-kicker">PROJEKTY</span><h3>Twoje projekty</h3></div><span>Zarządzanie projektem pozostaje dostępne bez zmiany logiki Feniksa.</span></div>
-        <div class="project-tools"><label>Przełącz projekt<select id="projectSelect"></select></label><div class="actions"><button id="editProject" class="btn">Edytuj</button><button id="newProject" class="btn primary">+ Nowy projekt</button></div></div>
-        <div id="projectCards" class="project-cards"></div>
-      </section>
-
+      <section class="panel" id="projectLibrary"><div class="panel-head"><div><span class="section-kicker">PROJEKTY</span><h3>Twoje projekty</h3></div><span>Zarządzanie projektem pozostaje dostępne bez zmiany logiki Feniksa.</span></div><div class="project-tools"><label>Przełącz projekt<select id="projectSelect"></select></label><div class="actions"><button id="editProject" class="btn">Edytuj</button><button id="newProject" class="btn primary">+ Nowy projekt</button></div></div><div id="projectCards" class="project-cards"></div></section>
       <div id="mobileImportStatus" class="import-status" aria-live="polite">Gotowy do importu projektu <code>.fenixproject</code>, <code>.fenixpack</code> lub projektu Mobile.</div>
 
-      <section class="panel" id="pagesProject">
-        <div class="panel-head"><div><span class="section-kicker">AKTUALNY PROJEKT</span><h3>Strony projektu</h3></div><span id="cartStatus">0 stron · +0 rozwiązań · do 0 stron</span></div>
-        <div class="pages-project"><div id="cartList" class="cart-list"></div><aside class="cart-summary"><div class="cart-count"><span id="cartCountLarge">0</span> <small>stron głównych</small></div><p class="muted"><strong id="cartSolutionCount">0 potencjalne rozwiązanie</strong><br><span id="cartEstimatedCount">Szacowany skład: do 0 stron.</span></p><p class="muted">Rozwiązania są pochodną strony zadania. Book Builder zdecyduje później, czy i gdzie je dodać.</p><div class="progress"><i id="cartProgress"></i></div><div class="cart-actions"><a id="openBookBuilder" class="btn primary" href="modules/book-builder/index.html">Przejdź do składu książki →</a><button id="exportCart" class="btn">Eksportuj strony projektu</button><button id="exportProject" class="btn">Eksportuj projekt</button><button id="clearCart" class="btn">Usuń wszystkie strony</button></div></aside></div>
-      </section>
+      <section class="panel" id="pagesProject"><div class="panel-head"><div><span class="section-kicker">AKTUALNY PROJEKT</span><h3>Strony projektu</h3></div><span id="cartStatus">0 stron · +0 rozwiązań · do 0 stron</span></div><div class="pages-project"><div id="cartList" class="cart-list"></div><aside class="cart-summary"><div class="cart-count"><span id="cartCountLarge">0</span> <small>stron głównych</small></div><p class="muted"><strong id="cartSolutionCount">0 potencjalne rozwiązanie</strong><br><span id="cartEstimatedCount">Szacowany skład: do 0 stron.</span></p><p class="muted">Rozwiązania są pochodną strony zadania. Book Builder zdecyduje później, czy i gdzie je dodać.</p><div class="progress"><i id="cartProgress"></i></div><div class="cart-actions"><a id="openBookBuilder" class="btn primary" href="modules/book-builder/index.html">Przejdź do składu książki →</a><button id="exportCart" class="btn">Eksportuj strony projektu</button><button id="exportProject" class="btn">Eksportuj projekt</button><button id="clearCart" class="btn">Usuń wszystkie strony</button></div></aside></div></section>
     </div>
   </div></main>
 </div>
 
 <dialog id="projectDialog" class="project-dialog"><form id="projectForm" method="dialog"><div class="dialog-head"><div><span class="section-kicker">USTAWIENIA PROJEKTU</span><h3 id="projectDialogTitle">Nowy projekt</h3></div><button type="button" id="closeProjectDialog" class="dialog-close" aria-label="Zamknij">×</button></div><input id="projectId" type="hidden"><label>Nazwa projektu<input id="projectName" required maxlength="80" placeholder="np. Jungle Activity Book 4–6"></label><div class="form-grid"><label>Format<select id="projectFormat"><option value="8.5x11">8,5 × 11 cala</option><option value="6x9">6 × 9 cala</option><option value="a4">A4</option></select></label><label>Spady<select id="projectBleed"><option value="no-bleed">Bez spadów</option><option value="bleed">Ze spadami</option></select></label><label>Grupa wiekowa<input id="projectAge" placeholder="np. 4–6 lat"></label><label>Temat<input id="projectTopic" placeholder="np. dżungla, pojazdy"></label></div><div class="dialog-actions"><button type="button" id="deleteProject" class="btn danger" hidden>Usuń projekt</button><button type="button" id="cancelProject" class="btn">Anuluj</button><button type="submit" class="btn primary">Zapisz projekt</button></div></form></dialog>
-<script src="core/page-schema.js?v=0.23.0"></script><script src="core/project-validator.js?v=0.23.0"></script><script src="core/asset-validator.js?v=0.22.0"></script><script src="core/fenix-core.js?v=0.33.0"></script><script src="core/preset-asset-rebinder.js?v=0.34.0"></script><script src="core/sync-core.js?v=6.0.0"></script><script src="core/sync-ui.js?v=6.0.0"></script><script src="config/module-registry.js?v=0.29.0"></script><script src="assets/launcher.js?v=0.29.0"></script><script src="assets/project-assets.js?v=0.33.0"></script><script src="assets/help-overlay.js?v=0.23.0"></script><script src="assets/dashboard-motion.js"></script><script src="assets/dashboard-sound.js"></script><script src="assets/dashboard-intro.js"></script>
+<script src="core/page-schema.js?v=0.23.0"></script><script src="core/project-validator.js?v=0.23.0"></script><script src="core/asset-validator.js?v=0.22.0"></script><script src="core/fenix-core.js?v=0.33.0"></script><script src="core/preset-asset-rebinder.js?v=0.34.0"></script><script src="core/sync-core.js?v=6.0.0"></script><script src="core/sync-ui.js?v=6.0.0"></script><script src="config/module-registry.js?v=0.29.0"></script><script src="assets/launcher.js?v=0.29.0"></script><script src="assets/project-assets.js?v=0.33.0"></script><script src="assets/help-overlay.js?v=0.23.0"></script><script src="assets/dashboard-motion.js"></script><script src="assets/dashboard-sound.js?v=1.0.3"></script><script src="core/diagnostic-export.js?v=1.0.3"></script><script src="assets/dashboard-intro.js"></script>
 </body></html>
