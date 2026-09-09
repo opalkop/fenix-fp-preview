@@ -1,10 +1,12 @@
 "use strict";
 
 (()=>{
-  const VERSION=1;
+  const VERSION=2;
   const now=()=>new Date().toISOString();
   const clone=value=>value==null?value:typeof structuredClone==="function"?structuredClone(value):JSON.parse(JSON.stringify(value));
   const stripDataUrl=value=>typeof value==="string"&&/^data:/i.test(value)?"[omitted:data-url]":value;
+  const getCore=()=>{try{if(typeof FenixCore!=="undefined"&&FenixCore)return FenixCore}catch{}return window.FenixCore||null};
+  const getSchema=()=>{try{if(typeof FenixPageSchema!=="undefined"&&FenixPageSchema)return FenixPageSchema}catch{}return window.FenixPageSchema||null};
 
   function sanitize(value,key=""){
     if(value==null)return value;
@@ -49,7 +51,7 @@
       if(Array.isArray(value)){value.forEach(walk);return;}
       if(typeof value!=="object")return;
       for(const [key,child] of Object.entries(value)){
-        if(typeof child==="string"&&/(assetRef|assetId|decoAssetRefs|startAsset|goalAsset|checkpointAsset|hazardAsset)/i.test(key))ids.add(child);
+        if(typeof child==="string"&&/(assetRef|assetId|startAsset|goalAsset|checkpointAsset|hazardAsset)/i.test(key))ids.add(child);
         else if(Array.isArray(child)&&/(assetRefs|assetIds|decoAssetRefs|decoLibraryRefs)/i.test(key))child.forEach(item=>{if(typeof item==="string")ids.add(item)});
         walk(child);
       }
@@ -59,17 +61,19 @@
   }
 
   function buildPayload(){
-    if(!window.FenixCore)throw new Error("FenixCore nie jest dostępny.");
-    const project=FenixCore.getActiveProject();
+    const core=getCore();
+    if(!core)throw new Error("FenixCore nie jest dostępny. Odśwież stronę i spróbuj ponownie.");
+    const project=core.getActiveProject();
     if(!project)throw new Error("Brak aktywnego projektu.");
     const pages=(project.pages||[]).map(pageMeta);
     const assets=Object.fromEntries(Object.entries(project.assets||{}).map(([id,asset])=>[id,assetMeta(asset)]));
-    const libraryAssets=(FenixCore.listLibraryAssets?.()||[]).map(asset=>assetMeta(asset));
+    const libraryAssets=(core.listLibraryAssets?.()||[]).map(asset=>assetMeta(asset));
     const refs=referencedAssetIds(project);
+    const schema=getSchema();
     return{
       type:"FENIX_DIAGNOSTIC_PROJECT",
       version:VERSION,
-      schemaVersion:window.FenixPageSchema?.VERSION||null,
+      schemaVersion:schema?.VERSION||null,
       exportedAt:now(),
       purpose:"Lekki eksport diagnostyczny bez binarnych danych grafik. Zachowuje strukturę projektu, strony, ustawienia i referencje assetów.",
       summary:{
@@ -83,20 +87,22 @@
         primaryAssetPack:project.primaryAssetPack||"",
         referencedAssetIds:refs,
         globalLibraryAssetCount:libraryAssets.length,
-        globalLibraryPacks:FenixCore.listLibraryPacks?.()||[],
-        storage:FenixCore.getStorageInfo?.()||null
+        globalLibraryPacks:core.listLibraryPacks?.()||[],
+        storage:core.getStorageInfo?.()||null
       },
       project:{...sanitize(clone(project)),pages,assets},
-      library:{packs:FenixCore.listLibraryPacks?.()||[],assets:libraryAssets}
+      library:{packs:core.listLibraryPacks?.()||[],assets:libraryAssets}
     };
   }
 
   function safeName(name){return String(name||"projekt").toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi,"-").replace(/^-|-$/g,"")||"projekt"}
   function exportDiagnostic(){
+    const core=getCore();
+    if(!core)throw new Error("FenixCore nie jest dostępny. Odśwież stronę i spróbuj ponownie.");
     const payload=buildPayload();
     const filename=`${safeName(payload.summary.projectName)}-diagnostic-${new Date().toISOString().slice(0,10)}.json`;
     const text=JSON.stringify(payload,null,2);
-    if(FenixCore.download)FenixCore.download(filename,text,"application/json");
+    if(core.download)core.download(filename,text,"application/json");
     else{
       const anchor=document.createElement("a");
       anchor.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));
