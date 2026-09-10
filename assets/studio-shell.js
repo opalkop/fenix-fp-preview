@@ -15,7 +15,7 @@
   if(shellScript&&!document.querySelector('link[data-fenix-contrast]')){
     const contrast=document.createElement("link");
     contrast.rel="stylesheet";
-    contrast.href=new URL("contrast-fix.css?v=0.24.1",shellScript.src).href;
+    contrast.href=new URL("contrast-fix.css",shellScript.src).href;
     contrast.dataset.fenixContrast="true";
     document.head.appendChild(contrast);
   }
