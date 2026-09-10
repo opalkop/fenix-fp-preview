@@ -1,13 +1,11 @@
 "use strict";
 
 (()=>{
-  const PROJECT_ID="eb159891-95bf-4418-9b18-6985a8899921";
-  const VERSION="ocean-fantasy-36-v3";
-  const MIGRATION_KEY=`fenix-page-order-migration:${PROJECT_ID}:${VERSION}`;
-  const BACKUP_KEY=`fenix-page-order-backup:${PROJECT_ID}:${VERSION}`;
+  const VERSION="ocean-fantasy-36-v4";
 
-  // Narrative rhythm: meet the world -> reef journey -> treasure quest -> magic/finale.
-  // IDs refer only to the 36 existing activity pages; recipes/assets/solutions are untouched.
+  // Narrative order for the 36 existing Ocean Fantasy activity pages.
+  // Detection is based on the page IDs themselves, so synced/imported copies
+  // of the same project are supported even when project.id changes.
   const ORDER=Object.freeze([
     "16ccc86b-47c8-461d-9577-3e6e762f3548",
     "9236dbab-c783-4ced-821a-224d8749f943",
@@ -44,7 +42,6 @@
     "e70e2565-14ac-4985-b35f-1b1d13a4ddef",
     "fb7d7bcd-9155-4156-9f40-98af52fdf949",
 
-    "c9b365c0-7487-4567-ba12-428250e99d51",
     "2f40d5ca-2846-4c64-8d6d-e404fc508ddb",
     "72d17c44-76b5-4d19-a80b-cde85169e9e0",
     "fa660aba-77ef-4995-9d5f-008de7bad7fe",
@@ -53,51 +50,86 @@
     "c58ee29f-68f3-4af9-bec3-f24bb65957f3"
   ]);
 
-  const UNIQUE_ORDER=Object.freeze([...new Set(ORDER)]);
   const sameOrder=(a,b)=>a.length===b.length&&a.every((value,index)=>value===b[index]);
 
   function buildReorderedPages(pages){
-    if(UNIQUE_ORDER.length!==36)return{ok:false,reason:"invalid-plan-count",count:UNIQUE_ORDER.length,pages};
-    const byId=new Map((pages||[]).map(page=>[page?.id,page]));
-    const missing=UNIQUE_ORDER.filter(id=>!byId.has(id));
+    if(ORDER.length!==36||new Set(ORDER).size!==36){
+      return{ok:false,reason:"invalid-plan",pages};
+    }
+
+    const byId=new Map((pages||[]).map(page=>[String(page?.id||""),page]));
+    const missing=ORDER.filter(id=>!byId.has(id));
     if(missing.length)return{ok:false,reason:"missing-pages",missing,pages};
-    const targetIds=new Set(UNIQUE_ORDER);
-    const currentTargetOrder=(pages||[]).filter(page=>targetIds.has(page?.id)).map(page=>page.id);
-    if(currentTargetOrder.length!==UNIQUE_ORDER.length)return{ok:false,reason:"target-count",pages};
-    if(sameOrder(currentTargetOrder,UNIQUE_ORDER))return{ok:true,changed:false,pages};
+
+    const targetIds=new Set(ORDER);
+    const currentTargetOrder=(pages||[])
+      .filter(page=>targetIds.has(String(page?.id||"")))
+      .map(page=>String(page.id));
+
+    if(currentTargetOrder.length!==36)return{ok:false,reason:"target-count",pages};
+    if(sameOrder(currentTargetOrder,ORDER))return{ok:true,changed:false,pages};
+
     let cursor=0;
-    const orderedTargets=UNIQUE_ORDER.map(id=>byId.get(id));
-    const next=(pages||[]).map(page=>targetIds.has(page?.id)?orderedTargets[cursor++]:page);
+    const orderedTargets=ORDER.map(id=>byId.get(id));
+    const next=(pages||[]).map(page=>{
+      const id=String(page?.id||"");
+      return targetIds.has(id)?orderedTargets[cursor++]:page;
+    });
+
     return{ok:true,changed:true,pages:next,currentTargetOrder};
   }
 
   function apply(){
     if(!window.FenixCore)return{applied:false,reason:"no-core"};
     const project=FenixCore.getActiveProject();
-    if(!project||project.id!==PROJECT_ID)return{applied:false,reason:"different-project"};
+    if(!project)return{applied:false,reason:"no-project"};
+
     const result=buildReorderedPages(project.pages||[]);
-    if(!result.ok){console.warn("FENIX Ocean Fantasy order v3 skipped:",result.reason,result.missing||result.count||"");return{applied:false,...result};}
-    if(!result.changed){localStorage.setItem(MIGRATION_KEY,`already-correct@${new Date().toISOString()}`);return{applied:false,reason:"already-correct"};}
+    if(!result.ok){
+      console.info("FENIX Ocean Fantasy order v4 not applicable:",result.reason);
+      return{applied:false,...result};
+    }
+
+    const migrationKey=`fenix-page-order-migration:${project.id}:${VERSION}`;
+    const backupKey=`fenix-page-order-backup:${project.id}:${VERSION}`;
+
+    if(!result.changed){
+      localStorage.setItem(migrationKey,`already-correct@${new Date().toISOString()}`);
+      return{applied:false,reason:"already-correct",matched:true,count:36};
+    }
+
     try{
-      if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,JSON.stringify((project.pages||[]).map(page=>page?.id||null)));
+      if(!localStorage.getItem(backupKey)){
+        localStorage.setItem(backupKey,JSON.stringify((project.pages||[]).map(page=>page?.id||null)));
+      }
       FenixCore.setCart(result.pages);
-      localStorage.setItem(MIGRATION_KEY,`applied@${new Date().toISOString()}`);
-      window.dispatchEvent(new CustomEvent("fenix-ocean-fantasy-order-applied",{detail:{projectId:PROJECT_ID,count:UNIQUE_ORDER.length,version:VERSION}}));
-      return{applied:true,count:UNIQUE_ORDER.length};
-    }catch(error){console.error("FENIX Ocean Fantasy order v3 failed",error);return{applied:false,reason:"write-failed",error:String(error?.message||error)};}
+      localStorage.setItem(migrationKey,`applied@${new Date().toISOString()}`);
+      window.dispatchEvent(new CustomEvent("fenix-ocean-fantasy-order-applied",{
+        detail:{projectId:project.id,count:36,version:VERSION}
+      }));
+      return{applied:true,matched:true,count:36,projectId:project.id};
+    }catch(error){
+      console.error("FENIX Ocean Fantasy order v4 failed",error);
+      return{applied:false,reason:"write-failed",error:String(error?.message||error)};
+    }
   }
 
   async function run(){
     try{
       if(window.FenixCore?.ready)await FenixCore.ready;
       const result=apply();
-      await new Promise(resolve=>setTimeout(resolve,120));
+      if(!result.matched&&!result.applied)return;
+      await new Promise(resolve=>setTimeout(resolve,160));
       document.querySelector("#reloadCart")?.click();
       const summary=document.querySelector("#cartSummary");
-      if(summary&&result.applied)summary.textContent=`Ułożono i zapisano ${result.count} aktywności Ocean Fantasy według planu fabularnego v3.`;
-    }catch(error){console.error("FENIX Ocean Fantasy order v3 bootstrap failed",error);}
+      if(summary&&result.applied){
+        summary.textContent="Ułożono i zapisano 36 aktywności Ocean Fantasy według planu fabularnego v4.";
+      }
+    }catch(error){
+      console.error("FENIX Ocean Fantasy order v4 bootstrap failed",error);
+    }
   }
 
-  window.FenixOceanFantasyOrderV3=Object.freeze({PROJECT_ID,VERSION,ORDER:[...UNIQUE_ORDER],buildReorderedPages,apply});
+  window.FenixOceanFantasyOrderV4=Object.freeze({VERSION,ORDER:[...ORDER],buildReorderedPages,apply});
   void run();
 })();
