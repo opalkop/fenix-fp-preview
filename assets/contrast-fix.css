@@ -112,7 +112,7 @@ body:not(.fenix-studio-shell) .cart-hero .panel-head>span,
 body:not(.fenix-studio-shell) .cart-hero .cart-empty{color:#c9d4de}
 body:not(.fenix-studio-shell) .cart-hero .btn:not(.primary){background:#30485d;color:#fff;border-color:#526a7f}
 
-/* All Studios — override legacy module CSS with accessible semantic colors. */
+/* All Studios — semantic colors. */
 body.fenix-studio-shell{background:var(--fenix-ui-bg)!important;color:var(--fenix-ui-text)!important}
 body.fenix-studio-shell>header,
 body.fenix-studio-shell .top,
@@ -171,6 +171,235 @@ html[data-theme="dark"] body.fenix-studio-shell .canvas-wrap,
 html[data-theme="dark"] body.fenix-studio-shell .hero{background:#263544!important;color:#f4f7fb!important}
 @media(prefers-color-scheme:dark){html[data-theme="system"] body.fenix-studio-shell .canvas-wrap,html[data-theme="system"] body.fenix-studio-shell .hero{background:#263544!important;color:#f4f7fb!important}}
 body.fenix-studio-shell canvas{background:#fff!important;color:#111!important}
+
+/* ONE SHARED FENIX STUDIO VISUAL SYSTEM
+   Loaded as the final contrast layer so legacy module CSS cannot create
+   light-on-light or dark-on-dark combinations. No functional/layout logic. */
+body.fenix-studio-shell{
+  --fenix-studio-navy:#0b1b2a;
+  --fenix-studio-navy-2:#102a40;
+  --fenix-studio-gold:#e3ad43;
+  --fenix-studio-gold-soft:#fff5dc;
+  --fenix-studio-bg:#eef3f7;
+  --fenix-studio-card:#ffffff;
+  --fenix-studio-card-soft:#f7f9fc;
+  --fenix-studio-ink:#172333;
+  --fenix-studio-muted:#627184;
+  --fenix-studio-line:#d5dee8;
+  --fenix-studio-shadow:0 10px 28px rgba(15,31,46,.09);
+  background:var(--fenix-studio-bg)!important;
+  color:var(--fenix-studio-ink)!important;
+}
+
+body.fenix-studio-shell > header.fenix-unified-header,
+body.fenix-studio-shell > .top.fenix-unified-header,
+body.fenix-studio-shell > .master-header.fenix-unified-header,
+body.fenix-studio-shell .master-header.fenix-unified-header{
+  background:linear-gradient(115deg,var(--fenix-studio-navy) 0%,var(--fenix-studio-navy-2) 72%,#152536 100%)!important;
+  color:#fff!important;
+  border-bottom:3px solid var(--fenix-studio-gold)!important;
+  box-shadow:0 8px 24px rgba(9,24,37,.20)!important;
+}
+
+/* Header descendants must stay readable regardless of old module rules. */
+body.fenix-studio-shell > header.fenix-unified-header h1,
+body.fenix-studio-shell > header.fenix-unified-header h2,
+body.fenix-studio-shell > header.fenix-unified-header h3,
+body.fenix-studio-shell > header.fenix-unified-header p,
+body.fenix-studio-shell > header.fenix-unified-header small,
+body.fenix-studio-shell > header.fenix-unified-header strong,
+body.fenix-studio-shell > header.fenix-unified-header span,
+body.fenix-studio-shell > .top.fenix-unified-header h1,
+body.fenix-studio-shell > .top.fenix-unified-header h2,
+body.fenix-studio-shell > .top.fenix-unified-header p,
+body.fenix-studio-shell > .top.fenix-unified-header small,
+body.fenix-studio-shell > .master-header.fenix-unified-header h1,
+body.fenix-studio-shell > .master-header.fenix-unified-header h2,
+body.fenix-studio-shell > .master-header.fenix-unified-header p,
+body.fenix-studio-shell > .master-header.fenix-unified-header small,
+body.fenix-studio-shell > .master-header.fenix-unified-header strong{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+
+body.fenix-studio-shell .master-badge,
+body.fenix-studio-shell .eyebrow,
+body.fenix-studio-shell .section-kicker,
+body.fenix-studio-shell .section-title,
+body.fenix-studio-shell .step{
+  color:#754707!important;
+  -webkit-text-fill-color:#754707!important;
+  background:var(--fenix-studio-gold-soft)!important;
+  border:1px solid #e7c67b!important;
+  border-radius:999px!important;
+  display:inline-flex!important;
+  width:auto!important;
+  padding:5px 10px!important;
+  font-weight:900!important;
+  letter-spacing:.08em!important;
+}
+
+body.fenix-studio-shell .master-badge{
+  background:var(--fenix-studio-gold)!important;
+  color:#251702!important;
+  -webkit-text-fill-color:#251702!important;
+  border-color:#f0ca72!important;
+}
+
+body.fenix-studio-shell .fenix-surface,
+body.fenix-studio-shell .panel,
+body.fenix-studio-shell .preview,
+body.fenix-studio-shell .controls,
+body.fenix-studio-shell .workspace,
+body.fenix-studio-shell .card,
+body.fenix-studio-shell .ctp-panel,
+body.fenix-studio-shell .ctp-preview,
+body.fenix-studio-shell .book-builder-controls,
+body.fenix-studio-shell .book-preview{
+  background:var(--fenix-studio-card)!important;
+  color:var(--fenix-studio-ink)!important;
+  border-color:var(--fenix-studio-line)!important;
+  box-shadow:var(--fenix-studio-shadow)!important;
+}
+
+body.fenix-studio-shell .fenix-surface h1,
+body.fenix-studio-shell .fenix-surface h2,
+body.fenix-studio-shell .fenix-surface h3,
+body.fenix-studio-shell .fenix-surface h4,
+body.fenix-studio-shell .fenix-surface h5,
+body.fenix-studio-shell .fenix-surface strong,
+body.fenix-studio-shell .fenix-surface label,
+body.fenix-studio-shell .fenix-surface legend,
+body.fenix-studio-shell .builder-panel-body label,
+body.fenix-studio-shell .builder-panel-body strong,
+body.fenix-studio-shell .workspace-head h2,
+body.fenix-studio-shell .page-meta strong{
+  color:var(--fenix-studio-ink)!important;
+  -webkit-text-fill-color:var(--fenix-studio-ink)!important;
+}
+
+body.fenix-studio-shell .fenix-surface p,
+body.fenix-studio-shell .fenix-surface small,
+body.fenix-studio-shell .fenix-surface .hint,
+body.fenix-studio-shell .fenix-surface .muted,
+body.fenix-studio-shell .builder-help,
+body.fenix-studio-shell .builder-panel-body .hint,
+body.fenix-studio-shell .builder-control-sections summary small,
+body.fenix-studio-shell .page-meta small{
+  color:var(--fenix-studio-muted)!important;
+  -webkit-text-fill-color:var(--fenix-studio-muted)!important;
+}
+
+body.fenix-studio-shell .project-info,
+body.fenix-studio-shell .exercise-info,
+body.fenix-studio-shell .production-plan-box{
+  background:var(--fenix-studio-card-soft)!important;
+  color:var(--fenix-studio-muted)!important;
+  border-color:var(--fenix-studio-line)!important;
+}
+
+body.fenix-studio-shell input,
+body.fenix-studio-shell select,
+body.fenix-studio-shell textarea{
+  background:#fff!important;
+  color:var(--fenix-studio-ink)!important;
+  -webkit-text-fill-color:var(--fenix-studio-ink)!important;
+  border-color:#c9d4df!important;
+}
+body.fenix-studio-shell input::placeholder,
+body.fenix-studio-shell textarea::placeholder{
+  color:#7a8795!important;
+  -webkit-text-fill-color:#7a8795!important;
+}
+body.fenix-studio-shell option{
+  background:#fff!important;
+  color:var(--fenix-studio-ink)!important;
+}
+
+body.fenix-studio-shell .builder-control-sections details{
+  background:#fff!important;
+  color:var(--fenix-studio-ink)!important;
+  border-color:var(--fenix-studio-line)!important;
+}
+body.fenix-studio-shell .builder-control-sections summary{
+  background:linear-gradient(180deg,#fbfcfd,#f3f6f9)!important;
+  color:var(--fenix-studio-ink)!important;
+  border-color:var(--fenix-studio-line)!important;
+}
+body.fenix-studio-shell .builder-control-sections summary strong{
+  color:var(--fenix-studio-ink)!important;
+  -webkit-text-fill-color:var(--fenix-studio-ink)!important;
+}
+body.fenix-studio-shell .builder-control-sections details.gold summary{
+  background:linear-gradient(180deg,#fffdf7,#fff7e5)!important;
+}
+body.fenix-studio-shell .builder-control-sections details.export-panel summary{
+  background:linear-gradient(180deg,#f5f8fb,#edf2f6)!important;
+}
+
+body.fenix-studio-shell button[data-fenix-action=refresh],
+body.fenix-studio-shell #previewBook{
+  background:#2f6fa8!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  border-color:#245f94!important;
+}
+body.fenix-studio-shell button[data-fenix-action=save],
+body.fenix-studio-shell #saveCart,
+body.fenix-studio-shell #exportPdf,
+body.fenix-studio-shell .primary-big,
+body.fenix-studio-shell button.primary{
+  background:linear-gradient(135deg,#d99c2f,#f2c15c)!important;
+  color:#271900!important;
+  -webkit-text-fill-color:#271900!important;
+  border-color:#d8a744!important;
+}
+body.fenix-studio-shell button[data-fenix-action=export],
+body.fenix-studio-shell button[data-fenix-action=variant],
+body.fenix-studio-shell button[data-fenix-action=reset],
+body.fenix-studio-shell button.secondary,
+body.fenix-studio-shell .back,
+body.fenix-studio-shell .button.ghost,
+body.fenix-studio-shell .btn.ghost{
+  background:#eef3f7!important;
+  color:#223244!important;
+  -webkit-text-fill-color:#223244!important;
+  border-color:#c9d4df!important;
+}
+
+/* Header navigation is an explicit dark-surface exception. */
+body.fenix-studio-shell > header.fenix-unified-header .back,
+body.fenix-studio-shell > .top.fenix-unified-header .back,
+body.fenix-studio-shell > .master-header.fenix-unified-header .back,
+body.fenix-studio-shell > header.fenix-unified-header a,
+body.fenix-studio-shell > .top.fenix-unified-header a,
+body.fenix-studio-shell > .master-header.fenix-unified-header a{
+  background:rgba(255,255,255,.08)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  border-color:rgba(255,255,255,.34)!important;
+}
+
+/* Page cards and preview chrome stay light; the printable canvas itself stays white. */
+body.fenix-studio-shell .page-card{
+  background:#f8fafc!important;
+  color:var(--fenix-studio-ink)!important;
+  border-color:var(--fenix-studio-line)!important;
+}
+body.fenix-studio-shell .page-index{
+  background:var(--fenix-studio-navy)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+body.fenix-studio-shell .canvas-wrap{
+  background:#d8e0e8!important;
+  color:var(--fenix-studio-ink)!important;
+}
+body.fenix-studio-shell canvas,
+body.fenix-studio-shell .page-thumb{
+  background:#fff!important;
+  color:#111!important;
+}
 
 /* Keyboard accessibility / clear focus. */
 :focus-visible{outline:3px solid color-mix(in srgb,var(--fenix-ui-accent) 75%,white)!important;outline-offset:2px}
