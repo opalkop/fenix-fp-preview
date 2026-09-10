@@ -2,7 +2,7 @@
 :root[data-theme="light"] body{background:radial-gradient(circle at 88% -10%,rgba(130,169,201,.28) 0,transparent 35%),radial-gradient(circle at 5% 30%,rgba(255,122,53,.06) 0,transparent 28%),var(--fenix-bg)!important;color:var(--fenix-text)!important}
 :root[data-theme="light"] .panel,:root[data-theme="light"] .card,:root[data-theme="light"] .box,:root[data-theme="light"] .controls,:root[data-theme="light"] .control-panel,:root[data-theme="light"] .settings,:root[data-theme="light"] .settings-panel,:root[data-theme="light"] .preview-panel,:root[data-theme="light"] .canvas-panel,:root[data-theme="light"] .tool-panel,:root[data-theme="light"] .cart,:root[data-theme="light"] .cart-panel,:root[data-theme="light"] .module-card,:root[data-theme="light"] .project-card,:root[data-theme="light"] .modal-content,:root[data-theme="light"] dialog{background:var(--fenix-panel)!important;box-shadow:0 8px 28px rgba(31,50,68,.09)!important}
 :root[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),:root[data-theme="light"] select,:root[data-theme="light"] textarea{color:var(--fenix-text)!important;background:#fff!important}
-:root[data-theme="light"] input:focus,:root[data-theme="light"] select:focus,:root[data-theme="light"] textarea:focus{background:#fff!important}
+:root[data-theme="light"] input:focus,:root[data-theme="light"] select,:root[data-theme="light"] textarea:focus{background:#fff!important}
 :root[data-theme="light"] button,:root[data-theme="light"] .button,:root[data-theme="light"] .btn,:root[data-theme="light"] [role="button"],:root[data-theme="light"] input[type="button"],:root[data-theme="light"] input[type="submit"]{color:var(--fenix-text)!important;background:var(--fenix-panel-2)!important}
 :root[data-theme="light"] button:hover,:root[data-theme="light"] .button:hover,:root[data-theme="light"] .btn:hover,:root[data-theme="light"] [role="button"]:hover{background:#eef3f7!important}
 :root[data-theme="light"] nav a,:root[data-theme="light"] .nav a,:root[data-theme="light"] .tab,:root[data-theme="light"] .tabs button{color:#566879!important}
@@ -16,3 +16,23 @@
 :root[data-theme="light"] *::-webkit-scrollbar-track{background:#edf2f7}
 :root[data-theme="light"] *::-webkit-scrollbar-thumb{background:#aab8c5;border-color:#edf2f7}
 @media(prefers-color-scheme:light){:root[data-theme="system"]{--fenix-bg:#edf2f7;--fenix-bg-soft:#f4f7fa;--fenix-panel:#ffffff;--fenix-panel-2:#f7f9fc;--fenix-panel-3:#eef3f7;--fenix-line:#d7e0e8;--fenix-line-strong:#aebbc7;--fenix-text:#17202a;--fenix-muted:#647383;--fenix-accent-2:#e95f18;--fenix-good:#168b67;--fenix-warn:#a86b00;--fenix-danger:#b63f3f;color-scheme:light}:root[data-theme="system"] body{background:radial-gradient(circle at 88% -10%,rgba(130,169,201,.28) 0,transparent 35%),var(--fenix-bg)!important}:root[data-theme="system"] .panel,:root[data-theme="system"] .card,:root[data-theme="system"] .box,:root[data-theme="system"] .controls,:root[data-theme="system"] .control-panel,:root[data-theme="system"] .settings,:root[data-theme="system"] .settings-panel,:root[data-theme="system"] .preview-panel,:root[data-theme="system"] .canvas-panel,:root[data-theme="system"] .tool-panel,:root[data-theme="system"] .cart,:root[data-theme="system"] .cart-panel,:root[data-theme="system"] .module-card,:root[data-theme="system"] .project-card{background:var(--fenix-panel)!important}}
+
+/* Book Builder keeps its master-module identity after the shared theme finishes loading. */
+:root[data-theme="light"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header,
+:root[data-theme="system"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header{
+  background:linear-gradient(120deg,#111827,#3b1d0b 58%,#9a5a08)!important;
+  color:#fff!important;
+  border-bottom:6px solid #f6c453!important;
+  box-shadow:0 12px 30px rgba(17,24,39,.28)!important;
+}
+:root[data-theme="light"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header h1,
+:root[data-theme="system"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header h1{color:#fff!important}
+:root[data-theme="light"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header p,
+:root[data-theme="system"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header p{color:#f8e8c2!important}
+:root[data-theme="light"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header .master-badge,
+:root[data-theme="system"] body.fenix-studio-shell[data-screen="book-builder"]>header.master-header .master-badge{
+  background:#f6c453!important;
+  color:#172033!important;
+  border:1px solid #d99a16!important;
+  box-shadow:0 2px 7px rgba(23,32,51,.18)!important;
+}
