@@ -18,5 +18,28 @@
  const zones=a.assetZones||[],roles=zones.map(z=>z.role);check("START room exists",roles.includes("start"));check("META room exists",roles.includes("goal"));check("Checkpoint room exists",roles.includes("checkpoint"));check("Two hazard rooms exist",roles.filter(x=>x==="hazard").length===2);
  const roomRects=a.assetRoomRects||[],startRect=roomRects.find(z=>z.role==="start"),goalRect=roomRects.find(z=>z.role==="goal");check("START rendered as clean bay",startRect?.cleanBay===true);check("META rendered as clean bay",goalRect?.cleanBay===true);
  const pkey=([x,y])=>`${x},${y}`,solution=new Set((a.solutionPath||[]).map(pkey)),hazards=new Set((a.hazards||[]).map(pkey));check("Solution exists",(a.solutionPath||[]).length>1);check("Solution visits checkpoint",(a.checkpoints||[]).every(p=>solution.has(pkey(p))));check("Solution avoids hazards",[...hazards].every(k=>!solution.has(k)));
+ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ function fullCycle(mobile){
+  const originalMatchMedia=window.matchMedia;
+  window.matchMedia=()=>({matches:mobile,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}});
+  try{
+   const source=FenixPageSchema.normalize(JSON.parse(JSON.stringify(page)));
+   const generated=FenixMaze.render(source,{solution:true,width:850,height:1100,assetImages:assets});
+   const saved=FenixPageSchema.normalize({...source,seed:generated.effectiveSeed,recipe:{...source.recipe,seed:generated.effectiveSeed,settings:{...source.recipe.settings,endpoints:generated.endpoints},meta:{...(source.recipe.meta||{}),renderState:{effectiveSeed:generated.effectiveSeed,endpoints:generated.endpoints,showSolution:true}}}});
+   const loaded=FenixPageSchema.normalize(JSON.parse(JSON.stringify(saved)));
+   const rendered=FenixMaze.render(loaded,{solution:true,width:850,height:1100,assetImages:assets});
+   const mode=mobile?"mobile":"desktop";
+   check(`Full cycle ${mode}: effectiveSeed`,rendered.effectiveSeed===generated.effectiveSeed);
+   check(`Full cycle ${mode}: maze.cells`,same(rendered.maze.cells,generated.maze.cells));
+   check(`Full cycle ${mode}: START`,same(rendered.maze.start,generated.maze.start));
+   check(`Full cycle ${mode}: META`,same(rendered.maze.end,generated.maze.end));
+   check(`Full cycle ${mode}: checkpoints`,same(rendered.checkpoints,generated.checkpoints));
+   check(`Full cycle ${mode}: hazards`,same(rendered.hazards,generated.hazards));
+   check(`Full cycle ${mode}: solutionPath`,same(rendered.solutionPath,generated.solutionPath));
+  }finally{window.matchMedia=originalMatchMedia}
+ }
+ fullCycle(false);
+ fullCycle(true);
+ check("Legacy page without effectiveSeed keeps generator fallback",Number.isFinite(a.effectiveSeed)&&!page.recipe?.meta?.renderState?.effectiveSeed);
  out.className=failed?"fail":"ok";out.textContent=`Maze regression ${failed?"FAIL":"PASS"}\nRenderer: ${FenixMaze.version||"?"}\n\n${lines.join("\n")}`;document.documentElement.dataset.mazeRegression=failed?"fail":"pass";
 })();
