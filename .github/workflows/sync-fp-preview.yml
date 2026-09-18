@@ -1,5 +1,5 @@
 name: Sync FP Preview
-# Manual dispatch marker: 2026-09-04Tmaze-continuous-scale
+# Manual dispatch marker: 2026-09-18Tqr-layout-5b37e94
 
 on:
   schedule:
