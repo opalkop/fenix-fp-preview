@@ -121,14 +121,34 @@ window.FenixEndingRenderers=(()=>{
   }
   function renderQr(settings,width,height,qrAssetImage=null){
     const {canvas,ctx,s}=base(width,height,settings.style),cx=width/2,titleSize=Math.max(72,Math.min(160,Number(settings.titleSize)||108)),bodySize=Math.max(40,Math.min(90,Number(settings.bodySize)||54)),labelSize=Math.max(30,Math.min(72,Number(settings.labelSize)||46)),footerSize=Math.max(28,Math.min(72,Number(settings.footerSize)||40)),max=1980*s;
-    ctx.textAlign="center";ctx.font=`900 ${titleSize*s}px Arial, sans-serif`;wrap(ctx,settings.title,max).slice(0,2).forEach((line,i)=>ctx.fillText(line,cx,520*s+i*115*s));
-    textBlock(ctx,settings.body,cx,830*s,1840*s,bodySize*s,(bodySize*1.5)*s,"center",5);
+    // QR-only text boxes keep complete text inside its own safe band, including
+    // long unbroken labels. Fit before drawing; never truncate with slice().
+    function fittedText(text,y,boxWidth,boxHeight,fontSize,weight){
+      let size=fontSize*s,lines,lineHeight;
+      do{
+        ctx.font=`${weight} ${size}px Arial, sans-serif`;
+        lines=wrap(ctx,text,boxWidth).flatMap(line=>{
+          const chunks=[];let chunk="";
+          for(const char of line){if(chunk&&ctx.measureText(chunk+char).width>boxWidth){chunks.push(chunk);chunk=""}chunk+=char}
+          chunks.push(chunk);return chunks;
+        });lineHeight=size*1.3;
+        if(lines.length*lineHeight<=boxHeight&&lines.every(line=>ctx.measureText(line).width<=boxWidth))break;
+        size*=.95;
+      }while(size>.5*s);
+      ctx.save();ctx.fillStyle="#111";ctx.textAlign="center";ctx.textBaseline="top";
+      lines.forEach((line,index)=>ctx.fillText(line,cx,y+index*lineHeight));ctx.restore();
+    }
+    ctx.textAlign="center";
+    fittedText(settings.title,400*s,max,320*s,titleSize,900);
+    fittedText(settings.body,800*s,1840*s,350*s,bodySize,400);
     const qrSize=(settings.codeSize==="medium"?1120:1390)*s,qrX=(width-qrSize)/2,qrY=1250*s;
-    if(settings.style==="card"){ctx.lineWidth=4*s;ctx.strokeRect(qrX-70*s,qrY-70*s,qrSize+140*s,qrSize+270*s)}
+    if(settings.style==="card"){ctx.lineWidth=4*s;ctx.strokeRect(qrX-70*s,qrY-70*s,qrSize+140*s,qrSize+310*s)}
     ctx.fillStyle="#fff";ctx.fillRect(qrX,qrY,qrSize,qrSize);
     if(qrAssetImage){const sourceWidth=qrAssetImage.naturalWidth||qrAssetImage.width||1,sourceHeight=qrAssetImage.naturalHeight||qrAssetImage.height||1,inner=qrSize*.9,scale=Math.min(inner/sourceWidth,inner/sourceHeight),drawWidth=sourceWidth*scale,drawHeight=sourceHeight*scale;ctx.save();ctx.imageSmoothingEnabled=false;ctx.filter="grayscale(1) contrast(1.35)";ctx.drawImage(qrAssetImage,qrX+(qrSize-drawWidth)/2,qrY+(qrSize-drawHeight)/2,drawWidth,drawHeight);ctx.restore()}else{ctx.strokeStyle="#777";ctx.lineWidth=4*s;ctx.setLineDash([22*s,16*s]);ctx.strokeRect(qrX+70*s,qrY+70*s,qrSize-140*s,qrSize-140*s);ctx.setLineDash([]);ctx.fillStyle="#555";ctx.font=`800 ${42*s}px Arial, sans-serif`;ctx.fillText("DODAJ ASSET KODU QR",cx,qrY+qrSize/2)}
-    ctx.font=`900 ${labelSize*s}px Arial, sans-serif`;ctx.fillText(settings.qrLabel,cx,qrY+qrSize+90*s);
-    ctx.font=`400 ${footerSize*s}px Arial, sans-serif`;ctx.fillText(settings.footer,cx,height-245*s);return canvas;
+    // The asset branch restores the white QR background fillStyle. Text must
+    // set its own dark fill, independently of whether an asset is present.
+    fittedText(settings.qrLabel,qrY+qrSize+40*s,settings.style==="card"?qrSize+60*s:max,160*s,labelSize,900);
+    fittedText(settings.footer,height-390*s,max,180*s,footerSize,400);return canvas;
   }
   function fromPage(page,module){const definition=DEFINITIONS[module],stored=object(page?.recipe?.settings),content=object(page?.recipe?.content),legacyCreatorMark=content.signatureAssetRef||stored.signatureAssetRef;return{...definition.defaults,...stored,...(module==="qr-studio"&&content.assetRef?{qrAssetRef:content.assetRef}:{}),...(module==="certificate-studio"&&(content.creatorMarkAssetRef||legacyCreatorMark)?{creatorMarkAssetRef:content.creatorMarkAssetRef||legacyCreatorMark}:{})}}
   function page(module,settings,original=null){
