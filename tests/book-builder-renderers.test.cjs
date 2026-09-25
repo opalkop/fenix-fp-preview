@@ -13,8 +13,9 @@ assert.match(builder,/async function init\(\)[\s\S]*await FenixCore\.ready;[\s\S
 assert.match(builder,/if\(module==="tracing-studio"\)return tracingCanvas\(p,quality\)/,"Tracing w trybie print musi korzystać z renderera produkcyjnego.");
 assert.match(builder,/if\(module==="complete-picture"\)return completeCanvas\(p,solution,quality\)/,"Complete Picture w trybie print musi korzystać z renderera produkcyjnego.");
 assert.match(html,/dot-to-dot-studio\/dot-core\.js/,"Book Builder musi ładować produkcyjny core Dot to Dot.");
-assert.match(html,/BOOK BUILDER DIAGNOSTICS 2026-09-18 v1/,"Book Builder musi pokazywać jednoznaczny identyfikator diagnostyczny.");
-assert.match(html,/book-builder\.js\?v=0\.33\.1-diagnostics-v1/,"Diagnostyczny Book Builder musi mieć nowy cache-busting.");
+assert.match(builder,/BOOK BUILDER DIAGNOSTICS 2026-09-25 v2/,"Book Builder musi pokazywać jednoznaczny identyfikator diagnostyczny.");
+assert.match(html,/book-builder\.js\?v=0\.33\.2-fast-startup/,"Naprawiony Book Builder musi mieć nowy cache-busting.");
+assert.match(html,/fenix-core\.js\?v=0\.31\.3-fast-startup/,"Naprawiony magazyn musi mieć nowy cache-busting.");
 assert.match(builder,/function assetDiagnostics\(page\)/,"Book Builder musi raportować stan assetRef i payloadów.");
 assert.match(builder,/function showFailureReport\(failures\)/,"Book Builder musi wyświetlać zbiorczy raport błędów renderowania.");
 

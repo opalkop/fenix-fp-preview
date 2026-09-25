@@ -7,7 +7,10 @@ assert.match(core,/pageSnapshotId=.*page:/,"Page snapshots powinny mieć osobne 
 assert.match(core,/stripPagePayloads/,"Persist powinien usuwać ciężkie bitmapy stron z localStorage.");
 assert.match(core,/stripHeavyPayloads\(state\.projects\)/,"Projekt zapisany do localStorage powinien być odchudzony.");
 assert.match(core,/hydrateProjectPageSnapshots/,"Start aplikacji powinien odtwarzać snapshoty z IndexedDB.");
+assert.match(core,/idbGetPayloads\(keys\)/,"Start aplikacji powinien pobierać tylko dane potrzebne aktywnemu projektowi.");
+assert.doesNotMatch(core,/const records=await idbGetAll\(\)/,"Start aplikacji nie może materializować wszystkich ciężkich danych ze wszystkich projektów.");
 assert.match(core,/queueProjectPages/,"Zmiany stron powinny kolejkować zapis snapshotów do IndexedDB.");
+assert.match(core,/preview&&preview!==previousPreview/,"Zmiana samej kolejności stron nie powinna ponownie zapisywać niezmienionych bitmap.");
 assert.match(core,/queueRemovedPageSnapshots/,"Usunięte strony powinny usuwać swoje snapshoty z IndexedDB.");
 assert.match(core,/heavyPageSnapshotsInIndexedDB/,"Diagnostyka storage powinna raportować snapshoty stron w IndexedDB.");
 console.log("PASS page-snapshot-storage: preview/solution payloads are kept out of localStorage in IndexedDB mode.");
