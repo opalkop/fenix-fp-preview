@@ -2,7 +2,8 @@
 (()=>{
   const $=selector=>document.querySelector(selector);
   const planner=window.FenixProductionPlan;
-  if(!planner||!window.FenixCore)return;
+  const core=(()=>{try{return typeof FenixCore!=="undefined"?FenixCore:null}catch{return null}})();
+  if(!planner||!core)return;
 
   function currentPresetId(){return $("#productionPlanPreset")?.value||"ocean-fantasy-50"}
 
@@ -17,11 +18,11 @@
   }
 
   function applyPlan(){
-    const source=FenixCore.getCart();
+    const source=core.getCart();
     if(!source.length){alert("Projekt nie zawiera jeszcze stron do uporządkowania.");return}
     try{
       const result=planner.applyPreset(source,currentPresetId());
-      FenixCore.setCart(result.pages);
+      core.setCart(result.pages);
       sessionStorage.setItem("fenix-production-plan-message",summaryText(result));
       location.reload();
     }catch(error){
@@ -31,7 +32,7 @@
   }
 
   function clearPlan(){
-    const source=FenixCore.getCart();
+    const source=core.getCart();
     const cleaned=source.map(page=>{
       if(!page?.recipe?.meta?.productionPlan&&!page?.productionPlan)return page;
       const recipe={...(page.recipe||{})};
@@ -42,13 +43,13 @@
       if(Object.hasOwn(next,"productionPlan"))delete next.productionPlan;
       return next;
     });
-    FenixCore.setCart(cleaned);
+    core.setCart(cleaned);
     sessionStorage.setItem("fenix-production-plan-message","Usunięto przypisania planu produkcyjnego. Kolejność stron pozostawiono bez zmian.");
     location.reload();
   }
 
   function decorateCards(){
-    const byId=new Map(FenixCore.getCart().map(page=>[String(page.id||""),page]));
+    const byId=new Map(core.getCart().map(page=>[String(page.id||""),page]));
     document.querySelectorAll("#pageList .page-card").forEach(card=>{
       const page=byId.get(String(card.dataset.pageId||""));
       const meta=page?planner.describePage(page):null;
