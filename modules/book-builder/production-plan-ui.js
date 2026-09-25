@@ -17,35 +17,61 @@
     return parts.join(" ");
   }
 
-  function applyPlan(){
+  function setWorking(message){
+    const status=$("#productionPlanStatus"),apply=$("#applyProductionPlan"),clear=$("#clearProductionPlan");
+    if(status)status.textContent=message;
+    if(apply)apply.disabled=true;
+    if(clear)clear.disabled=true;
+  }
+
+  function clearWorking(){
+    const apply=$("#applyProductionPlan"),clear=$("#clearProductionPlan");
+    if(apply)apply.disabled=false;
+    if(clear)clear.disabled=false;
+  }
+
+  async function flushAndReload(message){
+    if(typeof core.flushStorage==="function")await core.flushStorage();
+    sessionStorage.setItem("fenix-production-plan-message",message);
+    location.reload();
+  }
+
+  async function applyPlan(){
     const source=core.getCart();
     if(!source.length){alert("Projekt nie zawiera jeszcze stron do uporządkowania.");return}
     try{
+      setWorking("Zapisuję plan aktywności i zabezpieczam dane projektu…");
       const result=planner.applyPreset(source,currentPresetId());
       core.setCart(result.pages);
-      sessionStorage.setItem("fenix-production-plan-message",summaryText(result));
-      location.reload();
+      await flushAndReload(summaryText(result));
     }catch(error){
       console.error("Production Plan",error);
       alert(`Nie udało się zastosować planu produkcyjnego: ${error.message}`);
+      clearWorking();
     }
   }
 
-  function clearPlan(){
-    const source=core.getCart();
-    const cleaned=source.map(page=>{
-      if(!page?.recipe?.meta?.productionPlan&&!page?.productionPlan)return page;
-      const recipe={...(page.recipe||{})};
-      const meta={...(recipe.meta||{})};
-      delete meta.productionPlan;
-      recipe.meta=meta;
-      const next={...page,recipe};
-      if(Object.hasOwn(next,"productionPlan"))delete next.productionPlan;
-      return next;
-    });
-    core.setCart(cleaned);
-    sessionStorage.setItem("fenix-production-plan-message","Usunięto przypisania planu produkcyjnego. Kolejność stron pozostawiono bez zmian.");
-    location.reload();
+  async function clearPlan(){
+    try{
+      setWorking("Usuwam przypisania planu i zabezpieczam dane projektu…");
+      const source=core.getCart();
+      const cleaned=source.map(page=>{
+        if(!page?.recipe?.meta?.productionPlan&&!page?.productionPlan)return page;
+        const recipe={...(page.recipe||{})};
+        const meta={...(recipe.meta||{})};
+        delete meta.productionPlan;
+        recipe.meta=meta;
+        const next={...page,recipe};
+        if(Object.hasOwn(next,"productionPlan"))delete next.productionPlan;
+        return next;
+      });
+      core.setCart(cleaned);
+      await flushAndReload("Usunięto przypisania planu produkcyjnego. Kolejność stron pozostawiono bez zmian.");
+    }catch(error){
+      console.error("Production Plan",error);
+      alert(`Nie udało się usunąć przypisań planu: ${error.message}`);
+      clearWorking();
+    }
   }
 
   function decorateCards(){
