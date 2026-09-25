@@ -13,9 +13,10 @@ assert.match(builder,/async function init\(\)[\s\S]*await FenixCore\.ready;[\s\S
 assert.match(builder,/if\(module==="tracing-studio"\)return tracingCanvas\(p,quality\)/,"Tracing w trybie print musi korzystać z renderera produkcyjnego.");
 assert.match(builder,/if\(module==="complete-picture"\)return completeCanvas\(p,solution,quality\)/,"Complete Picture w trybie print musi korzystać z renderera produkcyjnego.");
 assert.match(html,/dot-to-dot-studio\/dot-core\.js/,"Book Builder musi ładować produkcyjny core Dot to Dot.");
-assert.match(builder,/BOOK BUILDER DIAGNOSTICS 2026-09-25 v9/,"Book Builder musi pokazywać jednoznaczny identyfikator diagnostyczny.");
-assert.match(html,/book-builder\.js\?v=0\.33\.9-stable-workflow/,"Naprawiony Book Builder musi mieć nowy cache-busting.");
-assert.doesNotMatch(builder,/void renderThumbnails\(jobs,token\)/,"Start Book Buildera nie może automatycznie renderować 60 ciężkich miniatur.");
+assert.match(builder,/BOOK BUILDER DIAGNOSTICS 2026-09-25 v10/,"Book Builder musi pokazywać jednoznaczny identyfikator diagnostyczny.");
+assert.match(html,/book-builder\.js\?v=0\.34\.0-live-previews/,"Naprawiony Book Builder musi mieć nowy cache-busting.");
+assert.match(builder,/function scheduleThumbnailRender\(jobs,token\)\{setTimeout\(async\(\)=>/,"Miniatury muszą ruszać dopiero po oddaniu sterowania interfejsowi.");
+assert.match(builder,/await ensureRenderAssets\(\);if\(token!==renderToken\)return;recoveryMode=false;await renderThumbnails\(jobs,token\)/,"Book Builder musi wczytać assety i wyrenderować właściwe miniatury w tle.");
 assert.match(html,/book-builder-core-v3\.js/,"Book Builder musi używać fizycznie oddzielnego rdzenia odpornego na stary cache Opery.");
 assert.match(builder,/recoveryMode=true;loadCart\(\)/,"Book Builder musi uruchamiać lekki widok metadanych bez ciężkich podglądów.");
 assert.match(builder,/FenixCore\.setCart\(pages\.filter\(page=>!page\?\._autoParity\)\)/,"Automatyczne uporządkowanie musi trwale zapisywać kolejność bez technicznej strony parzystości.");

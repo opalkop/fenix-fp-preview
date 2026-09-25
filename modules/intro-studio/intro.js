@@ -5,7 +5,7 @@
   const escapeHtml=value=>String(value??"").replace(/[&<>'\"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"}[char]));
   const PAGE_TYPES=FenixIntroRenderer.PAGE_TYPES;
   const panels=$("#introPanels"),canvas=$("#page"),status=$("#status"),saveStatus=$("#saveStatus");
-  let activeType=PAGE_TYPES[0].id,renderTimer=null;
+  let activeType=PAGE_TYPES[0].id,renderTimer=null,saveTimer=null;
 
   function introPages(){return FenixCore.getCart().filter(page=>FenixPageSchema.moduleOf(page)==="intro-studio")}
   function existingPage(type){return introPages().find(page=>page.recipe?.settings?.pageType===type)||null}
@@ -55,7 +55,16 @@
     $("#previewLabel").textContent=definition.label;
     status.textContent="Podgląd aktualny";
   }
-  function queuePreview(){status.textContent="Aktualizuję…";clearTimeout(renderTimer);renderTimer=setTimeout(renderPreview,120)}
+  function queuePreview(){
+    status.textContent="Aktualizuję…";
+    clearTimeout(renderTimer);renderTimer=setTimeout(renderPreview,120);
+    clearTimeout(saveTimer);
+    if(existingPage(activeType)){
+      saveStatus.textContent="Zapisuję zmiany automatycznie…";
+      saveStatus.classList.remove("saved");
+      saveTimer=setTimeout(()=>savePage(activeType,{automatic:true}),500);
+    }
+  }
   function setActive(type){
     activeType=type;
     panels.querySelectorAll("details").forEach(panel=>panel.classList.toggle("is-active",panel.dataset.pageType===type));
@@ -86,11 +95,12 @@
     panel.querySelector("[data-include-page]").checked=Boolean(page);
     button.textContent=page?"Aktualizuj stronę":"Dodaj do Stron projektu";
   }
-  function savePage(type){
+  function savePage(type,{automatic=false}={}){
+    clearTimeout(saveTimer);
     const original=existingPage(type),page=pageFromPanel(type,original);
     if(original)FenixCore.updatePage(original.id,page);else FenixCore.addPage(page);
     updatePanelState(type);
-    saveStatus.textContent=original?`✓ Zaktualizowano stronę „${page.title}”.`:`✓ Dodano stronę „${page.title}” do projektu.`;
+    saveStatus.textContent=automatic?`✓ Zapisano automatycznie stronę „${page.title}”.`:original?`✓ Zaktualizowano stronę „${page.title}”.`:`✓ Dodano stronę „${page.title}” do projektu.`;
     saveStatus.classList.add("saved");
     setTimeout(()=>saveStatus.classList.remove("saved"),1800);
   }

@@ -60,7 +60,10 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
 {
   const controller=read("modules/shared/ending-studio.js"),styles=read("modules/shared/ending-studio.css");
   assert(controller.includes("Ta strona nie jest jeszcze częścią książki."));
-  assert(controller.includes("Masz niezapisane zmiany"));
+  assert(controller.includes("Zapisuję zmiany automatycznie"));
+  assert(controller.includes("saveTimer=setTimeout(()=>save(true),500)"));
+  assert(controller.includes("Zapisano automatycznie"));
+  assert(controller.includes("Zmiany treści są zapisywane w projekcie automatycznie"));
   assert(controller.includes('id="savePage" type="button" class="primary"'));
   assert(controller.includes('type==="checkbox"'));
   assert(controller.includes('type==="asset"'));
@@ -124,6 +127,9 @@ for(const slug of ["congratulations-studio","certificate-studio","qr-studio"]){
   assert(intro.includes("gridWidth=compact?"));
   assert(intro.includes("glyphLimit=compact?190:105"));
   assert(/intro-renderer\.js\?v=/.test(introHtml));
+  const introController=read("modules/intro-studio/intro.js");
+  assert(introController.includes("saveTimer=setTimeout(()=>savePage(activeType,{automatic:true}),500)"));
+  assert(introController.includes("Zapisano automatycznie stronę"));
 }
 
 {
