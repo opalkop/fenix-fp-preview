@@ -9,6 +9,8 @@ assert.match(core,/stripHeavyPayloads\(state\.projects\)/,"Projekt zapisany do l
 assert.match(core,/hydrateProjectPageSnapshots/,"Start aplikacji powinien odtwarzać snapshoty z IndexedDB.");
 assert.match(core,/idbGetPayloads\(keys\)/,"Start aplikacji powinien pobierać tylko dane potrzebne aktywnemu projektowi.");
 assert.doesNotMatch(core,/const records=await idbGetAll\(\)/,"Start aplikacji nie może materializować wszystkich ciężkich danych ze wszystkich projektów.");
+assert.match(core,/storageMode=recoveryStorage\?"recovery"/,"Tryb odzyskiwania musi omijać zablokowany IndexedDB bez usuwania jego danych.");
+assert.match(core,/if\(storageMode==="recovery"\)/,"Inicjalizacja trybu odzyskiwania musi kończyć się bez otwierania IndexedDB.");
 assert.match(core,/queueProjectPages/,"Zmiany stron powinny kolejkować zapis snapshotów do IndexedDB.");
 assert.match(core,/preview&&preview!==previousPreview/,"Zmiana samej kolejności stron nie powinna ponownie zapisywać niezmienionych bitmap.");
 assert.match(core,/queueRemovedPageSnapshots/,"Usunięte strony powinny usuwać swoje snapshoty z IndexedDB.");
