@@ -9,7 +9,7 @@ window.FenixCore=(()=>{
   const read=(key,fallback)=>{try{const value=JSON.parse(localStorage.getItem(key));return value??fallback}catch{return fallback}};
   const key=(scope,id)=>`${scope}::${id}`;
   const libraryRefOf=asset=>String(asset?.libraryRef||asset?.meta?.libraryRef||"").trim();
-  let projects=read(PROJECTS_KEY,[]),library=read(LIBRARY_KEY,{}),activeId=localStorage.getItem(ACTIVE_KEY),storageMode="loading",storageReady=true,requestedAssets=0;
+  let projects=read(PROJECTS_KEY,[]),library=read(LIBRARY_KEY,{}),activeId=localStorage.getItem(ACTIVE_KEY),storageMode="metadata",storageReady=true,requestedAssets=0,hydrationPromise=null;
   if(!Array.isArray(projects))projects=[];
   if(!library||typeof library!=="object"||Array.isArray(library))library={};
   if(!projects.some(project=>project.id===activeId))activeId=projects[0]?.id||"";
@@ -23,7 +23,7 @@ window.FenixCore=(()=>{
   function getRequest(store,itemKey){return timeout(new Promise((resolve,reject)=>{const request=store.get(itemKey);request.onsuccess=()=>resolve(request.result||null);request.onerror=()=>reject(request.error||new Error("IndexedDB read failed"))}),8000,"IndexedDB asset timeout")}
   async function hydrate(){
     const project=active();
-    if(!project.id){storageMode="metadata";storageReady=true;return}
+    if(!project.id)return;
     try{
       const ids=referencedIds(project),lookups=[];
       for(const id of ids){const asset=project.assets?.[id];if(!asset)continue;const ref=libraryRefOf(asset);lookups.push({id,ref,itemKey:key(ref?LIBRARY_SCOPE:project.id,ref||id)})}
@@ -36,12 +36,13 @@ window.FenixCore=(()=>{
     }catch(error){console.error("Book Builder asset hydration fallback",error);storageMode="metadata"}
   }
   const ready=Promise.resolve().then(()=>getStorageInfo());
-  setTimeout(()=>{hydrate().finally(()=>window.dispatchEvent(new CustomEvent("fenix-storage-ready",{detail:getStorageInfo()})))},0);
-  function getStorageInfo(){return{mode:storageMode,ready:storageReady,bookBuilderCore:"v2",requestedAssets,heavyAssetsInIndexedDB:storageMode==="indexeddb",heavyPageSnapshotsInIndexedDB:false,globalLibrary:true,libraryAssets:Object.keys(library).length}}
+  requestedAssets=referencedIds(active()).size;
+  function ensureAssets(){if(storageMode==="indexeddb")return Promise.resolve(getStorageInfo());if(hydrationPromise)return hydrationPromise;storageMode="loading";hydrationPromise=hydrate().then(()=>getStorageInfo()).finally(()=>{window.dispatchEvent(new CustomEvent("fenix-storage-ready",{detail:getStorageInfo()}));hydrationPromise=null});return hydrationPromise}
+  function getStorageInfo(){return{mode:storageMode,ready:storageReady,bookBuilderCore:"v3",requestedAssets,heavyAssetsInIndexedDB:storageMode==="indexeddb",heavyPageSnapshotsInIndexedDB:false,globalLibrary:true,libraryAssets:Object.keys(library).length}}
   const getActiveProject=()=>clone(active()),getCart=()=>clone(active().pages||[]);
   function setCart(pages){const project=active();project.pages=Array.isArray(pages)?clone(pages):[];project.updatedAt=new Date().toISOString();persist();window.dispatchEvent(new Event("fenix-cart-change"));return clone(project.pages)}
   function getAsset(id){const project=active();return clone(project.assets?.[id]||null)}
   function listAssets(){return clone(Object.values(active().assets||{}))}
   const flushStorage=async()=>true;
-  return Object.freeze({ready,getStorageInfo,getActiveProject,getCart,setCart,getAsset,listAssets,flushStorage});
+  return Object.freeze({ready,ensureAssets,getStorageInfo,getActiveProject,getCart,setCart,getAsset,listAssets,flushStorage});
 })();

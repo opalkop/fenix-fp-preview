@@ -80,14 +80,14 @@
     document.querySelectorAll("#pageList .page-card").forEach(card=>{
       const page=byId.get(String(card.dataset.pageId||""));
       const meta=page?planner.describePage(page):null;
-      const old=card.querySelector(".production-slot-badge");
-      if(old)old.remove();
-      if(!meta)return;
-      const badge=document.createElement("div");
-      badge.className="production-slot-badge";
-      badge.textContent=`#${meta.slot} · ${meta.zoneName} · zadanie ${meta.activityInZone}/10`;
+      let badge=card.querySelector(".production-slot-badge");
+      if(!meta){if(badge)badge.remove();return}
+      const text=`#${meta.slot} · ${meta.zoneName} · zadanie ${meta.activityInZone}/10`;
+      if(badge?.textContent===text)return;
+      if(!badge){badge=document.createElement("div");badge.className="production-slot-badge"}
+      badge.textContent=text;
       const target=card.querySelector(".page-meta");
-      if(target)target.insertBefore(badge,target.firstChild);
+      if(target&&!badge.isConnected)target.insertBefore(badge,target.firstChild);
     });
   }
 
@@ -104,7 +104,9 @@
   const list=$("#pageList");
   if(list){
     const observer=new MutationObserver(()=>decorateCards());
-    observer.observe(list,{childList:true,subtree:true});
+    // Cards are direct children of the list. Watching the full subtree made
+    // decorateCards react to its own badge insertions and loop forever.
+    observer.observe(list,{childList:true});
     setTimeout(decorateCards,0);
   }
 })();

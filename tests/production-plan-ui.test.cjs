@@ -10,7 +10,9 @@ const source=fs.readFileSync(path.join(root,"modules/book-builder/production-pla
 const html=fs.readFileSync(path.join(root,"modules/book-builder/index.html"),"utf8");
 
 assert.doesNotMatch(source,/window\.FenixCore/,"Kontroler planu nie może wymagać window.FenixCore, bo rdzeń jest globalnym const.");
-assert.match(html,/production-plan-ui\.js\?v=0\.34\.3-persist-order/,"Book Builder musi wymuszać pobranie poprawionej wersji kontrolera planu.");
+assert.match(html,/production-plan-ui\.js\?v=0\.34\.4-no-observer-loop/,"Book Builder musi wymuszać pobranie kontrolera bez pętli obserwatora.");
+assert.match(source,/observer\.observe\(list,\{childList:true\}\)/,"Obserwator może reagować tylko na wymianę kart, nie na własne plakietki.");
+assert.doesNotMatch(source,/observer\.observe\(list,\{childList:true,subtree:true\}\)/,"Obserwacja subtree powoduje nieskończoną pętlę dekorowania kart.");
 
 const handlers={};
 const elements={
