@@ -2,7 +2,7 @@
 (()=>{
  const $=s=>document.querySelector(s),list=$("#pageList"),empty=$("#emptyState"),printBook=$("#printBook"),validationSummary=$("#validationSummary"),renderErrorReport=$("#renderErrorReport");
  let pages=[],dragIndex=null,renderToken=0,recoveryMode=false;
- const RUNTIME_BUILD="BOOK BUILDER DIAGNOSTICS 2026-09-25 v4 · complete workflow";
+ const RUNTIME_BUILD="BOOK BUILDER DIAGNOSTICS 2026-09-25 v5 · dedicated core";
  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
  const normalize=page=>FenixPageSchema.normalize(page),moduleOf=page=>FenixPageSchema.moduleOf(page),hasSolution=page=>FenixPageSchema.hasSolution(page);
  const MODULE_NAMES={"intro-studio":"Intro","maze-studio":"Maze","word-search-studio":"Word Search","coloring-studio":"Coloring","tracing-studio":"Tracing","matching-studio":"Matching","alphabet-studio":"Alphabet","math-studio":"Math","dot-to-dot-studio":"Dot to Dot","hidden-objects-studio":"Hidden Objects","logic-studio":"Logic","complete-picture":"Complete the Picture","congratulations-studio":"Congratulations","qr-studio":"QR","certificate-studio":"Certificate","blank-page":"Puste strony"};
