@@ -1,0 +1,25 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
+const root=path.join(__dirname,"..");
+const sandbox={window:{},console,Object};
+for(const file of ["core/production-plan.js","core/book-order.js"])vm.runInNewContext(fs.readFileSync(path.join(root,file),"utf8"),sandbox,{filename:file});
+const plan=sandbox.window.FenixProductionPlan,order=sandbox.window.FenixBookOrder;
+const introTypes=["welcome","mission","mission-tracker","how-to-use","rules","skills"];
+const intros=introTypes.map((pageType,index)=>({id:`intro-${index}`,module:"intro-studio",recipe:{module:"intro-studio",settings:{pageType},meta:{}}}));
+const counts={"coloring-studio":10,"maze-studio":10,"matching-studio":5,"dot-to-dot-studio":6,"hidden-objects-studio":6,"complete-picture":4,"word-search-studio":5,"logic-studio":4};
+const activities=[];let activityNo=0;
+for(const[module,count]of Object.entries(counts))for(let index=0;index<count;index++){activityNo++;activities.push({id:`activity-${activityNo}`,module,recipe:{module,meta:{}},solution:{available:activityNo<=34}})}
+const closing=[{id:"congrats",module:"congratulations-studio"},{id:"qr",module:"qr-studio"},{id:"certificate",module:"certificate-studio"}];
+const produced=[...activities,...intros,...closing];
+assert.equal(produced.length,59);
+const planned=plan.applyPreset(produced,"ocean-fantasy-50");
+assert.equal(planned.assignedCount,50);assert.equal(planned.missingCount,0);
+const persisted=order.sort(planned.pages);
+assert.deepEqual(Array.from(persisted.slice(0,6),page=>page.recipe.settings.pageType),introTypes);
+assert.deepEqual(Array.from(persisted.slice(6,56),page=>plan.moduleOf(page)),Array.from(plan.PRESETS["ocean-fantasy-50"].slots,slot=>slot.module));
+assert.deepEqual(Array.from(persisted.slice(-3),page=>page.module),["congratulations-studio","qr-studio","certificate-studio"]);
+const composed=order.compose(persisted,{solutionPageCount:34});
+assert.equal(composed.length,60,"Book Builder powinien dodać jedną techniczną pustą stronę przed certyfikatem.");
+assert.equal(composed.at(-2).module,"blank-page");assert.equal(composed.at(-1).module,"certificate-studio");
+assert.equal(composed.length+34,94,"Finalny skład powinien mieć 94 strony.");
+console.log("PASS ocean-fantasy-book-flow: 59 main + parity blank + 34 solutions = 94 final pages.");

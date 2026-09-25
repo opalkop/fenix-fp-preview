@@ -16,12 +16,13 @@
     <div id="summary" class="summary">Odczytuję lekki zapis projektu…</div>
     <div class="actions">
       <button id="apply" disabled>Zastosuj plan Ocean Fantasy 50</button>
-      <a href="index.html?storage=recovery&amp;build=20260925-v3">Wróć do Book Buildera</a>
+      <a href="index.html?build=20260925-v4">Otwórz gotowy Book Builder</a>
     </div>
     <div id="status" class="status">Nie wykonano jeszcze żadnej zmiany.</div>
     <small>Operacja zmienia wyłącznie kolejność i metadane planu stron. Nie otwiera, nie usuwa ani nie nadpisuje obrazów zapisanych w IndexedDB.</small>
   </main>
   <script src="../../core/production-plan.js?v=0.34.0"></script>
+  <script src="../../core/book-order.js?v=0.28.1"></script>
   <script>
   "use strict";
   (()=>{
@@ -44,7 +45,7 @@
       apply.disabled=true;status.className="status";status.textContent="Przypisuję 50 aktywności i zapisuję lekkie metadane…";
       try{
         const result=FenixProductionPlan.applyPreset(project.pages,"ocean-fantasy-50");
-        project.pages=result.pages;project.updatedAt=new Date().toISOString();
+        project.pages=window.FenixBookOrder?.sort?window.FenixBookOrder.sort(result.pages):result.pages;project.updatedAt=new Date().toISOString();
         localStorage.setItem(PROJECTS_KEY,JSON.stringify(projects));
         status.className="status ok";status.textContent=`GOTOWE. Przypisano ${result.assignedCount}/50 aktywności. Puste sloty: ${result.missingCount}. Strony poza planem: ${result.overflowCount}.`;
         apply.textContent="Plan zastosowany";

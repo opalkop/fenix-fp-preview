@@ -10,7 +10,7 @@ const source=fs.readFileSync(path.join(root,"modules/book-builder/production-pla
 const html=fs.readFileSync(path.join(root,"modules/book-builder/index.html"),"utf8");
 
 assert.doesNotMatch(source,/window\.FenixCore/,"Kontroler planu nie może wymagać window.FenixCore, bo rdzeń jest globalnym const.");
-assert.match(html,/production-plan-ui\.js\?v=0\.34\.2/,"Book Builder musi wymuszać pobranie poprawionej wersji kontrolera planu.");
+assert.match(html,/production-plan-ui\.js\?v=0\.34\.3-persist-order/,"Book Builder musi wymuszać pobranie poprawionej wersji kontrolera planu.");
 
 const handlers={};
 const elements={
@@ -26,7 +26,7 @@ let saved=null,reloads=0,flushed=0;
 const storage=new Map();
 const FenixCore={getCart:()=>original,setCart:pages=>{saved=pages},flushStorage:async()=>{flushed++}};
 const sandbox={
-  window:{FenixProductionPlan:{
+  window:{FenixBookOrder:{sort:pages=>pages},FenixProductionPlan:{
     applyPreset:(pages,presetId)=>{
       assert.equal(pages,original);
       assert.equal(presetId,"ocean-fantasy-50");

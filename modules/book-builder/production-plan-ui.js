@@ -42,7 +42,8 @@
     try{
       setWorking("Zapisuję plan aktywności i zabezpieczam dane projektu…");
       const result=planner.applyPreset(source,currentPresetId());
-      core.setCart(result.pages);
+      const ordered=window.FenixBookOrder?.sort?window.FenixBookOrder.sort(result.pages):result.pages;
+      core.setCart(ordered);
       await flushAndReload(summaryText(result));
     }catch(error){
       console.error("Production Plan",error);
