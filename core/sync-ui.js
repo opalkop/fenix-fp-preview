@@ -25,11 +25,11 @@
   async function fill(){await FenixCore.ready;const c=FenixSync.getConfig();$("fsOwner").value=c.owner;$("fsRepo").value=c.repo;$("fsBranch").value=c.branch;$("fsPath").value=c.path;$("fsAuto").checked=c.autoSync;$("fsRemember").checked=c.rememberToken;if(c.token)$("fsToken").placeholder="Token ustawiony na tym urządzeniu";status(c.owner&&c.repo&&c.token?`Gotowy · ${c.owner}/${c.repo}`:"Uzupełnij token GitHub na tym urządzeniu.");updateLocalSize();}
   function save(){const old=FenixSync.getConfig(),token=$("fsToken").value||old.token,c=FenixSync.setConfig({owner:$("fsOwner").value,repo:$("fsRepo").value,branch:$("fsBranch").value,path:$("fsPath").value,token,rememberToken:$("fsRemember").checked,autoSync:$("fsAuto").checked});status(`Zapisano · ${c.owner}/${c.repo}`);return c;}
 
-  async function execute(kind,{silent=false}={}){
+  async function execute(kind,{silent=false,forceRemote=false}={}){
     if(busy)return null;
     try{
       busy=true;setBusy(true);if(!silent)save();if(!silent)status(kind==="sync"?"Synchronizacja projektu…":kind==="pull"?"Pobieranie projektu…":"Wysyłanie projektu…");
-      const out=kind==="sync"?await FenixSync.sync():kind==="pull"?await FenixSync.pull({merge:true}):await FenixSync.push();
+      const out=kind==="sync"?await FenixSync.sync():kind==="pull"?await FenixSync.pull({merge:true,prefer:forceRemote?"remote":"newer"}):await FenixSync.push();
       if(kind!=="push")lastRemoteAt=Date.now();
       if(!silent){
         if(kind==="push")status(`✓ Projekt zapisany · ${formatSize(out.size)} · części: ${out.chunks||0}`);
@@ -68,7 +68,7 @@
   $("fsClose").onclick=()=>panel.hidden=true;
   $("fsSave").onclick=save;
   $("fsSync").onclick=()=>execute("sync");
-  $("fsPull").onclick=()=>execute("pull");
+  $("fsPull").onclick=()=>execute("pull",{forceRemote:true});
   $("fsPush").onclick=()=>execute("push");
   $("fsAssetPull").onclick=()=>executeAssets("pull");
   $("fsAssetPush").onclick=()=>executeAssets("push");

@@ -17,6 +17,8 @@ assert.ok(source.includes('window.confirm('),"Destrukcyjne wyczyszczenie bibliot
 assert.ok(source.includes('if(out.reloadRequired)'),"Reload po Asset Pull może nastąpić dopiero po udanej wymianie storage.");
 assert.ok(!source.includes('out.stats?.library'),"Project Sync UI nie może raportować statystyk globalnej biblioteki.");
 assert.ok(source.includes('Globalna biblioteka assetów nie jest częścią tego pliku.'),"Opis .fenixsync musi jasno wykluczać globalną bibliotekę.");
+assert.ok(source.includes('prefer:forceRemote?"remote":"newer"'),"Ręczne pobranie musi wymusić wersję chmurową zamiast zachowywać nowszy znacznik lokalny.");
+assert.ok(source.includes('execute("pull",{forceRemote:true})'),"Przycisk pobierania projektu musi jawnie wymuszać wersję z chmury.");
 
 const queueStart=source.indexOf("function queuePush");
 const queueEnd=source.indexOf("async function refreshFromRemote",queueStart);
