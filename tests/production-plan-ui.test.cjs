@@ -48,10 +48,9 @@ assert.equal(typeof handlers["apply:click"],"function","Przycisk zastosowania pl
 assert.equal(typeof handlers["clear:click"],"function","Przycisk usunięcia przypisań musi otrzymać handler kliknięcia.");
 
 handlers["apply:click"]().then(()=>{
-assert.equal(saved,planned,"Kliknięcie musi zapisać strony uporządkowane przez plan.");
-assert.equal(flushed,1,"Kontroler musi zaczekać na pełny zapis IndexedDB przed przeładowaniem.");
-assert.equal(reloads,1,"Po zapisaniu planu Book Builder musi przeładować widok.");
-assert.match(storage.get("fenix-production-plan-message"),/Przypisano 1\/50/);
-
-console.log("PASS production-plan-ui: global const core binds both controls and applies the selected plan.");
+  assert.equal(saved,planned,"Kliknięcie musi zapisać strony uporządkowane przez plan.");
+  assert.equal(flushed,1,"Kontroler musi zaczekać na pełny zapis IndexedDB przed przeładowaniem.");
+  assert.equal(reloads,1,"Po zapisaniu planu Book Builder musi przeładować widok.");
+  assert.match(storage.get("fenix-production-plan-message"),/Przypisano 1\/50/);
+  console.log("PASS production-plan-ui: global const core binds controls and flushes storage before reload.");
 }).catch(error=>{console.error(error);process.exitCode=1});
