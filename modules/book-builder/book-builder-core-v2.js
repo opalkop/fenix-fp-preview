@@ -9,7 +9,7 @@ window.FenixCore=(()=>{
   const read=(key,fallback)=>{try{const value=JSON.parse(localStorage.getItem(key));return value??fallback}catch{return fallback}};
   const key=(scope,id)=>`${scope}::${id}`;
   const libraryRefOf=asset=>String(asset?.libraryRef||asset?.meta?.libraryRef||"").trim();
-  let projects=read(PROJECTS_KEY,[]),library=read(LIBRARY_KEY,{}),activeId=localStorage.getItem(ACTIVE_KEY),storageMode="indexeddb",storageReady=false,requestedAssets=0;
+  let projects=read(PROJECTS_KEY,[]),library=read(LIBRARY_KEY,{}),activeId=localStorage.getItem(ACTIVE_KEY),storageMode="loading",storageReady=true,requestedAssets=0;
   if(!Array.isArray(projects))projects=[];
   if(!library||typeof library!=="object"||Array.isArray(library))library={};
   if(!projects.some(project=>project.id===activeId))activeId=projects[0]?.id||"";
@@ -25,17 +25,19 @@ window.FenixCore=(()=>{
     const project=active();
     if(!project.id){storageMode="metadata";storageReady=true;return}
     try{
-      const ids=referencedIds(project),db=await openDb(),store=db.transaction(STORE,"readonly").objectStore(STORE),lookups=[];
+      const ids=referencedIds(project),lookups=[];
       for(const id of ids){const asset=project.assets?.[id];if(!asset)continue;const ref=libraryRefOf(asset);lookups.push({id,ref,itemKey:key(ref?LIBRARY_SCOPE:project.id,ref||id)})}
       requestedAssets=lookups.length;
+      const db=await openDb(),store=db.transaction(STORE,"readonly").objectStore(STORE);
       const records=await timeout(Promise.all(lookups.map(async item=>({...item,record:await getRequest(store,item.itemKey)}))),12000,"IndexedDB project assets timeout");
       for(const item of records){if(!item.record?.dataUrl)continue;const asset=project.assets[item.id];asset.dataUrl=item.record.dataUrl;if(item.ref&&library[item.ref])library[item.ref].dataUrl=item.record.dataUrl}
       for(const asset of Object.values(project.assets||{})){const ref=libraryRefOf(asset),source=ref?library[ref]:null;if(source?.dataUrl){asset.dataUrl=source.dataUrl;asset.mime=source.mime||asset.mime}}
-      storageReady=true;db.close();
-    }catch(error){console.error("Book Builder asset hydration fallback",error);storageMode="metadata";storageReady=true}
+      storageMode="indexeddb";db.close();
+    }catch(error){console.error("Book Builder asset hydration fallback",error);storageMode="metadata"}
   }
-  const ready=hydrate().then(()=>{queueMicrotask(()=>window.dispatchEvent(new CustomEvent("fenix-storage-ready",{detail:getStorageInfo()})));return getStorageInfo()});
-  function getStorageInfo(){return{mode:storageMode,ready:storageReady,bookBuilderCore:"v1",requestedAssets,heavyAssetsInIndexedDB:storageMode==="indexeddb",heavyPageSnapshotsInIndexedDB:false,globalLibrary:true,libraryAssets:Object.keys(library).length}}
+  const ready=Promise.resolve().then(()=>getStorageInfo());
+  setTimeout(()=>{hydrate().finally(()=>window.dispatchEvent(new CustomEvent("fenix-storage-ready",{detail:getStorageInfo()})))},0);
+  function getStorageInfo(){return{mode:storageMode,ready:storageReady,bookBuilderCore:"v2",requestedAssets,heavyAssetsInIndexedDB:storageMode==="indexeddb",heavyPageSnapshotsInIndexedDB:false,globalLibrary:true,libraryAssets:Object.keys(library).length}}
   const getActiveProject=()=>clone(active()),getCart=()=>clone(active().pages||[]);
   function setCart(pages){const project=active();project.pages=Array.isArray(pages)?clone(pages):[];project.updatedAt=new Date().toISOString();persist();window.dispatchEvent(new Event("fenix-cart-change"));return clone(project.pages)}
   function getAsset(id){const project=active();return clone(project.assets?.[id]||null)}

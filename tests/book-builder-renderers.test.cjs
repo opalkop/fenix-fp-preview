@@ -13,10 +13,10 @@ assert.match(builder,/async function init\(\)[\s\S]*await FenixCore\.ready;[\s\S
 assert.match(builder,/if\(module==="tracing-studio"\)return tracingCanvas\(p,quality\)/,"Tracing w trybie print musi korzystać z renderera produkcyjnego.");
 assert.match(builder,/if\(module==="complete-picture"\)return completeCanvas\(p,solution,quality\)/,"Complete Picture w trybie print musi korzystać z renderera produkcyjnego.");
 assert.match(html,/dot-to-dot-studio\/dot-core\.js/,"Book Builder musi ładować produkcyjny core Dot to Dot.");
-assert.match(builder,/BOOK BUILDER DIAGNOSTICS 2026-09-25 v5/,"Book Builder musi pokazywać jednoznaczny identyfikator diagnostyczny.");
-assert.match(html,/book-builder\.js\?v=0\.33\.5-dedicated-core/,"Naprawiony Book Builder musi mieć nowy cache-busting.");
-assert.match(html,/book-builder-core-v1\.js/,"Book Builder musi używać fizycznie oddzielnego rdzenia odpornego na stary cache Opery.");
-assert.match(builder,/recoveryMode=storage\.mode==="recovery"/,"Book Builder musi obsługiwać tryb odzyskiwania bez ciężkich podglądów.");
+assert.match(builder,/BOOK BUILDER DIAGNOSTICS 2026-09-25 v6/,"Book Builder musi pokazywać jednoznaczny identyfikator diagnostyczny.");
+assert.match(html,/book-builder\.js\?v=0\.33\.6-non-blocking-core/,"Naprawiony Book Builder musi mieć nowy cache-busting.");
+assert.match(html,/book-builder-core-v2\.js/,"Book Builder musi używać fizycznie oddzielnego rdzenia odpornego na stary cache Opery.");
+assert.match(builder,/recoveryMode=\["recovery","metadata","loading"\]\.includes\(storage\.mode\)/,"Book Builder musi obsługiwać tryb odzyskiwania bez ciężkich podglądów.");
 assert.match(builder,/FenixCore\.setCart\(pages\.filter\(page=>!page\?\._autoParity\)\)/,"Automatyczne uporządkowanie musi trwale zapisywać kolejność bez technicznej strony parzystości.");
 assert.match(builder,/function assetDiagnostics\(page\)/,"Book Builder musi raportować stan assetRef i payloadów.");
 assert.match(builder,/function showFailureReport\(failures\)/,"Book Builder musi wyświetlać zbiorczy raport błędów renderowania.");

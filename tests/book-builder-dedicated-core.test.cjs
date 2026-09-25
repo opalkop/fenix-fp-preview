@@ -1,12 +1,13 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
 const root=path.join(__dirname,"..");
-const core=fs.readFileSync(path.join(root,"modules/book-builder/book-builder-core-v1.js"),"utf8"),html=fs.readFileSync(path.join(root,"modules/book-builder/index.html"),"utf8");
-assert.match(html,/src="book-builder-core-v1\.js"/);
+const core=fs.readFileSync(path.join(root,"modules/book-builder/book-builder-core-v2.js"),"utf8"),html=fs.readFileSync(path.join(root,"modules/book-builder/index.html"),"utf8");
+assert.match(html,/src="book-builder-core-v2\.js"/);
 assert.doesNotMatch(html,/core\/fenix-core\.js/);
 assert.match(core,/window\.FenixCore=/);
 assert.match(core,/referencedIds\(project\)/);
 assert.match(core,/IndexedDB project assets timeout/);
-assert.match(core,/storageMode="metadata";storageReady=true/);
+assert.match(core,/storageMode="metadata"/);
+assert.match(core,/const ready=Promise\.resolve\(\)\.then\(\(\)=>getStorageInfo\(\)\)/,"Interfejs nie może czekać na IndexedDB przed pokazaniem stron.");
 assert.match(core,/setCart\(pages\)/);
 console.log("PASS book-builder-dedicated-core: physical cache boundary, referenced assets and bounded fallback.");
