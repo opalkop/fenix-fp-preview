@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FENIX — naprawa planu książki</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#eef2f6;color:#172033;font:16px/1.5 Arial,sans-serif}.card{width:min(760px,calc(100% - 32px));margin:40px auto;padding:32px;background:#fff;border:2px solid #f0a51a;border-radius:16px;box-shadow:0 12px 32px #1b2a4120}h1{margin:0 0 8px;font-size:28px}.build{padding:12px;border:2px solid #2868ff;border-radius:10px;background:#f3f7ff;font:700 13px/1.4 monospace}.summary{margin:22px 0;padding:18px;background:#f7f8fa;border-radius:10px}.summary strong{font-size:20px}.actions{display:flex;gap:12px;flex-wrap:wrap}button,a{display:inline-block;padding:13px 18px;border:0;border-radius:9px;font-weight:700;text-decoration:none;cursor:pointer}button{background:#ed7d31;color:#fff}button:disabled{opacity:.55;cursor:wait}a{background:#e8edf4;color:#172033}.status{min-height:52px;margin-top:18px;padding:14px;border-radius:9px;background:#fff7e6}.ok{background:#e8f7ed;color:#145c2e}.error{background:#ffe8e8;color:#8d1616}small{display:block;margin-top:18px;color:#5c6678}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Naprawa planu książki</h1>
+    <p>Ta strona nie uruchamia Book Buildera, rendererów, podglądów ani bazy obrazów.</p>
+    <div class="build">PLAN RECOVERY 2026-09-25 v1 · localStorage metadata only</div>
+    <div id="summary" class="summary">Odczytuję lekki zapis projektu…</div>
+    <div class="actions">
+      <button id="apply" disabled>Zastosuj plan Ocean Fantasy 50</button>
+      <a href="index.html?storage=recovery&amp;build=20260925-v3">Wróć do Book Buildera</a>
+    </div>
+    <div id="status" class="status">Nie wykonano jeszcze żadnej zmiany.</div>
+    <small>Operacja zmienia wyłącznie kolejność i metadane planu stron. Nie otwiera, nie usuwa ani nie nadpisuje obrazów zapisanych w IndexedDB.</small>
+  </main>
+  <script src="../../core/production-plan.js?v=0.34.0"></script>
+  <script>
+  "use strict";
+  (()=>{
+    const PROJECTS_KEY="fenix-projects-v1",ACTIVE_KEY="fenix-active-project-v1",summary=document.getElementById("summary"),status=document.getElementById("status"),apply=document.getElementById("apply");
+    let projects=[],project=null;
+    const moduleOf=page=>String(page?.module||page?.recipe?.module||"");
+    function showProject(){
+      try{
+        projects=JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]");
+        if(!Array.isArray(projects)||!projects.length)throw new Error("Nie znaleziono lokalnego zapisu projektów.");
+        const activeId=localStorage.getItem(ACTIVE_KEY);
+        project=projects.find(item=>item.id===activeId)||projects[0];
+        const pages=Array.isArray(project.pages)?project.pages:[],activities=pages.filter(page=>FenixProductionPlan.isActivity(page));
+        summary.innerHTML=`<strong>${project.name||"Aktywny projekt"}</strong><br>Strony główne: ${pages.length} · aktywności: ${activities.length}<br>Moduły: ${[...new Set(activities.map(moduleOf).filter(Boolean))].length}`;
+        apply.disabled=!pages.length;
+      }catch(error){summary.textContent=error.message;summary.classList.add("error");status.textContent="Nie zapisano żadnej zmiany."}
+    }
+    apply.addEventListener("click",()=>{
+      if(!project)return;
+      apply.disabled=true;status.className="status";status.textContent="Przypisuję 50 aktywności i zapisuję lekkie metadane…";
+      try{
+        const result=FenixProductionPlan.applyPreset(project.pages,"ocean-fantasy-50");
+        project.pages=result.pages;project.updatedAt=new Date().toISOString();
+        localStorage.setItem(PROJECTS_KEY,JSON.stringify(projects));
+        status.className="status ok";status.textContent=`GOTOWE. Przypisano ${result.assignedCount}/50 aktywności. Puste sloty: ${result.missingCount}. Strony poza planem: ${result.overflowCount}.`;
+        apply.textContent="Plan zastosowany";
+      }catch(error){status.className="status error";status.textContent=`Błąd zapisu: ${error.message||error}`;apply.disabled=false}
+    });
+    showProject();
+  })();
+  </script>
+</body>
+</html>
