@@ -16,7 +16,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root,"modules/maze-studio/maze-asse
 
 const helper=sandbox.window.FenixMazeEnhancements;
 assert.ok(helper,"Maze enhancements helper powinien być dostępny.");
-assert.equal(helper.version,"0.34.2");
+assert.equal(helper.version,"0.40.0");
 assert.equal(helper.scaleForRole("endpoint",100),100,"100% powinno pozostać rzeczywistym 100%.");
 assert.equal(helper.scaleForRole("endpoint",180),180,"180% powinno pozostać rzeczywistym 180%.");
 assert.equal(helper.scaleForRole("mission",80),80,"Checkpoint/Hazard powinny zachować skalę z UI.");
@@ -31,7 +31,7 @@ assert.match(source,/FenixCore\.listAssets\(\)/,"Deco powinno korzystać z pełn
 assert.match(source,/mazeDecoSearch/,"Deco powinno mieć wyszukiwarkę biblioteki.");
 assert.match(source,/getImageData/,"Skalowanie powinno wykrywać realny obrys widocznego assetu.");
 const html=fs.readFileSync(path.join(root,"modules/maze-studio/index.html"),"utf8");
-assert.match(html,/maze-asset-refresh\.js\?v=0\.34\.2/,"Maze Studio musi wymuszać pobranie bieżącej poprawki zamiast starego cache.");
-assert.match(html,/<details open><summary>4\. DECO/,"Warstwa Deco ma być od razu widoczna w Studio.");
+assert.match(html,/maze-asset-refresh\.js\?v=0\.40\.0/,"Maze Studio musi wymuszać pobranie bieżącej poprawki zamiast starego cache.");
+assert.match(html,/<details open>\s*<summary>\s*4\. DECO/,"Warstwa Deco ma być od razu widoczna w Studio.");
 
 console.log("PASS maze-asset-scale-deco: visible-bounds scaling, cache bust and full-library Deco picker.");

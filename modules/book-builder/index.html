@@ -1,84 +1,238 @@
 <!doctype html>
 <html lang="pl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>FENIX Book Builder — Główny moduł</title>
-  <link rel="stylesheet" href="book-builder.css?v=0.34.1-diagnostics-v1">
-  <link rel="stylesheet" href="content-summary.css?v=0.22.3">
-</head>
-<body data-screen="book-builder" data-engine="specialized">
-<header class="master-header"><div><div class="master-badge">★ GŁÓWNY MODUŁ FENIKSA</div><h1>Book Builder</h1><p>Skład książki, rozwiązania, kontrola projektu i finalny eksport PDF.</p></div><div class="header-actions"><a class="back" href="../../index.html">← Dashboard</a></div></header>
-<main class="layout book-builder-layout">
-  <section class="controls book-builder-controls">
-    <div id="projectInfo" class="project-info"></div>
-    <div class="section-title">Ustawienia finalnej książki</div>
-    <p class="builder-help">Rozwiń wybraną sekcję. Wszystkie ustawienia znajdują się u góry, a pełny podgląd i kolejność stron — pod nimi.</p>
-    <div class="builder-control-sections">
-      <details open class="gold">
-        <summary><span><strong>1. Zawartość książki</strong><small>Strony i Studia użyte w aktywnym projekcie</small></span></summary>
-        <div class="builder-panel-body">
-          <div id="runtimeBuild" class="runtime-build">BOOK BUILDER DIAGNOSTICS 2026-09-25 v10 · responsive live previews</div>
-          <p id="cartSummary">Wczytywanie…</p>
-          <div id="renderErrorReport" class="render-error-report" hidden></div>
-          <div id="contentSummary" class="content-summary"></div>
-          <div class="production-plan-box">
-            <div class="production-plan-head"><strong>Automatyczny plan aktywności</strong><small>Oddziel kolejność produkcji w Studiach od kolejności stron w gotowej książce.</small></div>
-            <div class="builder-form-grid production-plan-grid">
-              <label class="builder-wide"><span>Plan</span><select id="productionPlanPreset"><option value="ocean-fantasy-50">Ocean Fantasy Adventure — 5 stref / 50 aktywności</option></select></label>
-              <div class="builder-field-action"><button id="applyProductionPlan">Zastosuj plan automatycznie</button></div>
-              <div class="builder-field-action"><button id="clearProductionPlan" class="secondary">Usuń przypisania planu</button></div>
-              <p id="productionPlanStatus" class="hint builder-wide">Możesz produkować wszystkie Maze, Coloring itd. seriami. Plan przypisze każdą stronę do właściwego slotu Coral Reef → Turtle Bay → Sunken Treasure → Mystic Deep → Fantasy Kingdom. Rozwiązania pozostają automatycznie powiązane z aktywnościami.</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FENIX Book Builder — Główny moduł</title>
+    <link rel="stylesheet" href="book-builder.css?v=0.34.1-diagnostics-v1" />
+    <link rel="stylesheet" href="content-summary.css?v=0.22.3" />
+  </head>
+  <body data-screen="book-builder" data-engine="specialized">
+    <header class="master-header">
+      <div>
+        <div class="master-badge">★ GŁÓWNY MODUŁ FENIKSA</div>
+        <h1>Book Builder</h1>
+        <p>
+          Skład książki, rozwiązania, kontrola projektu i finalny eksport PDF.
+        </p>
+      </div>
+      <div class="header-actions">
+        <a class="back" href="../../index.html">← Dashboard</a>
+      </div>
+    </header>
+    <main class="layout book-builder-layout">
+      <section class="controls book-builder-controls">
+        <div id="projectInfo" class="project-info"></div>
+        <div class="section-title">Ustawienia finalnej książki</div>
+        <p class="builder-help">
+          Rozwiń wybraną sekcję. Wszystkie ustawienia znajdują się u góry, a
+          pełny podgląd i kolejność stron — pod nimi.
+        </p>
+        <div class="builder-control-sections">
+          <details open class="gold">
+            <summary>
+              <span
+                ><strong>1. Zawartość książki</strong
+                ><small>Strony i Studia użyte w aktywnym projekcie</small></span
+              >
+            </summary>
+            <div class="builder-panel-body">
+              <div id="runtimeBuild" class="runtime-build">
+                BOOK BUILDER DIAGNOSTICS 2026-09-25 v10 · responsive live
+                previews
+              </div>
+              <p id="cartSummary">Wczytywanie…</p>
+              <div
+                id="renderErrorReport"
+                class="render-error-report"
+                hidden
+              ></div>
+              <div id="contentSummary" class="content-summary"></div>
+              <div class="production-plan-box">
+                <div class="production-plan-head">
+                  <strong>Automatyczny plan aktywności</strong
+                  ><small
+                    >Oddziel kolejność produkcji w Studiach od kolejności stron
+                    w gotowej książce.</small
+                  >
+                </div>
+                <div class="builder-form-grid production-plan-grid">
+                  <label class="builder-wide"
+                    ><span>Plan</span
+                    ><select id="productionPlanPreset">
+                      <option value="ocean-fantasy-50">
+                        Ocean Fantasy Adventure — 5 stref / 50 aktywności
+                      </option>
+                    </select></label
+                  >
+                  <div class="builder-field-action">
+                    <button id="applyProductionPlan">
+                      Zastosuj plan automatycznie
+                    </button>
+                  </div>
+                  <div class="builder-field-action">
+                    <button id="clearProductionPlan" class="secondary">
+                      Usuń przypisania planu
+                    </button>
+                  </div>
+                  <p id="productionPlanStatus" class="hint builder-wide">
+                    Możesz produkować wszystkie Maze, Coloring itd. seriami.
+                    Plan przypisze każdą stronę do właściwego slotu Coral Reef →
+                    Turtle Bay → Sunken Treasure → Mystic Deep → Fantasy
+                    Kingdom. Rozwiązania pozostają automatycznie powiązane z
+                    aktywnościami.
+                  </p>
+                </div>
+              </div>
+              <div class="builder-inline-actions">
+                <button id="autoOrder" class="secondary">
+                  Uporządkuj książkę automatycznie</button
+                ><button id="reloadCart">Odśwież strony projektu</button>
+              </div>
+              <p class="hint">
+                Fenix układa: wprowadzenie → ćwiczenia → rozwiązania →
+                Congratulations → QR → pusta strona → Certificate. Pusta strona
+                przed certyfikatem chroni jego rewers przy wycinaniu.
+              </p>
             </div>
-          </div>
-          <div class="builder-inline-actions"><button id="autoOrder" class="secondary">Uporządkuj książkę automatycznie</button><button id="reloadCart">Odśwież strony projektu</button></div>
-          <p class="hint">Fenix układa: wprowadzenie → ćwiczenia → rozwiązania → Congratulations → QR → pusta strona → Certificate. Pusta strona przed certyfikatem chroni jego rewers przy wycinaniu.</p>
+          </details>
+          <details open>
+            <summary>
+              <span
+                ><strong>2. Ustawienia książki</strong
+                ><small>Tytuł, format, numeracja i puste strony</small></span
+              >
+            </summary>
+            <div class="builder-panel-body builder-form-grid">
+              <label
+                ><span>Tytuł projektu</span
+                ><input id="bookTitle" value="FENIX Activity Book" /></label
+              ><label
+                ><span>Format strony</span
+                ><select id="format">
+                  <option value="8.5x11">8.5 × 11 cali</option>
+                  <option value="6x9">6 × 9 cali</option>
+                  <option value="a4">A4</option>
+                </select></label
+              ><label
+                ><span>Numeracja stron</span
+                ><select id="pageNumbers">
+                  <option value="no">Bez numeracji</option>
+                  <option value="yes">Dodaj numery</option>
+                </select></label
+              >
+              <div class="builder-field-action">
+                <button id="addBlank" class="secondary">
+                  + Dodaj pustą stronę
+                </button>
+              </div>
+            </div>
+          </details>
+          <details open class="solution-panel">
+            <summary>
+              <span
+                ><strong>3. Rozwiązania ćwiczeń</strong
+                ><small>Dodawanie i układ klucza odpowiedzi</small></span
+              >
+            </summary>
+            <div class="builder-panel-body builder-form-grid">
+              <label class="check"
+                ><input id="includeSolutions" type="checkbox" checked /><span
+                  >Dodaj dostępne rozwiązania przed zakończeniem książki</span
+                ></label
+              ><label
+                ><span>Układ rozwiązań</span
+                ><select id="solutionLayout">
+                  <option value="1">
+                    1 duże rozwiązanie na stronie — zalecane
+                  </option>
+                  <option value="2">2 rozwiązania na stronie</option>
+                  <option value="4">4 rozwiązania na stronie</option>
+                </select></label
+              >
+              <p class="hint builder-wide">
+                Maze i Word Search są renderowane jako czysty, powiększony klucz
+                odpowiedzi bez powtórzonego tytułu, instrukcji ani warstwy
+                dekoracyjnej.
+              </p>
+            </div>
+          </details>
+          <details open>
+            <summary>
+              <span
+                ><strong>4. Kontrola projektu</strong
+                ><small
+                  >Gotowość składu i ostrzeżenia przed eksportem</small
+                ></span
+              >
+            </summary>
+            <div class="builder-panel-body">
+              <div id="validationSummary" class="project-info">
+                Analizuję projekt…
+              </div>
+            </div>
+          </details>
+          <details open class="export-panel">
+            <summary>
+              <span
+                ><strong>5. Finalizacja</strong
+                ><small>Podgląd produkcyjny i finalny PDF 300 DPI</small></span
+              >
+            </summary>
+            <div class="builder-panel-body">
+              <div class="builder-final-actions">
+                <button id="previewBook">Generuj podgląd</button
+                ><button id="exportPdf" class="primary-big">
+                  Generuj i pobierz finalny PDF
+                </button>
+              </div>
+              <p class="hint">
+                Finalny skład renderuje proceduralne strony do 300 DPI i pobiera
+                jeden gotowy plik PDF — bez otwierania okna drukowania.
+              </p>
+            </div>
+          </details>
         </div>
-      </details>
-      <details open>
-        <summary><span><strong>2. Ustawienia książki</strong><small>Tytuł, format, numeracja i puste strony</small></span></summary>
-        <div class="builder-panel-body builder-form-grid"><label><span>Tytuł projektu</span><input id="bookTitle" value="FENIX Activity Book"></label><label><span>Format strony</span><select id="format"><option value="8.5x11">8.5 × 11 cali</option><option value="6x9">6 × 9 cali</option><option value="a4">A4</option></select></label><label><span>Numeracja stron</span><select id="pageNumbers"><option value="no">Bez numeracji</option><option value="yes">Dodaj numery</option></select></label><div class="builder-field-action"><button id="addBlank" class="secondary">+ Dodaj pustą stronę</button></div></div>
-      </details>
-      <details open class="solution-panel">
-        <summary><span><strong>3. Rozwiązania ćwiczeń</strong><small>Dodawanie i układ klucza odpowiedzi</small></span></summary>
-        <div class="builder-panel-body builder-form-grid"><label class="check"><input id="includeSolutions" type="checkbox" checked><span>Dodaj dostępne rozwiązania przed zakończeniem książki</span></label><label><span>Układ rozwiązań</span><select id="solutionLayout"><option value="1">1 duże rozwiązanie na stronie — zalecane</option><option value="2">2 rozwiązania na stronie</option><option value="4">4 rozwiązania na stronie</option></select></label><p class="hint builder-wide">Maze i Word Search są renderowane jako czysty, powiększony klucz odpowiedzi bez powtórzonego tytułu, instrukcji ani warstwy dekoracyjnej.</p></div>
-      </details>
-      <details open>
-        <summary><span><strong>4. Kontrola projektu</strong><small>Gotowość składu i ostrzeżenia przed eksportem</small></span></summary>
-        <div class="builder-panel-body"><div id="validationSummary" class="project-info">Analizuję projekt…</div></div>
-      </details>
-      <details open class="export-panel">
-        <summary><span><strong>5. Finalizacja</strong><small>Podgląd produkcyjny i finalny PDF 300 DPI</small></span></summary>
-        <div class="builder-panel-body"><div class="builder-final-actions"><button id="previewBook">Generuj podgląd</button><button id="exportPdf" class="primary-big">Generuj i pobierz finalny PDF</button></div><p class="hint">Finalny skład renderuje proceduralne strony do 300 DPI i pobiera jeden gotowy plik PDF — bez otwierania okna drukowania.</p></div>
-      </details>
-    </div>
-  </section>
-  <section class="workspace book-preview"><div class="workspace-head"><div><span class="step">PODGLĄD CAŁEJ KSIĄŻKI</span><h2>Przeciągnij strony, aby zmienić kolejność</h2></div><strong id="pageCount">0 stron</strong></div><div id="pageList" class="page-list"></div><div id="emptyState" class="empty">Projekt nie zawiera jeszcze stron. Dodaj strony w Studiach Feniksa, a następnie wróć tutaj.</div></section>
-</main>
-<section id="printBook" class="print-book" aria-hidden="true"></section>
-<script src="../../core/page-schema.js?v=0.31.2"></script>
-<script src="../../core/project-validator.js?v=0.22.0"></script>
-<script src="../../core/production-profile.js?v=0.22.0"></script>
-<script src="../../core/book-order.js?v=0.28.1"></script>
-<script src="../../core/fenix-pdf.js?v=0.22.1"></script>
-<script src="../maze-studio/maze-core.js?v=0.32.0"></script>
-<script src="../maze-studio/maze-engine.js?v=0.33.0"></script>
-<script src="../maze-studio/maze-render-fix.js?v=0.33.2"></script>
-<script src="../word-search-studio/word-search-core.js?v=0.27.6"></script>
-<script src="../coloring-studio/coloring-core.js?v=0.28.0"></script>
-<script src="../matching-studio/matching-core.js?v=0.9.0"></script>
-<script src="../complete-picture/complete-picture-core.js?v=0.35.1"></script>
-<script src="../tracing-studio/tracing-core.js?v=0.35.1"></script>
-<script src="../dot-to-dot-studio/dot-core.js?v=0.5.1"></script>
-<script src="logic-frozen-renderer.js?v=2"></script>
-<script src="../intro-studio/intro-renderer.js?v=0.27.6"></script>
-<script src="../shared/ending-renderers.js?v=0.27.6"></script>
-<script src="book-builder-core-v3.js"></script>
-<script src="../../core/production-plan.js?v=0.34.0"></script>
-<script src="production-renderers.js?v=1.3.0"></script>
-<script src="alphabet-production.js?v=1.1.0"></script>
-<script src="hidden-production.js?v=1.0.0"></script>
-<script src="book-builder.js?v=0.34.0-live-previews"></script>
-<script src="production-plan-ui.js?v=0.34.4-no-observer-loop"></script>
-</body>
+      </section>
+      <section class="workspace book-preview">
+        <div class="workspace-head">
+          <div>
+            <span class="step">PODGLĄD CAŁEJ KSIĄŻKI</span>
+            <h2>Przeciągnij strony, aby zmienić kolejność</h2>
+          </div>
+          <strong id="pageCount">0 stron</strong>
+        </div>
+        <div id="pageList" class="page-list"></div>
+        <div id="emptyState" class="empty">
+          Projekt nie zawiera jeszcze stron. Dodaj strony w Studiach Feniksa, a
+          następnie wróć tutaj.
+        </div>
+      </section>
+    </main>
+    <section id="printBook" class="print-book" aria-hidden="true"></section>
+    <script src="../../core/page-schema.js?v=0.31.2"></script>
+    <script src="../../core/project-validator.js?v=0.22.0"></script>
+    <script src="../../core/production-profile.js?v=0.22.0"></script>
+    <script src="../../core/book-order.js?v=0.28.1"></script>
+    <script src="../../core/fenix-pdf.js?v=0.22.1"></script>
+    <script src="../maze-studio/maze-core.js?v=0.40.0"></script>
+    <script src="../maze-studio/maze-engine.js?v=0.40.0"></script>
+    <script src="../maze-studio/maze-render-fix.js?v=0.40.0"></script>
+    <script src="../word-search-studio/word-search-core.js?v=0.27.6"></script>
+    <script src="../coloring-studio/coloring-core.js?v=0.28.0"></script>
+    <script src="../matching-studio/matching-core.js?v=0.9.0"></script>
+    <script src="../complete-picture/complete-picture-core.js?v=0.35.1"></script>
+    <script src="../tracing-studio/tracing-core.js?v=0.35.1"></script>
+    <script src="../dot-to-dot-studio/dot-core.js?v=0.5.1"></script>
+    <script src="logic-frozen-renderer.js?v=2"></script>
+    <script src="../intro-studio/intro-renderer.js?v=0.27.6"></script>
+    <script src="../shared/ending-renderers.js?v=0.27.6"></script>
+    <script src="book-builder-core-v3.js"></script>
+    <script src="../../core/production-plan.js?v=0.34.0"></script>
+    <script src="production-renderers.js?v=1.3.0"></script>
+    <script src="alphabet-production.js?v=1.1.0"></script>
+    <script src="hidden-production.js?v=1.0.0"></script>
+    <script src="book-builder.js?v=0.34.0-live-previews"></script>
+    <script src="production-plan-ui.js?v=0.34.4-no-observer-loop"></script>
+  </body>
 </html>
