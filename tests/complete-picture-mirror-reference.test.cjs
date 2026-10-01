@@ -44,8 +44,10 @@ function render(type,{solution=false}={}){
 
 const mirrorTask=render("mirror-pair");
 assert.equal(mirrorTask.roundRect,0,"mirror-pair nie powinien renderować ramki reference preview");
+const gridTask=render("grid-copy");
+assert.equal(gridTask.roundRect,0,"grid-copy nie powinien renderować ramki reference preview");
 
-for(const type of ["half-vertical","half-horizontal","grid-copy","missing-part","shadow-trace"]){
+for(const type of ["half-vertical","half-horizontal","missing-part","shadow-trace"]){
   assert.equal(render(type).roundRect,1,`${type} powinien nadal renderować reference preview`);
 }
 
@@ -54,6 +56,11 @@ assert.equal(mirrorSolution.roundRect,0,"Solution mirror-pair także nie powinno
 assert.ok(mirrorSolution.translate.some(([x,y])=>x===245&&y===555),"Solution powinno renderować lewy asset");
 assert.ok(mirrorSolution.translate.some(([x,y])=>x===605&&y===555),"Solution powinno renderować prawy asset");
 assert.ok(mirrorSolution.scale.some(([x,y])=>x===-1&&y===1),"Prawy asset Solution powinien pozostać odbiciem lustrzanym");
+
+const gridSolution=render("grid-copy",{solution:true});
+assert.equal(gridSolution.roundRect,0,"Solution grid-copy także nie powinno dodawać reference preview");
+assert.ok(gridSolution.translate.some(([x,y])=>x===230&&y===545),"Solution grid-copy powinno renderować wzór w lewej siatce");
+assert.ok(gridSolution.translate.some(([x,y])=>x===620&&y===545),"Solution grid-copy powinno renderować odpowiedź w prawej siatce");
 
 const legacyPage={
   title:"Legacy mirror page",
@@ -71,4 +78,4 @@ assert.equal(restored.asset,"owl");
 assert.equal(restored.title,"Legacy mirror page");
 assert.doesNotThrow(()=>window.FenixCompletePicture.render(restored,"legacy",0,{solution:false}));
 
-console.log("PASS Complete Picture: mirror-pair bez miniatury, pozostałe tryby bez zmian, Solution i stare strony działają.");
+console.log("PASS Complete Picture: mirror-pair i grid-copy bez miniatury, cztery pozostałe tryby bez zmian, Solution i stare strony działają.");
