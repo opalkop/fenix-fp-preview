@@ -43,7 +43,7 @@ window.FenixColoring=(()=>{
       titleSize:clamp(settings.titleSize??DEFAULTS.titleSize,64,180),
       instructionSize:clamp(settings.instructionSize??DEFAULTS.instructionSize,32,90),
       titleY:clamp(settings.titleY??DEFAULTS.titleY,140,420),
-      assetScale:clamp(settings.assetScale??DEFAULTS.assetScale,35,96),
+      assetScale:clamp(settings.assetScale??DEFAULTS.assetScale,35,120),
       assetY:clamp(settings.assetY??DEFAULTS.assetY,35,72),
       assetRef:content.assetRef||settings.assetRef||null
     };
