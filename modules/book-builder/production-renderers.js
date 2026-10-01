@@ -53,11 +53,33 @@ window.FenixBookProductionRenderers=(()=>{
     return out;
   }
 
+  function matchingAsset(ref,identity){
+    const assets=projectAssets();
+    let asset=ref?(FenixCore.getAsset(ref)||assets.find(item=>item.id===ref)):null;
+    if(!asset&&identity?.filename){const matches=assets.filter(item=>String(item.filename||"")===String(identity.filename));if(matches.length===1)asset=matches[0]}
+    if(!asset&&identity?.name){const matches=assets.filter(item=>String(item.name||"")===String(identity.name));if(matches.length===1)asset=matches[0]}
+    return asset?.dataUrl?asset:null;
+  }
+
   function matchingPairs(page){
-    const o=page?.recipe?.settings||{},content=page?.recipe?.content||{},n=clamp(Number(o.pairCount)||5,1,8),assets=matchingAssets(page).slice(0,n),mode=o.mode||"alphabet";
+    const o=page?.recipe?.settings||{},content=page?.recipe?.content||{},n=clamp(Number(o.pairCount)||5,1,8),mode=o.mode||"alphabet";
     if(mode==="alphabet")return [...Array(n)].map((_,i)=>({left:{kind:"text",text:String.fromCharCode(65+i)},right:{kind:"text",text:String.fromCharCode(97+i)}}));
     if(mode==="number-quantity")return [...Array(n)].map((_,i)=>({left:{kind:"text",text:String(i+1)},right:{kind:"quantity",value:i+1}}));
     if(mode==="manual")return (content.manual||[]).slice(0,n).map(p=>({left:{kind:"text",text:p.left},right:{kind:"text",text:p.right}}));
+    if(mode==="asset-pairs"){
+      const explicit=Array.isArray(content.assetPairs)?content.assetPairs.slice(0,n):[];
+      if(explicit.length){
+        const pairs=explicit.map((pair,index)=>{
+          const left=matchingAsset(pair?.leftAssetRef,pair?.leftAssetIdentity),right=matchingAsset(pair?.rightAssetRef,pair?.rightAssetIdentity);
+          return left&&right?{id:`asset-pair-${index+1}`,left:{kind:"image",dataUrl:left.dataUrl,assetRef:left.id},right:{kind:"image",dataUrl:right.dataUrl,assetRef:right.id}}:null;
+        });
+        return pairs.length===n&&pairs.every(Boolean)?pairs:[];
+      }
+      const legacy=matchingAssets(page).slice(0,n*2);
+      if(legacy.length<n*2)return[];
+      return [...Array(n)].map((_,index)=>({id:`legacy-asset-pair-${index+1}`,left:{kind:"image",dataUrl:legacy[index*2].dataUrl,assetRef:legacy[index*2].id},right:{kind:"image",dataUrl:legacy[index*2+1].dataUrl,assetRef:legacy[index*2+1].id}}));
+    }
+    const assets=matchingAssets(page).slice(0,n);
     if(mode==="shadow"){
       const side=o.shadowSide==="random"?(()=>{let h=0;for(const c of String(o.seed||"fenix"))h=(h*31+c.charCodeAt(0))>>>0;return h%2?"left":"right"})():o.shadowSide;
       return assets.map(a=>{const original={kind:"image",dataUrl:a.dataUrl},silhouette={kind:"image",dataUrl:a.dataUrl,variant:"shadow"};return side==="right"?{left:silhouette,right:original}:{left:original,right:silhouette}});

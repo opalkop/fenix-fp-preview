@@ -8,7 +8,7 @@ window.FenixModuleContracts=(()=>{
     "coloring-studio":{version:2,capabilities:["project-assets","edit-by-id"]},
     "complete-picture":{version:2,capabilities:["project-assets","edit-by-id"]},
     "tracing-studio":{version:2,capabilities:["project-assets","edit-by-id"]},
-    "matching-studio":{version:2,capabilities:["project-assets","solution","edit-by-id"]},
+    "matching-studio":{version:3,capabilities:["project-assets","solution","edit-by-id","explicit-asset-pairs"]},
     "dot-to-dot-studio":{version:2,capabilities:["svg-contour","seeded-points","solution","edit-by-id"]},
     "hidden-objects-studio":{version:2,capabilities:["targets","distractors","seeded-layout","solution","edit-by-id"]},
     "logic-studio":{version:5,capabilities:["project-assets","sequence","odd","matrix","sudoku-4x4","analogy","sudoku-four-assets","balanced-sudoku-missing","solution","edit-by-id"]}
