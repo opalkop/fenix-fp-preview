@@ -9,7 +9,7 @@
       s.onerror=reject;
       document.body.appendChild(s);
     });
-    await load("hidden.js?v=0.15.0");
+    await load("hidden.js?v=0.14.3");
     await load("hidden-pages.js?v=0.12.1");
     await load("hidden-asset-search.js?v=0.1.0");
   }catch(error){

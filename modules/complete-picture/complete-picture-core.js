@@ -35,7 +35,7 @@ window.FenixCompletePicture=(()=>{
   function missingCircle(o,random){const size=clamp(o.missingPartSize||.35,.10,.60),r=45+size*180,offset=135;let angle=random()*Math.PI*2;if(o.missingPartPosition==="top")angle=-Math.PI/2;else if(o.missingPartPosition==="bottom")angle=Math.PI/2;else if(o.missingPartPosition==="left")angle=Math.PI;else if(o.missingPartPosition==="right")angle=0;return{x:425+Math.cos(angle)*offset,y:550+Math.sin(angle)*offset,r}}
   function render(options={},seed="fenix-ctp",pageNo=0,{solution=false,scale=1,customImage=null}={}){
     const {canvas,ctx}=createCanvas(scale),o={type:"half-vertical",assetSource:"built-in",asset:"butterfly",scale:.94,lineWidth:4,shadow:.10,shadowScale:1.4,shadowAssetScale:1,guide:true,dots:false,grid:false,missingGuide:"faint",missingGuideOpacity:.20,missingGuideLineWidth:1.5,missingPartSize:.35,missingPartPosition:"random",referenceSize:100,title:"Complete the Picture",instruction:"Draw the missing half of the picture.",...options},random=rng(seed),{line}=helpers(ctx),guideOn=o.missingGuide!=="none";
-    base(ctx,o);if(!["mirror-pair","grid-copy"].includes(o.type))drawReference(ctx,o,customImage);if(o.grid&&o.type!=="grid-copy")grid(ctx,115,210,620,650,8);
+    base(ctx,o);drawReference(ctx,o,customImage);if(o.grid&&o.type!=="grid-copy")grid(ctx,115,210,620,650,8);
     const main=customImage?frameFor(customImage,425,550,o.scale):{cx:425,cy:550,scale:o.scale,left:0,top:0,w:0,h:0};
     if(o.type==="shadow-trace"){
       const areaScale=clamp(o.shadowScale||1.4,.8,1.9),assetScale=o.scale*clamp(o.shadowAssetScale||1,.5,1.6),areaW=430*areaScale,areaH=560*areaScale,frame=customImage?frameFor(customImage,425,555,assetScale):{cx:425,cy:555,scale:assetScale};
