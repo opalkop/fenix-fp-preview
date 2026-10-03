@@ -5,14 +5,14 @@
   const core=(()=>{try{return typeof FenixCore!=="undefined"?FenixCore:null}catch{return null}})();
   if(!planner||!core)return;
 
-  function currentPresetId(){return $("#productionPlanPreset")?.value||"ocean-fantasy-50"}
+  function currentPresetId(){return $("#productionPlanPreset")?.value||"robo-future-50"}
 
   function summaryText(result){
     const missing=result.missingCount;
     const overflow=result.overflowCount;
     const parts=[`Przypisano ${result.assignedCount}/${result.preset.slots.length} zaplanowanych aktywności.`];
     if(missing)parts.push(`Pozostało ${missing} pustych slotów.`);
-    else parts.push("Plan 50/50 jest kompletny.");
+    else parts.push(`Plan ${result.preset.slots.length}/${result.preset.slots.length} jest kompletny.`);
     if(overflow)parts.push(`Poza planem: ${overflow} dodatkowych stron.`);
     return parts.join(" ");
   }
