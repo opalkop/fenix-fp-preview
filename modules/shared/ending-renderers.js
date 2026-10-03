@@ -26,9 +26,9 @@ window.FenixEndingRenderers=(()=>{
     },
     "qr-studio":{
       name:"QR Studio",label:"Strona z kodem QR",file:"qr",
-      defaults:{qrAssetRef:"",title:"KEEP THE ADVENTURE GOING!",body:"Scan the code to discover more activities, bonus materials, or the next part of the adventure.",qrLabel:"SCAN ME",footer:"Ask an adult for help before opening a link.",titleSize:108,bodySize:54,labelSize:46,footerSize:40,codeSize:"large",style:"clean"},
+      defaults:{qrAssetRef:"",qrFrameAssetRef:"",title:"KEEP THE ADVENTURE GOING!",body:"Scan the code to discover more activities, bonus materials, or the next part of the adventure.",qrLabel:"SCAN ME",footer:"Ask an adult for help before opening a link.",titleSize:108,bodySize:54,labelSize:46,footerSize:40,codeSize:"large",style:"clean"},
       groups:[
-        {title:"1. Asset kodu QR",hint:"Dodaj gotowy kod QR jako asset aktywnego projektu lub wybierz zapisany wcześniej.",fields:[["qrAssetRef","Kod QR projektu","asset","PNG, JPG, WEBP lub SVG. Najlepiej kwadratowy, czarno-biały plik o wysokim kontraście."]]},
+        {title:"1. Asset kodu QR",hint:"Dodaj gotowy kod QR jako asset aktywnego projektu lub wybierz zapisany wcześniej.",fields:[["qrAssetRef","Właściwy kod QR","asset","Wybierz obraz zawierający prawdziwy, skanowalny kod QR."],["qrFrameAssetRef","Dekoracyjna ramka QR","qr-frame-asset","Opcjonalny asset dekoracyjny, np. robot-terminal. Kod QR zostanie nałożony na środek ramki."]]},
         {title:"2. Treść strony",hint:"Teksty prowadzące czytelnika do kolejnego materiału.",fields:[["title","Tytuł strony","text",120],["body","Instrukcja","textarea",700],["qrLabel","Podpis pod kodem","text",80],["footer","Stopka bezpieczeństwa","text",160]]},
         {title:"3. Wygląd strony",hint:"Kod pozostaje na białym polu bezpieczeństwa i jest renderowany bez warstwy deco.",fields:[["codeSize","Rozmiar kodu","select",[["large","Duży — zalecany"],["medium","Średni"]]],["style","Kompozycja","select",[["clean","Czysta"],["framed","Ramka strony"],["card","Karta QR"]]],["titleSize","Wielkość tytułu","number",[72,160]],["bodySize","Wielkość instrukcji","number",[40,90]],["labelSize","Wielkość podpisu QR","number",[30,72]],["footerSize","Wielkość stopki","number",[28,72]]]}
       ]
@@ -121,7 +121,7 @@ window.FenixEndingRenderers=(()=>{
     const matrix=qrMatrix(value),quiet=4,module=size/(matrix.length+quiet*2);ctx.fillStyle="#fff";ctx.fillRect(x,y,size,size);ctx.fillStyle="#000";
     matrix.forEach((row,r)=>row.forEach((dark,c)=>{if(dark)ctx.fillRect(x+(c+quiet)*module,y+(r+quiet)*module,Math.ceil(module+.15),Math.ceil(module+.15))}));
   }
-  function renderQr(settings,width,height,qrAssetImage=null){
+  function renderQr(settings,width,height,qrAssetImage=null,qrFrameAssetImage=null){
     const {canvas,ctx,s}=base(width,height,settings.style),cx=width/2,titleSize=Math.max(72,Math.min(160,Number(settings.titleSize)||108)),bodySize=Math.max(40,Math.min(90,Number(settings.bodySize)||54)),labelSize=Math.max(30,Math.min(72,Number(settings.labelSize)||46)),footerSize=Math.max(28,Math.min(72,Number(settings.footerSize)||40)),max=1980*s;
     // QR-only text boxes keep complete text inside its own safe band, including
     // long unbroken labels. Fit before drawing; never truncate with slice().
@@ -146,23 +146,24 @@ window.FenixEndingRenderers=(()=>{
     const qrSize=(settings.codeSize==="medium"?1120:1390)*s,qrX=(width-qrSize)/2,qrY=1250*s;
     if(settings.style==="card"){ctx.lineWidth=4*s;ctx.strokeRect(qrX-70*s,qrY-70*s,qrSize+140*s,qrSize+310*s)}
     ctx.fillStyle="#fff";ctx.fillRect(qrX,qrY,qrSize,qrSize);
+    if(qrFrameAssetImage){const fw=qrFrameAssetImage.naturalWidth||qrFrameAssetImage.width||1,fh=qrFrameAssetImage.naturalHeight||qrFrameAssetImage.height||1,fs=Math.min(qrSize/fw,qrSize/fh),fdw=fw*fs,fdh=fh*fs;ctx.save();ctx.filter="grayscale(1) contrast(1.08)";ctx.drawImage(qrFrameAssetImage,qrX+(qrSize-fdw)/2,qrY+(qrSize-fdh)/2,fdw,fdh);ctx.restore()}
     if(qrAssetImage){const sourceWidth=qrAssetImage.naturalWidth||qrAssetImage.width||1,sourceHeight=qrAssetImage.naturalHeight||qrAssetImage.height||1,inner=qrSize*.9,scale=Math.min(inner/sourceWidth,inner/sourceHeight),drawWidth=sourceWidth*scale,drawHeight=sourceHeight*scale;ctx.save();ctx.imageSmoothingEnabled=false;ctx.filter="grayscale(1) contrast(1.35)";ctx.drawImage(qrAssetImage,qrX+(qrSize-drawWidth)/2,qrY+(qrSize-drawHeight)/2,drawWidth,drawHeight);ctx.restore()}else{ctx.strokeStyle="#777";ctx.lineWidth=4*s;ctx.setLineDash([22*s,16*s]);ctx.strokeRect(qrX+70*s,qrY+70*s,qrSize-140*s,qrSize-140*s);ctx.setLineDash([]);ctx.fillStyle="#555";ctx.font=`800 ${42*s}px Arial, sans-serif`;ctx.fillText("DODAJ ASSET KODU QR",cx,qrY+qrSize/2)}
     // The asset branch restores the white QR background fillStyle. Text must
     // set its own dark fill, independently of whether an asset is present.
     fittedText(settings.qrLabel,qrY+qrSize+40*s,settings.style==="card"?qrSize+60*s:max,160*s,labelSize,900);
     fittedText(settings.footer,height-390*s,max,180*s,footerSize,400);return canvas;
   }
-  function fromPage(page,module){const definition=DEFINITIONS[module],stored=object(page?.recipe?.settings),content=object(page?.recipe?.content),legacyCreatorMark=content.signatureAssetRef||stored.signatureAssetRef;return{...definition.defaults,...stored,...(module==="congratulations-studio"&&(content.congratsAssetRef||stored.congratsAssetRef)?{congratsAssetRef:content.congratsAssetRef||stored.congratsAssetRef}:{}),...(module==="qr-studio"&&content.assetRef?{qrAssetRef:content.assetRef}:{}),...(module==="certificate-studio"&&(content.creatorMarkAssetRef||legacyCreatorMark)?{creatorMarkAssetRef:content.creatorMarkAssetRef||legacyCreatorMark}:{})}}
+  function fromPage(page,module){const definition=DEFINITIONS[module],stored=object(page?.recipe?.settings),content=object(page?.recipe?.content),legacyCreatorMark=content.signatureAssetRef||stored.signatureAssetRef;return{...definition.defaults,...stored,...(module==="congratulations-studio"&&(content.congratsAssetRef||stored.congratsAssetRef)?{congratsAssetRef:content.congratsAssetRef||stored.congratsAssetRef}:{}),...(module==="qr-studio"&&content.assetRef?{qrAssetRef:content.assetRef}:{}),...(module==="qr-studio"&&(content.frameAssetRef||stored.qrFrameAssetRef)?{qrFrameAssetRef:content.frameAssetRef||stored.qrFrameAssetRef}:{}),...(module==="certificate-studio"&&(content.creatorMarkAssetRef||legacyCreatorMark)?{creatorMarkAssetRef:content.creatorMarkAssetRef||legacyCreatorMark}:{})}}
   function page(module,settings,original=null){
     const definition=DEFINITIONS[module],stamp=new Date().toISOString();
-    const congratsAssetRef=module==="congratulations-studio"?String(settings.congratsAssetRef||""):"",assetRef=module==="qr-studio"?String(settings.qrAssetRef||""):"",creatorMarkAssetRef=module==="certificate-studio"?String(settings.creatorMarkAssetRef||""):"",content={};if(congratsAssetRef)content.congratsAssetRef=congratsAssetRef;if(assetRef)content.assetRef=assetRef;if(creatorMarkAssetRef)content.creatorMarkAssetRef=creatorMarkAssetRef;
+    const congratsAssetRef=module==="congratulations-studio"?String(settings.congratsAssetRef||""):"",assetRef=module==="qr-studio"?String(settings.qrAssetRef||""):"",qrFrameAssetRef=module==="qr-studio"?String(settings.qrFrameAssetRef||""):"",creatorMarkAssetRef=module==="certificate-studio"?String(settings.creatorMarkAssetRef||""):"",content={};if(congratsAssetRef)content.congratsAssetRef=congratsAssetRef;if(assetRef)content.assetRef=assetRef;if(qrFrameAssetRef)content.frameAssetRef=qrFrameAssetRef;if(creatorMarkAssetRef)content.creatorMarkAssetRef=creatorMarkAssetRef;
     return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content,meta:{renderer:"ending-v2"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:module==="qr-studio"&&!assetRef?"warning":"ok",messages:module==="qr-studio"&&!assetRef?["Dodaj asset kodu QR przed eksportem finalnego PDF."]:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.27.6",format:"native"}});
   }
-  function render(pageValue,{width=2550,height=3300,congratsAssetImage=null,qrAssetImage=null,creatorMarkImage=null,signatureAssetImage=null}={}){
+  function render(pageValue,{width=2550,height=3300,congratsAssetImage=null,qrAssetImage=null,qrFrameAssetImage=null,creatorMarkImage=null,signatureAssetImage=null}={}){
     const module=String(pageValue?.module||pageValue?.recipe?.module||""),settings=fromPage(pageValue,module);
     if(module==="congratulations-studio")return renderCongratulations(settings,width,height,congratsAssetImage);
     if(module==="certificate-studio")return renderCertificate(settings,width,height,creatorMarkImage||signatureAssetImage);
-    if(module==="qr-studio")return renderQr(settings,width,height,qrAssetImage);
+    if(module==="qr-studio")return renderQr(settings,width,height,qrAssetImage,qrFrameAssetImage);
     throw new Error(`Nieobsługiwana strona końcowa: ${module}`);
   }
   return Object.freeze({modules:Object.freeze(Object.keys(DEFINITIONS)),DEFINITIONS,fromPage,page,render,qrMatrix});
