@@ -158,9 +158,9 @@ window.FenixEndingRenderers=(()=>{
     const assetRef=module==="qr-studio"?String(settings.qrAssetRef||""):"",creatorMarkAssetRef=module==="certificate-studio"?String(settings.creatorMarkAssetRef||""):"",content={};if(assetRef)content.assetRef=assetRef;if(creatorMarkAssetRef)content.creatorMarkAssetRef=creatorMarkAssetRef;
     return FenixPageSchema.normalize({id:original?.id,createdAt:original?.createdAt||stamp,updatedAt:stamp,module,title:settings.title||definition.label,recipe:{module,seed:null,title:settings.title||definition.label,settings:{...definition.defaults,...settings},content,meta:{renderer:"ending-v2"},renderState:{}},solution:{available:false,imageData:null},validation:{kdp:{status:module==="qr-studio"&&!assetRef?"warning":"ok",messages:module==="qr-studio"&&!assetRef?["Dodaj asset kodu QR przed eksportem finalnego PDF."]:[]}},production:{format:"8.5x11",bleed:"no-bleed",dpi:300,width:2550,height:3300},source:{app:module,version:"0.27.6",format:"native"}});
   }
-  function render(pageValue,{width=2550,height=3300,qrAssetImage=null,creatorMarkImage=null,signatureAssetImage=null}={}){
+  function render(pageValue,{width=2550,height=3300,congratsAssetImage=null,qrAssetImage=null,creatorMarkImage=null,signatureAssetImage=null}={}){
     const module=String(pageValue?.module||pageValue?.recipe?.module||""),settings=fromPage(pageValue,module);
-    if(module==="congratulations-studio")return renderCongratulations(settings,width,height,options.congratsAssetImage||null);
+    if(module==="congratulations-studio")return renderCongratulations(settings,width,height,congratsAssetImage);
     if(module==="certificate-studio")return renderCertificate(settings,width,height,creatorMarkImage||signatureAssetImage);
     if(module==="qr-studio")return renderQr(settings,width,height,qrAssetImage);
     throw new Error(`Nieobsługiwana strona końcowa: ${module}`);
