@@ -9,6 +9,37 @@ window.FenixProductionPlan=Object.freeze((()=>{
     {id:"fantasy-kingdom",name:"Fantasy Kingdom"}
   ]);
 
+
+  const ROBO_FUTURE_ZONES=Object.freeze([
+    {id:"robot-lab",name:"Robot Lab"},
+    {id:"factory-floor",name:"Factory Floor"},
+    {id:"tech-zone",name:"Tech Zone"},
+    {id:"future-city",name:"Future City"},
+    {id:"space-mission",name:"Space Mission"}
+  ]);
+
+  // 50 aktywności ROBO FUTURE. Kolejność stron wewnątrz każdego Studia
+  // pozostaje kolejnością produkcyjną, więc X1→Color X1, X2→Color X2 itd.
+  const ROBO_FUTURE_MODULES=Object.freeze([
+    ["maze-studio","coloring-studio","maze-studio","coloring-studio","maze-studio","coloring-studio","maze-studio","coloring-studio","word-search-studio","matching-studio"],
+    ["tracing-studio","complete-picture","hidden-objects-studio","coloring-studio","dot-to-dot-studio","maze-studio","coloring-studio","logic-studio","word-search-studio","matching-studio"],
+    ["tracing-studio","complete-picture","hidden-objects-studio","coloring-studio","dot-to-dot-studio","maze-studio","coloring-studio","hidden-objects-studio","word-search-studio","matching-studio"],
+    ["tracing-studio","complete-picture","coloring-studio","dot-to-dot-studio","maze-studio","hidden-objects-studio","coloring-studio","logic-studio","word-search-studio","matching-studio"],
+    ["tracing-studio","complete-picture","hidden-objects-studio","coloring-studio","dot-to-dot-studio","maze-studio","complete-picture","hidden-objects-studio","tracing-studio","complete-picture"]
+  ]);
+
+  function makeRoboFutureSlots(){
+    const slots=[];
+    ROBO_FUTURE_MODULES.forEach((modules,zoneIndex)=>{
+      const zone=ROBO_FUTURE_ZONES[zoneIndex];
+      modules.forEach((module,index)=>slots.push(Object.freeze({
+        slot:slots.length+1,zoneId:zone.id,zoneName:zone.name,
+        zoneOrder:zoneIndex+1,activityInZone:index+1,module
+      })));
+    });
+    return Object.freeze(slots);
+  }
+
   const OCEAN_FANTASY_MODULES=Object.freeze([
     ["coloring-studio","maze-studio","matching-studio","dot-to-dot-studio","hidden-objects-studio","coloring-studio","maze-studio","complete-picture","word-search-studio","logic-studio"],
     ["coloring-studio","maze-studio","dot-to-dot-studio","matching-studio","hidden-objects-studio","coloring-studio","maze-studio","word-search-studio","complete-picture","logic-studio"],
@@ -34,6 +65,11 @@ window.FenixProductionPlan=Object.freeze((()=>{
   }
 
   const PRESETS=Object.freeze({
+    "robo-future-50":Object.freeze({
+      id:"robo-future-50",
+      name:"ROBO FUTURE — 5 misji / 50 aktywności",
+      slots:makeRoboFutureSlots()
+    }),
     "ocean-fantasy-50":Object.freeze({
       id:"ocean-fantasy-50",
       name:"Ocean Fantasy Adventure — 5 stref / 50 aktywności",
