@@ -17,6 +17,10 @@ const allowOrphans=new Set([
   'tools/dead-code-audit.mjs'
 ]);
 for(const rel of files){if(/^modules\/[a-z0-9-]+\/index\.html$/.test(rel))allowOrphans.add(rel)}
+// Entry points that are opened or run directly, not loaded by other files.
+allowOrphans.add('modules/book-builder/plan-recovery.html');
+for(const rel of files){if(/^tools\/[^/]+\.(c|m)?js$/.test(rel))allowOrphans.add(rel)}
+for(const rel of files){if(/^tests\/.*(\.test\.c?js|\.html)$/.test(rel))allowOrphans.add(rel)}
 const orphanCandidates=files.filter(rel=>candidatesExt.has(path.extname(rel))&&!allowOrphans.has(rel)&&basenameRefs.get(rel).length===0);
 const hashes=new Map();
 for(const rel of files){if(!candidatesExt.has(path.extname(rel)))continue;const buf=fs.readFileSync(path.join(root,rel));if(!buf.length)continue;const hash=crypto.createHash('sha256').update(buf).digest('hex');if(!hashes.has(hash))hashes.set(hash,[]);hashes.get(hash).push(rel)}
