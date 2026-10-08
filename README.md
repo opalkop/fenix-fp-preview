@@ -54,7 +54,7 @@ Dane projektów są zapisywane w przeglądarce (localStorage / IndexedDB).
 
 - **`feature/fenix-portable-mobile`** — gałąź robocza. Tu trafia cały rozwój.
 - Repozytorium `opalkop/fenix-fp-preview` automatycznie kopiuje tę gałąź (GitHub uruchamia synchronizację co kilka godzin) i publikuje ją na GitHub Pages. Synchronizację można też uruchomić ręcznie: fp-preview → Actions → Sync FP Preview → Run workflow. Nie edytuj kodu w fp-preview, bo zmiany zostaną nadpisane.
-- `main` zawiera starą wersję v0.14 i nie jest aktualna.
+- `main` — stan gałęzi roboczej z 8 października 2026 (wcześniej stara v0.14). Nie aktualizuje się sam: aby go odświeżyć, przesuń go na `feature/fenix-portable-mobile`.
 
 ## Testy
 
